@@ -6,9 +6,15 @@ _PROMPT_PATH = Path(__file__).parent / "prompts" / "qb_system.txt"
 
 
 class QBAgent:
-    def __init__(self, model: str = "gpt-4o-mini", reasoning_effort: str | None = "low"):
+    def __init__(
+        self,
+        model: str = "gpt-4o-mini",
+        reasoning_effort: str | None = "low",
+        provider: str = "openai",
+    ):
         self.model = model
         self.reasoning_effort = reasoning_effort
+        self.provider = provider
         self._system = _PROMPT_PATH.read_text()
         self.last_action: dict = {"action": "hold", "reasoning": "initializing"}
         self.call_count = 0
@@ -16,7 +22,7 @@ class QBAgent:
 
     def decide(self, observation: str) -> dict:
         self.call_count += 1
-        raw = call_llm(self._system, observation, self.model, self.reasoning_effort)
+        raw = call_llm(self._system, observation, self.model, self.reasoning_effort, self.provider)
         action = parse_qb_action(raw)
         if action is None:
             self.parse_errors += 1

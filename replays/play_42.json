@@ -1,0 +1,196 @@
+{
+  "header": {
+    "seed": 42,
+    "scenario": "sim/scenarios/a1_basic.yaml",
+    "roster": "sim/rosters/default.yaml"
+  },
+  "steps": [
+    {
+      "t": 0.0,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 5.0,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "speed": 0.0,
+          "action": "throw",
+          "reasoning": "Separation at arrival is 5.52 yd (>3 yd), ensuring an open throw to WR1's current position since he isn't moving."
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.0,
+            50.14
+          ],
+          "heading": 0.0,
+          "speed": 1.4,
+          "action": "run_route",
+          "reasoning": "running scripted slant"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.37,
+            55.5
+          ],
+          "heading": 270.0,
+          "speed": 1.3,
+          "action": "cover",
+          "reasoning": "scripted man coverage"
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          26.65,
+          48.0
+        ],
+        "landing": [
+          16.0,
+          50.0
+        ],
+        "eta": 0.164
+      },
+      "events": [
+        {
+          "type": "THROW",
+          "target": [
+            16.0,
+            50.0
+          ],
+          "mph": 45.0,
+          "eta": 0.16,
+          "dist": 10.8
+        }
+      ]
+    },
+    {
+      "t": 0.1,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 4.9,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "speed": 0.0,
+          "action": "throw",
+          "reasoning": "Separation at arrival is 5.52 yd (>3 yd), ensuring an open throw to WR1's current position since he isn't moving."
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.0,
+            50.42
+          ],
+          "heading": 0.0,
+          "speed": 2.8,
+          "action": "run_route",
+          "reasoning": "running scripted slant"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.35,
+            55.31
+          ],
+          "heading": 185.3,
+          "speed": 1.87,
+          "action": "cover",
+          "reasoning": "scripted man coverage"
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          20.16,
+          49.22
+        ],
+        "landing": [
+          16.0,
+          50.0
+        ],
+        "eta": 0.064
+      },
+      "events": []
+    },
+    {
+      "t": 0.2,
+      "phase": "END",
+      "sack_clock": 4.8,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "speed": 0.0,
+          "action": "throw",
+          "reasoning": "Separation at arrival is 5.52 yd (>3 yd), ensuring an open throw to WR1's current position since he isn't moving."
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.0,
+            50.42
+          ],
+          "heading": 0.0,
+          "speed": 2.8,
+          "action": "run_route",
+          "reasoning": "running scripted slant"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.35,
+            55.31
+          ],
+          "heading": 185.3,
+          "speed": 1.87,
+          "action": "cover",
+          "reasoning": "scripted man coverage"
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          13.68,
+          50.44
+        ],
+        "landing": [
+          16.0,
+          50.0
+        ],
+        "eta": 0.0
+      },
+      "events": [
+        {
+          "type": "RESOLUTION",
+          "outcome": "PBU",
+          "separation": 4.91
+        }
+      ]
+    }
+  ],
+  "footer": {
+    "outcome": "PBU",
+    "telemetry": {
+      "max_separation": 5.52,
+      "throw_t": 0.0,
+      "throw_distance": 10.8,
+      "sack": false,
+      "qb_calls": 1,
+      "qb_parse_errors": 0
+    }
+  }
+}

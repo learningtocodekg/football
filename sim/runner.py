@@ -61,8 +61,11 @@ def run_play(
     roster_path: str,
     seed: int,
     output_path: str,
+    scenario_overrides: dict | None = None,
 ) -> tuple[str, dict]:
     scenario = _load_yaml(scenario_path)
+    if scenario_overrides:
+        scenario.update(scenario_overrides)
     roster = _load_yaml(roster_path)
     rng = make_rng(seed)
 
@@ -80,7 +83,8 @@ def run_play(
     # ── Agents ───────────────────────────────────────────────────────────
     model = scenario.get("qb_model", "gpt-4o-mini")
     r_effort = scenario.get("qb_reasoning_effort")  # None disables the param
-    qb_agent = QBAgent(model=model, reasoning_effort=r_effort)
+    provider = scenario.get("qb_provider", "openai")
+    qb_agent = QBAgent(model=model, reasoning_effort=r_effort, provider=provider)
     wr_agent = ScriptedWR()
     wr_agent.CUT_TIME = scenario.get("wr_cut_time", 2.0)
     wr_agent.CUT_HEADING = scenario.get("wr_cut_heading", 40.0)

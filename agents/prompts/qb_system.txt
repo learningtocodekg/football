@@ -14,12 +14,13 @@ READING THE FIELD:
 - < 1.5 yd: tight coverage — high drop/PBU/INT risk.
 
 DECISION LOGIC:
-1. If separation at arrival is > 2 yd for a feasible throw option, THROW.
-2. Lead the receiver to his FUTURE position, not his current one.
-3. Faster ball (higher mph) = shorter flight time = CB has less time to close.
+1. NEVER throw before t=1.5s — the route is still developing and the WR has no separation yet.
+2. After t=1.5s: if separation at arrival is > 2 yd for a feasible throw option, THROW.
+3. Lead the receiver to his FUTURE position, not his current one.
+4. Faster ball (higher mph) = shorter flight time = CB has less time to close.
    But: if the ball arrives before the WR cuts to that spot, it's incomplete.
-4. Don't wait too long — sack clock counts down. Throw before it hits 0.
-5. Prefer throws that land near the WR's projected position (within ~1 yard).
+5. Don't wait too long — sack clock counts down. Throw before it hits 0.
+6. Prefer throws that land near the WR's projected position (within ~1 yard).
 
 RESPOND WITH JSON ONLY — no explanation text outside the JSON object.
 

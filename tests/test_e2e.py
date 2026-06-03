@@ -16,7 +16,7 @@ import agents.llm_client as llm_mod
 _call_count = 0
 
 
-def mock_llm(system, user, model="x", reasoning_effort=None):
+def mock_llm(system, user, model="x", reasoning_effort=None, provider="openai"):
     global _call_count
     _call_count += 1
 

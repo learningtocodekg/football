@@ -1,0 +1,15 @@
+name: "A1 Local — QB agent via Ollama, scripted WR/CB"
+phase: A1
+description: >
+  QB is a local Ollama model. WR runs a scripted slant route.
+  CB plays scripted man coverage with a 0.3s reaction delay.
+  Run Ollama first: ollama serve
+
+qb_provider: "ollama"
+qb_model: "qwen3:8b"
+qb_reasoning_effort: null  # Ollama uses temperature (set in llm_client.py), not reasoning_effort
+
+# Scripted route config (same as a1_basic)
+wr_cut_time: 2.0
+wr_cut_heading: 40.0
+cb_reaction_delay: 0.3
