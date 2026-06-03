@@ -1,0 +1,14 @@
+name: "A1 Basic — QB agent, scripted WR/CB"
+phase: A1
+description: >
+  QB is an LLM agent (gpt-4o-mini default). WR runs a scripted slant route.
+  CB plays scripted man coverage with a 0.3s reaction delay.
+
+# Override model per-role (defaults to gpt-4o-mini if gpt-5-nano unavailable)
+qb_model: "gpt-4o-mini"
+qb_reasoning_effort: null   # gpt-4o-mini uses temperature, not reasoning_effort
+
+# Scripted route config
+wr_cut_time: 2.0     # seconds before WR breaks the slant
+wr_cut_heading: 40.0 # degrees (inside slant)
+cb_reaction_delay: 0.3
