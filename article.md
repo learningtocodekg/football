@@ -43,6 +43,9 @@ In replays the CB was giving up 4+ yards of separation within the first second. 
 **PBU requires proximity (1 yard) or CB in passing lane**
 A PBU was firing at 5.91 yards of separation — completely unrealistic. A cornerback 6 yards away cannot break up a pass. Changed resolution logic so a PBU is only possible if the CB is within 1 yard of the WR at arrival, or is physically in the passing lane (within 1.5 yards of the line between the landing spot and the WR).
 
+**Pending-cut problem: pass 2 projections are wrong before the cut fires**
+The two-pass system showed "MISS by 11yd" for every option while the route was developing — correct behavior. But the model would sometimes commit anyway at t=1.6s on a slant where the cut fires at t=2.0s. The pass 2 options use current WR heading/speed to project position at arrival. Pre-cut, those projections point the WR running straight upfield forever — so the landing spot is never near the projected WR. The model sees "MISS" and should hold, but occasionally reasons "the WR will be near there *after* the cut" and commits early. The fix is to make the pending-cut warning stronger in the pass 2 prompt: if a cut is imminent, the projections are explicitly labeled unreliable.
+
 ---
 
 ## Observations
@@ -51,3 +54,5 @@ A PBU was firing at 5.91 yards of separation — completely unrealistic. A corne
 - Pre-computing things "to help" often backfired (projected separation, min hold time from scenario YAML) because the model would anchor on the pre-computed number instead of reading the actual situation.
 - The two-pass system revealed that the model's intent and its commitment were disconnected — it would say "I want to throw here" and then pick an option that physically couldn't reach the receiver.
 - Travel time was a consistent blind spot. The model understood the concept when told, but couldn't apply it correctly without seeing explicit "WR will be at X when ball arrives" numbers.
+- The two-pass system partially solved premature throws but introduced a subtler failure: the model reasons about *future* WR state (post-cut) while the projections show *current* heading extrapolated forward. It's doing the right qualitative reasoning ("WR will be open after cut") but committing before the cut validates that. The scaffold showed MISS correctly; the model overrode it with narrative reasoning.
+- Tooling footgun (Ollama): `response_format={"type": "json_object"}` causes qwen3:8b via Ollama's OpenAI-compat API to return empty `content`. The thinking goes to `model_extra["reasoning"]` and the answer never makes it to `content`. Removing the format constraint and falling back to the reasoning field fixes it — but the symptom (silent empty string) is a bad failure mode that looked like a hang.
