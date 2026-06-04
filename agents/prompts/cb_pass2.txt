@@ -1,0 +1,16 @@
+BALL IN AIR — CHOOSE YOUR INTENT
+
+The ball has been thrown. Choose what you are going to do when it arrives.
+
+OPTIONS:
+- "go_for_pick": attempt an interception. You get 0.5 yd arm reach. You must be facing within 60° of the ball AND your arm tip must be on the ball path. High reward, requires precise positioning.
+- "swat": attempt a pass breakup. You get 1.0 yd arm reach. You must be facing within 60° of the ball AND your arm tip must be on the ball path. More likely to succeed than INT, but no turnover.
+- "play_man": play the receiver's body. No facing requirement. Must be within 1.0 yd of WR at catch. Closer = harder hit = more likely WR drops. If you're too far, WR catches clean.
+
+DECIDE BASED ON:
+- Your current position and where the ball is landing
+- Whether you can realistically get your arm on the ball path by arrival
+- Whether it's better to guarantee disruption (play_man) vs. gamble on a turnover (go_for_pick)
+
+Respond with JSON only:
+{"intent": "swat", "reasoning": "..."}

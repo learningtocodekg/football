@@ -1,5 +1,5 @@
 """
-End-to-end smoke test with a mock QB (no LLM API call required).
+End-to-end smoke test with mock QB and CB (no LLM API call required).
 Run: python tests/test_e2e.py
 """
 import json
@@ -20,6 +20,20 @@ def mock_llm(system, user, model="x", reasoning_effort=None, provider="openai"):
     global _call_count
     _call_count += 1
 
+    # ── CB calls — identified by system prompt marker ────────────────────
+    if "cornerback" in system.lower():
+        # Pre-snap: contains "PRE-SNAP OBSERVATION"
+        if "PRE-SNAP OBSERVATION" in user:
+            return '{"offset_yards": 5, "side": "outside", "reasoning": "standard off coverage"}'
+
+        # Intent decision: contains "INTENT DECISION"
+        if "INTENT DECISION" in user:
+            return '{"intent": "play_man", "reasoning": "close to WR, play the body"}'
+
+        # Movement: default to backpedaling upfield while watching WR
+        return '{"heading": 0, "facing": 0, "mode": "normal", "reasoning": "closing on WR"}'
+
+    # ── QB calls ─────────────────────────────────────────────────────────
     # Parse current t from observation header
     t_val = 0.0
     for line in user.splitlines():
@@ -33,14 +47,13 @@ def mock_llm(system, user, model="x", reasoning_effort=None, provider="openai"):
     is_pass2 = "CATCHABLE" in user or "MISS by" in user
 
     if is_pass2:
-        # Pass 2: commit to throw if t >= 2.3, else hold
         if t_val >= 2.3:
             return (
                 '{"action":"throw","option":"medium","reasoning":"WR open on slant after cut"}'
             )
         return '{"action":"hold","reasoning":"waiting for WR to cut"}'
 
-    # Pass 1: at t >= 2.0 indicate thinking toward slant landing spot; else hold
+    # Pass 1
     if t_val >= 2.0:
         return (
             '{"action":"thinking","target_area":[21.5,73.0],'
@@ -53,6 +66,8 @@ llm_mod.call_llm = mock_llm
 
 # ── Now run the play ──────────────────────────────────────────────────────────
 from sim.runner import run_play
+
+os.makedirs("replays", exist_ok=True)
 
 outcome, tel = run_play(
     scenario_path="sim/scenarios/a1_basic.yaml",
@@ -76,8 +91,12 @@ assert "players" in step0
 assert "ball" in step0
 assert len(step0["players"]) == 3
 
+# CB telemetry present
+assert "cb_calls" in replay["footer"]["telemetry"]
+assert "cb_intent" in replay["footer"]["telemetry"]
+
 print(f"\n--- PASS ---")
-print(f"Outcome:      {outcome}")
-print(f"Steps logged: {len(replay['steps'])}")
-print(f"QB mock calls:{_call_count}")
-print(f"Telemetry:    {tel}")
+print(f"Outcome:       {outcome}")
+print(f"Steps logged:  {len(replay['steps'])}")
+print(f"Total mock calls: {_call_count}")
+print(f"Telemetry:     {tel}")

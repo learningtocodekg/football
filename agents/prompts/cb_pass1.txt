@@ -1,0 +1,18 @@
+COVERAGE DECISION
+
+Given the current state, choose your movement heading, facing direction, and mode.
+
+You must output:
+- heading: 0–360° direction to physically move this step (0=upfield, 90=right, 180=back, 270=left)
+- facing: 0–360° direction your eyes/chest point (can differ from heading if backpedaling)
+- mode: "normal", "backpedal", or "brake"
+- reasoning: brief explanation
+
+INSTRUCTIONS:
+1. Read the SITUATION block in your observation. It has a RECOMMENDED action with explicit heading, facing, and mode values.
+2. Follow the RECOMMENDED action unless the ball is in the air (then also factor in the landing zone).
+3. If ball is in the air: primary goal is to move toward the landing zone — use "heading to move toward zone" from BALL IN AIR block.
+4. Do NOT invent headings. Use the exact numbers given in SITUATION or BALL IN AIR.
+
+Respond with JSON only:
+{"heading": 5, "facing": 185, "mode": "backpedal", "reasoning": "SITUATION says backpedal: heading 5 upfield, facing 185 toward WR"}

@@ -1,0 +1,15 @@
+PRE-SNAP ALIGNMENT
+
+Before the play starts, choose where to line up relative to the WR.
+
+OPTIONS:
+- offset_yards: how many yards off the line of scrimmage to align behind the WR (0 = press, 5 = off, 8+ = deep)
+- side: "inside" (between WR and field center), "outside" (outside of WR), or "press" (directly over WR)
+
+Consider:
+- WR's starting position and field position
+- Whether you want to take away inside or outside routes
+- How fast you are vs. the WR (press is risky against speed)
+
+Respond with JSON only:
+{"offset_yards": 5, "side": "outside", "reasoning": "..."}

@@ -1,5 +1,5 @@
 """
-Scripted (non-LLM) agents for Phase A1.
+Scripted (non-LLM) agents for Phase A1/A2.
 
 Route geometries (expected designs — WR improvises exact execution):
   slant    — upfield 2.0s, cut inside at 40°
@@ -8,6 +8,7 @@ Route geometries (expected designs — WR improvises exact execution):
   out      — upfield 1.8s, cut outside toward sideline at 315° (left WR) or 45° mirrored
 
 ScriptedCB — man coverage with 0.3s reaction delay.
+ScriptedQB — throws to a fixed target at a fixed time (no LLM, for CB testing).
 """
 import math
 from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff, heading_to_dxdy
@@ -115,3 +116,90 @@ class ScriptedCB:
         diff = angle_diff(target_heading, cb.heading)
         turn = max(-90.0, min(90.0, diff))
         return apply_action(cb, cb_attrs, turn, "accelerate", dt)
+
+
+class ScriptedQB:
+    """
+    Throws to the WR's exact future position at a fixed time. No LLM calls.
+
+    At throw_t, simulates the WR forward along its scripted route for exactly the
+    ball's flight time, then throws to that position. Uses the same physics as the
+    real game loop so the target is always accurate.
+
+    throw_t:        seconds after snap to release
+    wr_agent:       the ScriptedWR instance (set by runner after construction)
+    wr_attrs:       the WR's PlayerAttrs (set by runner after construction)
+    ball_speed_mph: throw speed
+    """
+
+    MPH_TO_YDS_S = 1.46667
+    SIM_DT = 0.05  # step size for WR position simulation (small = accurate)
+
+    def __init__(self, throw_t: float, ball_speed_mph: float = 45.0):
+        self.throw_t = throw_t
+        self.ball_speed_mph = ball_speed_mph
+        self.wr_agent: ScriptedWR | None = None
+        self.wr_attrs = None
+        self.target: list[float] | None = None
+        self.last_action: dict = {"action": "hold", "reasoning": "scripted QB"}
+        self.call_count = 0
+        self.parse_errors = 0
+
+    def decide(self, observation: str, qb_x: float, qb_y: float,
+               wr_x: float = 0.0, wr_y: float = 0.0,
+               wr_heading: float = 0.0, wr_speed: float = 0.0, **kwargs) -> dict:
+        import re
+        t_val = 0.0
+        for line in observation.splitlines():
+            if "sack_clock" in line and "t=" in line:
+                m = re.search(r"t=(\d+\.\d+)", line)
+                if m:
+                    t_val = float(m.group(1))
+                break
+
+        if t_val < self.throw_t:
+            self.last_action = {"action": "hold", "reasoning": "scripted QB holding"}
+            return self.last_action
+
+        # Simulate WR forward along its scripted route to find where it will be
+        # when the ball arrives. Iterate: simulate eta seconds, recompute eta with
+        # new distance, repeat once to converge.
+        from engine.physics import PlayerState
+        wr_state = PlayerState(x=wr_x, y=wr_y, speed=wr_speed, heading=wr_heading,
+                               facing=wr_heading, mode="normal")
+        speed_yds = self.ball_speed_mph * self.MPH_TO_YDS_S
+
+        def simulate_wr(state, duration):
+            t = t_val
+            elapsed = 0.0
+            while elapsed < duration:
+                dt = min(self.SIM_DT, duration - elapsed)
+                state = self.wr_agent.move(t + elapsed, state, self.wr_attrs, dt)
+                elapsed += dt
+            return state
+
+        # First pass: estimate eta from current WR position
+        dist0 = math.hypot(wr_x - qb_x, wr_y - qb_y)
+        eta = dist0 / speed_yds if dist0 > 0 else 0.0
+
+        if self.wr_agent and self.wr_attrs:
+            future = simulate_wr(wr_state, eta)
+            # Second pass: refine eta with the lead distance
+            dist1 = math.hypot(future.x - qb_x, future.y - qb_y)
+            eta2 = dist1 / speed_yds if dist1 > 0 else 0.0
+            future = simulate_wr(wr_state, eta2)
+            target = [round(future.x, 1), round(future.y, 1)]
+        else:
+            # Fallback: use current WR position
+            target = [round(wr_x, 1), round(wr_y, 1)]
+            eta2 = eta
+
+        self.target = target
+        action = {
+            "action": "throw",
+            "target_coord": target,
+            "ball_speed_mph": self.ball_speed_mph,
+            "reasoning": f"scripted throw at t={self.throw_t} to WR future pos eta≈{eta2:.2f}s",
+        }
+        self.last_action = action
+        return action

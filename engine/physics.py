@@ -1,6 +1,8 @@
 import math
 from dataclasses import dataclass
 
+BACKPEDAL_SPEED_FRACTION = 0.75  # CB max speed when backpedaling
+
 
 @dataclass
 class PlayerAttrs:
@@ -23,8 +25,8 @@ class PlayerState:
     y: float
     speed: float = 0.0
     heading: float = 0.0   # degrees: 0=upfield(+y), 90=right(+x), clockwise
-    facing: float = 0.0
-    mode: str = "normal"
+    facing: float = 0.0    # direction player is facing (may differ from heading when backpedaling)
+    mode: str = "normal"   # "normal" | "backpedal" | "brake"
 
 
 def heading_to_dxdy(heading_deg: float) -> tuple[float, float]:
@@ -44,8 +46,11 @@ def apply_action(
     turn_deg: float,
     throttle: str,  # "accelerate" | "hold" | "brake"
     dt: float = 0.1,
+    new_facing: float | None = None,
+    new_mode: str | None = None,
 ) -> PlayerState:
     new_heading = (state.heading + turn_deg) % 360.0
+    mode = new_mode if new_mode is not None else state.mode
 
     # Turn sheds speed: ~95% loss at 90° for agility=50 (baseline)
     agility_factor = attrs.agility / 50.0
@@ -53,19 +58,26 @@ def apply_action(
     shed = min(shed, state.speed)
     speed_post_turn = state.speed - shed
 
+    # Backpedal caps max speed at BACKPEDAL_SPEED_FRACTION of max_speed
+    effective_max = (
+        attrs.max_speed * BACKPEDAL_SPEED_FRACTION if mode == "backpedal" else attrs.max_speed
+    )
+
     if throttle == "accelerate":
-        new_speed = min(attrs.max_speed, speed_post_turn + attrs.acceleration * dt)
+        new_speed = min(effective_max, speed_post_turn + attrs.acceleration * dt)
     elif throttle == "brake":
         new_speed = max(0.0, speed_post_turn - attrs.acceleration * 1.5 * dt)
     else:  # hold
-        new_speed = speed_post_turn
+        new_speed = min(effective_max, speed_post_turn)
 
     dx, dy = heading_to_dxdy(new_heading)
+    # facing: use explicitly provided value, else default to heading (for non-CB players)
+    facing = new_facing if new_facing is not None else new_heading
     return PlayerState(
         x=state.x + dx * new_speed * dt,
         y=state.y + dy * new_speed * dt,
         speed=new_speed,
         heading=new_heading,
-        facing=new_heading,
-        mode=state.mode,
+        facing=facing,
+        mode=mode,
     )

@@ -1,49 +1,53 @@
 # Build State
-Current phase: A1
-Built:
-  - engine/ (field, physics, ball, resolution, state_machine)
-  - replay/recorder.py
-  - agents/ (schema, observation, llm_client, qb_agent, scripted WR/CB)
-  - sim/ (seeds, runner, rosters/default.yaml)
-  - render/renderer_pygame.py
-  - main.py (--local/--model flags for Ollama support)
-  - requirements.txt + python-dotenv (.env support)
-  - tests/test_e2e.py (two-pass mock QB smoke test — passes)
-  - tests/test_ollama.py (scratch debugging file — not a real test, can delete)
-  - Ollama local model support (qwen3:8b default, provider="ollama")
-  - 4 scripted routes: slant, post, comeback, out
-  - 6 scenario YAMLs: a1_basic, a1_local, a1_1st10_slant, a1_2nd25_post, a1_3rd10_comeback, a1_3rd3_out
-  - article.md: scaffolding decisions log for future article
+Current phase: A2 (CB agent built, under iteration)
 
-QB agent architecture (two-pass):
-  - Pass 1: model reads field, outputs hold or thinking+rough_target
-  - Pass 2: concrete options at target (5 speed tiers: bullet/hard/medium/soft/lob),
-    each showing WR projected position at arrival and catchable/miss verdict
-  - agents/prompts/: qb_system.txt, qb_pass1.txt, qb_pass2.txt
+## Built
+- engine/physics.py — PlayerState, apply_action (backpedal mode, new_facing/new_mode params), BACKPEDAL_SPEED_FRACTION=0.75
+- engine/ball.py, field.py, resolution.py, state_machine.py
+- engine/resolution.py — facing+arm-reach geometry for PBU/INT; CB_ARM_REACH=1.0, CB_HALF_REACH=0.5, CB_FACING_CONE=60°; play_man proximity bonus
+- replay/recorder.py
+- agents/qb_agent.py (two-pass: hold/thinking → concrete options)
+- agents/cb_agent.py (three-pass: pre_snap / decide_movement / decide_intent)
+- agents/scripted.py — ScriptedWR (4 routes), ScriptedCB (legacy), ScriptedQB (route-aware lead throw)
+- agents/observation.py — build_qb_observation, build_cb_observation (fuzzy zone, situation block), build_cb_pre_snap_observation, build_cb_intent_observation
+- agents/schema.py — QB parsers + CB parsers (parse_cb_pre_snap, parse_cb_pass1, parse_cb_pass2)
+- agents/llm_client.py (OpenAI + Ollama)
+- agents/prompts/ — qb_system, qb_pass1, qb_pass2, cb_system, cb_pre_snap, cb_pass1, cb_pass2
+- sim/runner.py — A2 runner: ScriptedQB wiring, CB pre-snap, per-step CB movement, intent decision
+- sim/seeds.py, rosters/default.yaml
+- sim/scenarios/ — a1_basic, a1_local, a1_1st10_slant, a1_2nd25_post, a1_3rd10_comeback, a1_3rd3_out, a2_cb_slant
+- render/renderer_pygame.py
+- main.py
+- tests/test_e2e.py (mock QB + CB, passes)
+- article.md
 
-QB observation includes:
-  - Positions, speeds, headings, current separation with coverage context
-  - Ball travel time reference (bullet/regular/lob) to current WR distance
-  - Route schedule: cut times, headings, plain-English labels, estimated WR position at each cut
-  - Movement history (last 20 steps)
-  - Expected open timestep hint (per scenario)
+## Architecture
 
-Resolution (engine/resolution.py):
-  - PBU only possible if CB within 1 yd of WR OR CB in passing lane (1.5 yd from ball path)
+**QB agent (two-pass):**
+- Pass 1: read field → hold or thinking+rough_target
+- Pass 2: concrete options at target (bullet/hard/medium/soft/lob), WR projected at arrival
 
-Scripted CB (agents/scripted.py):
-  - 2.0s lockup phase: mirrors WR directly before reaction delay engages
+**CB agent (three-pass):**
+- Pre-snap: choose offset_yards + side
+- LIVE (per step): heading + facing + mode (normal/backpedal/brake)
+- BALL_IN_AIR (once): intent = play_man / swat / go_for_pick
 
-Ollama (llm_client.py):
-  - No response_format for ollama provider (causes empty content in qwen3)
-  - Falls back to model_extra["reasoning"] if content is empty
-  - Functional but slow (~10-30s/call on local hardware)
+**CB observation key feature — SITUATION block:**
+- Three states with RECOMMENDED action (exact heading/facing/mode values):
+  1. CB upfield of WR → backpedal (heading ~0°, facing ~180°)
+  2. WR just passed CB → close gap immediately
+  3. WR >2 yd ahead → CHASE (sprint at bearing to WR)
 
-All scenarios use: gpt-5-nano, reasoning_effort="low", max_completion_tokens=4000
+**ScriptedQB:**
+- Simulates WR forward via ScriptedWR.move() for eta seconds (two-pass refinement)
+- No linear projection — uses exact same physics as game loop
+- Activated by qb_scripted: true in scenario YAML
 
-Not started: A2 (CB agent), A3 (WR agent), A4 (all live), B–E
+## Known Issues
+- CB intent is almost always "swat" regardless of geometry; swat often fails silently (arm not on lane)
+- CB pre-snap alignment not yet varying by route — always picks off-coverage outside
+- QB still throws slightly early on developing routes (A1 carryover)
+- Ollama local runs functional but slow; qwen3 parse error rate ~73% without json_object constraint
 
-Known issues:
-  - QB throws too early on developing routes (t=1.6s on slant when cut is t=2.0s)
-  - WR projection in pass 2 uses current heading only — pre-cut throws shown as misses is correct behavior, but model still sometimes commits before the cut
-  - Ollama runs functional but slow; not practical for rapid iteration
+## Not Started
+A3 (WR agent), A4 (all three live), B–E
