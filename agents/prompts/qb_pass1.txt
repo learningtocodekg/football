@@ -1,0 +1,14 @@
+STEP 1 OF 2 — READ THE FIELD.
+
+Look at the situation. Do you see a throw developing right now, or do you want to wait?
+
+If you want to wait: respond with hold.
+If you see a window: respond with thinking and give the coordinates where you want the ball to LAND — the actual spot on the field. This must be a place where the WR will realistically be when the ball arrives. You are not committing yet, this is just your read.
+
+Respond with JSON only.
+
+Hold:
+{"action": "hold", "reasoning": "one sentence why"}
+
+Thinking (seeing a window):
+{"action": "thinking", "target_area": [x, y], "reasoning": "one sentence — where is the WR going and why is this a good landing spot"}

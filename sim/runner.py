@@ -81,19 +81,30 @@ def run_play(
     ball = BallState(x=states["QB"].x, y=states["QB"].y, holder_id="QB")
 
     # ── Agents ───────────────────────────────────────────────────────────
-    model = scenario.get("qb_model", "gpt-4o-mini")
+    model = scenario.get("qb_model", "gpt-5-nano")
     r_effort = scenario.get("qb_reasoning_effort")  # None disables the param
     provider = scenario.get("qb_provider", "openai")
-    qb_agent = QBAgent(model=model, reasoning_effort=r_effort, provider=provider)
-    wr_agent = ScriptedWR()
-    wr_agent.CUT_TIME = scenario.get("wr_cut_time", 2.0)
-    wr_agent.CUT_HEADING = scenario.get("wr_cut_heading", 40.0)
+    # Compute QB's actual max mph from roster so agent generates accurate options
+    qb_throw_power = next(
+        (r["throw_power"] for r in roster["players"] if r["id"] == "QB"), 85.0
+    )
+    qb_max_mph = MIN_BALL_MPH + (qb_throw_power / 99.0) * (MAX_BALL_MPH - MIN_BALL_MPH)
+    qb_agent = QBAgent(model=model, reasoning_effort=r_effort, provider=provider,
+                       min_mph=MIN_BALL_MPH, max_mph=qb_max_mph)
+    wr_agent = ScriptedWR(route=scenario.get("wr_route", "slant"))
     cb_agent = ScriptedCB()
 
-    recorder = Recorder(header={"seed": seed, "scenario": scenario_path, "roster": roster_path})
+    down = scenario.get("down", 1)
+    distance = scenario.get("distance", 10)
+    expected_open_t = scenario.get("expected_open_t")
+    route_phases = wr_agent._phases
+
+    recorder = Recorder(header={"seed": seed, "scenario": scenario_path, "roster": roster_path,
+                                "down": down, "distance": distance})
 
     phase = PlayPhase.LIVE
     outcome: str | None = None
+    move_history: list[dict] = []
     telemetry: dict = {
         "max_separation": 0.0,
         "throw_t": None,
@@ -132,31 +143,47 @@ def run_play(
                     _ball_snap(ball), events)
                 break
 
-            # QB decides
-            obs = build_qb_observation(
-                t, sack_clock,
-                states["QB"], attrs["QB"],
-                states["WR1"], attrs["WR1"],
-                states["CB1"], attrs["CB1"],
-                ball,
-            )
-            qb_action = qb_agent.decide(obs)
-            actions["QB"] = qb_action
-            print(f"  t={t:.1f}  QB -> {qb_action['action']!r:8}  | {qb_action['reasoning'][:70]}")
+            # Don't consult the QB until there's enough movement history to read.
+            # At t=0 the WR hasn't moved; the model has nothing to reason about.
+            if t < 0.5:
+                actions["QB"] = {"action": "hold", "reasoning": "route developing"}
+                print(f"  t={t:.1f}  QB -> 'hold'    | route developing")
+            else:
+                obs = build_qb_observation(
+                    t, sack_clock,
+                    states["QB"], attrs["QB"],
+                    states["WR1"], attrs["WR1"],
+                    states["CB1"], attrs["CB1"],
+                    ball,
+                    down=down,
+                    distance=distance,
+                    history=move_history,
+                    expected_open_t=expected_open_t,
+                    route_phases=route_phases,
+                )
+                qb_action = qb_agent.decide(
+                    obs, states["QB"].x, states["QB"].y,
+                    wr_x=states["WR1"].x, wr_y=states["WR1"].y,
+                    wr_heading=states["WR1"].heading, wr_speed=states["WR1"].speed,
+                )
+                actions["QB"] = qb_action
+                p1 = qb_action.get("pass1")
+                if p1 and p1["action"] == "thinking":
+                    print(f"  t={t:.1f}  QB pass1 -> thinking target={p1['target_area']} | {p1['reasoning']}")
+                print(f"  t={t:.1f}  QB pass2 -> {qb_action['action']!r:8}  | {qb_action['reasoning']}")
 
-            if qb_action["action"] == "throw":
-                tc = qb_action["target_coord"]
-                mph = qb_action["ball_speed_mph"]
-                # Clamp to throw-power ceiling
-                max_mph = MIN_BALL_MPH + (attrs["QB"].throw_power / 99.0) * (MAX_BALL_MPH - MIN_BALL_MPH)
-                mph = max(MIN_BALL_MPH, min(max_mph, mph))
-                ball = throw_ball(ball, states["QB"].x, states["QB"].y, tc[0], tc[1], mph)
-                dist = math.hypot(tc[0] - states["QB"].x, tc[1] - states["QB"].y)
-                events.append({"type": "THROW", "target": tc, "mph": round(mph, 1),
-                                "eta": round(ball.eta, 2), "dist": round(dist, 1)})
-                telemetry["throw_t"] = t
-                telemetry["throw_distance"] = round(dist, 1)
-                phase = PlayPhase.BALL_IN_AIR
+                if qb_action["action"] == "throw":
+                    tc = qb_action["target_coord"]
+                    mph = qb_action["ball_speed_mph"]
+                    max_mph = MIN_BALL_MPH + (attrs["QB"].throw_power / 99.0) * (MAX_BALL_MPH - MIN_BALL_MPH)
+                    mph = max(MIN_BALL_MPH, min(max_mph, mph))
+                    ball = throw_ball(ball, states["QB"].x, states["QB"].y, tc[0], tc[1], mph)
+                    dist = math.hypot(tc[0] - states["QB"].x, tc[1] - states["QB"].y)
+                    events.append({"type": "THROW", "target": tc, "mph": round(mph, 1),
+                                    "eta": round(ball.eta, 2), "dist": round(dist, 1)})
+                    telemetry["throw_t"] = t
+                    telemetry["throw_distance"] = round(dist, 1)
+                    phase = PlayPhase.BALL_IN_AIR
 
         # ── BALL_IN_AIR phase ────────────────────────────────────────────
         elif phase == PlayPhase.BALL_IN_AIR:
@@ -182,6 +209,14 @@ def run_play(
         cb_agent.record_wr(t, states["WR1"])
         states["WR1"] = wr_agent.move(t, states["WR1"], attrs["WR1"], DT)
         states["CB1"] = cb_agent.move(t, states["CB1"], attrs["CB1"], states["WR1"], DT)
+
+        move_history.append({
+            "t": t,
+            "wr": [round(states["WR1"].x, 1), round(states["WR1"].y, 1)],
+            "wr_hdg": round(states["WR1"].heading, 1),
+            "cb": [round(states["CB1"].x, 1), round(states["CB1"].y, 1)],
+            "cb_hdg": round(states["CB1"].heading, 1),
+        })
 
         # Record step
         recorder.record_step(

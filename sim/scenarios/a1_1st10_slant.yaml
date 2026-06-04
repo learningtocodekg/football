@@ -1,0 +1,14 @@
+name: "1st & 10 — Slant"
+phase: A1
+description: >
+  1st and 10. WR runs a slant route (upfield 2s, cut inside at 40°).
+  QB has room to be patient or take a shot early if separation opens.
+
+down: 1
+distance: 10
+wr_route: slant
+expected_open_t: 2.3   # slant cuts at t=2.0s; WR typically creates separation shortly after
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"

@@ -1,5 +1,8 @@
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 _openai_client: OpenAI | None = None
 _ollama_client: OpenAI | None = None
@@ -28,7 +31,7 @@ def _get_ollama_client() -> OpenAI:
 def call_llm(
     system_prompt: str,
     user_message: str,
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-5-nano",
     reasoning_effort: str | None = "low",
     provider: str = "openai",  # "openai" | "ollama"
 ) -> str:
@@ -39,13 +42,16 @@ def call_llm(
     ]
     kwargs: dict = {"model": model, "messages": messages}
 
-    # reasoning_effort only applies to OpenAI o-series / gpt-5-nano; skip for Ollama
-    if reasoning_effort is not None and provider != "ollama":
-        kwargs["reasoning_effort"] = reasoning_effort
-
-    # Local models benefit from low temperature for reliable JSON output
     if provider == "ollama":
+        # Local models: low temperature + JSON mode
         kwargs["temperature"] = 0.3
+        kwargs["response_format"] = {"type": "json_object"}
+    else:
+        # gpt-5-nano: reasoning_effort, structured JSON output, tight token budget
+        if reasoning_effort is not None:
+            kwargs["reasoning_effort"] = reasoning_effort
+        kwargs["response_format"] = {"type": "json_object"}
+        kwargs["max_completion_tokens"] = 4000
 
     resp = client.chat.completions.create(**kwargs)
     return resp.choices[0].message.content or ""

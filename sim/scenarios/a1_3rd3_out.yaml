@@ -1,0 +1,14 @@
+name: "3rd & 3 — Out"
+phase: A1
+description: >
+  3rd and 3. WR runs an out route (quick upfield burst 1.8s, then cuts outside toward sideline at 315°).
+  Short conversion — QB should throw quickly after the cut, safe window preferred over big play.
+
+down: 3
+distance: 3
+wr_route: out
+expected_open_t: 2.1   # out cuts at t=1.8s; WR typically creates separation shortly after
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"

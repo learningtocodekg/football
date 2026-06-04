@@ -1,0 +1,14 @@
+name: "2nd & 25 — Post"
+phase: A1
+description: >
+  2nd and 25. WR runs a post route (upfield 2.5s, then diagonal cut inside at 45°).
+  Long yardage — QB needs to find a clean window, but an incompletion is acceptable.
+
+down: 2
+distance: 25
+wr_route: post
+expected_open_t: 2.8   # post cuts at t=2.5s; WR typically creates separation shortly after
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"

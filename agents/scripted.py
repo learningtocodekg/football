@@ -1,21 +1,55 @@
 """
 Scripted (non-LLM) agents for Phase A1.
 
-ScriptedWR  — slant route: sprint upfield for 2 s, then cut inside (heading 40°).
-ScriptedCB  — man coverage: mirror WR movement with a 0.3 s reaction delay.
+Route geometries (expected designs — WR improvises exact execution):
+  slant    — upfield 2.0s, cut inside at 40°
+  post     — upfield 2.5s, cut inside at 45° (toward center/goal post)
+  comeback — upfield 2.5s, decelerate and cut back toward QB at 180°
+  out      — upfield 1.8s, cut outside toward sideline at 315° (left WR) or 45° mirrored
+
+ScriptedCB — man coverage with 0.3s reaction delay.
 """
 import math
-from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff
+from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff, heading_to_dxdy
+
+
+# ── Route definitions ─────────────────────────────────────────────────────────
+# Each route is: list of (time_threshold, target_heading_degrees)
+# The WR uses the heading for the first phase whose threshold is not yet exceeded.
+# Heading 0° = straight upfield, 90° = right, 180° = back toward QB, 270° = left.
+
+ROUTES: dict[str, list[tuple[float, float]]] = {
+    # Straight upfield, then sharp inside cut
+    "slant":    [(2.0, 0.0), (999, 40.0)],
+    # Straight upfield longer, then diagonal toward middle of field (post)
+    "post":     [(2.5, 0.0), (999, 45.0)],
+    # Straight upfield, then turn back toward QB
+    "comeback": [(2.5, 0.0), (999, 180.0)],
+    # Quick upfield burst, then cut outside toward sideline
+    "out":      [(1.8, 0.0), (999, 315.0)],
+}
 
 
 class ScriptedWR:
-    """Runs a slant: upfield (heading 0°) until t=2.0 s, then cuts inside (heading 40°)."""
+    """
+    Runs a called route. Route name maps to a sequence of (time, heading) phases.
+    The WR sprints at full throttle throughout, steering toward the phase heading.
+    """
 
-    CUT_TIME = 2.0     # seconds into play when WR breaks
-    CUT_HEADING = 40.0  # degrees (slightly right of upfield = inside slant)
+    def __init__(self, route: str = "slant"):
+        if route not in ROUTES:
+            raise ValueError(f"Unknown route '{route}'. Valid: {list(ROUTES)}")
+        self.route = route
+        self._phases = ROUTES[route]
+
+    def _target_heading(self, t: float) -> float:
+        for threshold, heading in self._phases:
+            if t < threshold:
+                return heading
+        return self._phases[-1][1]
 
     def move(self, t: float, state: PlayerState, attrs: PlayerAttrs, dt: float = 0.1) -> PlayerState:
-        target = 0.0 if t < self.CUT_TIME else self.CUT_HEADING
+        target = self._target_heading(t)
         diff = angle_diff(target, state.heading)
         turn = max(-90.0, min(90.0, diff))
         return apply_action(state, attrs, turn, "accelerate", dt)
@@ -23,12 +57,13 @@ class ScriptedWR:
 
 class ScriptedCB:
     """
-    Man coverage with reaction delay.
-    Records WR state history; uses the state from REACTION_DELAY seconds ago
-    to determine the current movement target.
+    Man coverage. Stays hip-to-hip with WR for the first LOCKUP_DURATION seconds
+    (mirroring the WR's current heading/position), then applies REACTION_DELAY
+    so the CB must react to cuts the WR makes after that point.
     """
 
-    REACTION_DELAY = 0.3  # seconds
+    REACTION_DELAY = 0.3   # seconds — delay applied after lockup phase
+    LOCKUP_DURATION = 2.0  # seconds — CB stays tight with WR before cut reaction kicks in
 
     def __init__(self):
         self._history: list[tuple[float, PlayerState]] = []
@@ -54,11 +89,24 @@ class ScriptedCB:
         wr_current: PlayerState,
         dt: float = 0.1,
     ) -> PlayerState:
-        wr_ref = self._delayed_wr(t) or wr_current
+        # During lockup phase, mirror WR's current position with no delay — CB stays
+        # on WR's hip. After lockup, apply reaction delay so cuts create separation.
+        if t < self.LOCKUP_DURATION:
+            wr_ref = wr_current
+        else:
+            wr_ref = self._delayed_wr(t) or wr_current
 
-        # Aim at WR's position plus a small upfield cushion
-        tx = wr_ref.x
-        ty = wr_ref.y + 1.5  # stay slightly upfield of WR
+        dist_to_wr = math.hypot(cb.x - wr_ref.x, cb.y - wr_ref.y)
+
+        # If CB is still closing (more than 1 yd away), chase WR's position directly.
+        # Once within 1 yd, mirror WR's heading to stay on their hip.
+        if dist_to_wr > 1.0:
+            tx = wr_ref.x
+            ty = wr_ref.y
+        else:
+            dx, dy = heading_to_dxdy(wr_ref.heading)
+            tx = cb.x + dx
+            ty = cb.y + dy
 
         dx = tx - cb.x
         dy = ty - cb.y

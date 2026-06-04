@@ -42,6 +42,27 @@ python -m render.renderer_pygame replays/play_42.json
 ```
 Optional flags: `--scenario`, `--roster`, `--output`
 
+**Hardcoded situations** — pre-built scenarios with specific down/distance and route.
+
+With OpenAI:
+```
+python main.py --scenario sim/scenarios/a1_1st10_slant.yaml --seed 42
+python main.py --scenario sim/scenarios/a1_2nd25_post.yaml --seed 42
+python main.py --scenario sim/scenarios/a1_3rd10_comeback.yaml --seed 42
+python main.py --scenario sim/scenarios/a1_3rd3_out.yaml --seed 42
+```
+With a local Ollama model (no API key needed):
+```
+python main.py --local --scenario sim/scenarios/a1_1st10_slant.yaml --seed 42    # 1st & 10 — Slant
+python main.py --local --scenario sim/scenarios/a1_2nd25_post.yaml --seed 42     # 2nd & 25 — Post
+python main.py --local --scenario sim/scenarios/a1_3rd10_comeback.yaml --seed 42 # 3rd & 10 — Comeback
+python main.py --local --scenario sim/scenarios/a1_3rd3_out.yaml --seed 42       # 3rd & 3 — Out
+```
+Watch any of them with:
+```
+python -m render.renderer_pygame replays/play_42.json
+```
+
 ### 6. Run with a local model via Ollama (no API key needed)
 
 Install [Ollama](https://ollama.com), then pull a model and run it:

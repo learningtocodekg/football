@@ -4,12 +4,42 @@ Built:
   - engine/ (field, physics, ball, resolution, state_machine)
   - replay/recorder.py
   - agents/ (schema, observation, llm_client, qb_agent, scripted WR/CB)
-  - sim/ (seeds, runner, rosters/default.yaml, scenarios/a1_basic.yaml)
+  - sim/ (seeds, runner, rosters/default.yaml)
   - render/renderer_pygame.py
-  - main.py, requirements.txt
-  - tests/test_e2e.py (mock QB, full loop verified)
-In progress: live LLM run (needs OPENAI_API_KEY)
+  - main.py (--local/--model flags for Ollama support)
+  - requirements.txt + python-dotenv (.env support)
+  - tests/test_e2e.py (mock QB smoke test — currently broken, needs decide() sig update)
+  - Ollama local model support (qwen3:8b default, provider="ollama")
+  - 4 scripted routes: slant, post, comeback, out
+  - 6 scenario YAMLs: a1_basic, a1_local, a1_1st10_slant, a1_2nd25_post, a1_3rd10_comeback, a1_3rd3_out
+  - article.md: scaffolding decisions log for future article
+
+QB agent architecture (two-pass):
+  - Pass 1: model reads field, outputs hold or thinking+rough_target
+  - Pass 2: concrete options at target (5 speed tiers: bullet/hard/medium/soft/lob),
+    each showing WR projected position at arrival and catchable/miss verdict
+  - agents/prompts/: qb_system.txt, qb_pass1.txt, qb_pass2.txt
+
+QB observation includes:
+  - Positions, speeds, headings, current separation with coverage context
+  - Ball travel time reference (bullet/regular/lob) to current WR distance
+  - Route schedule: cut times, headings, plain-English labels, estimated WR position at each cut
+  - Movement history (last 20 steps)
+  - Expected open timestep hint (per scenario)
+
+Resolution (engine/resolution.py):
+  - PBU only possible if CB within 1 yd of WR OR CB in passing lane (1.5 yd from ball path)
+  - Previously fired at any separation — was broken
+
+Scripted CB (agents/scripted.py):
+  - 2.0s lockup phase: mirrors WR directly before reaction delay engages
+  - Previously allowed 4+ yd gap in first second
+
+All scenarios use: gpt-5-nano, reasoning_effort="low", max_completion_tokens=4000
+
 Not started: A2 (CB agent), A3 (WR agent), A4 (all live), B–E
+
 Known issues:
-  - Default model is gpt-4o-mini (scenario yaml); swap to gpt-5-nano when available
-  - QB model uses no reasoning_effort (null in scenario) — set to "low" for o-series models
+  - test_e2e.py broken — decide() signature changed (needs qb_x, qb_y, wr_x, wr_y, wr_heading, wr_speed)
+  - WR projection in pass 2 uses current heading only — post-cut targets show as misses until cut happens
+  - QB occasionally commits to a throw despite seeing "MISS" in pass 2 options

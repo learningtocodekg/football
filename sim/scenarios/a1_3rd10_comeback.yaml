@@ -1,0 +1,14 @@
+name: "3rd & 10 — Comeback"
+phase: A1
+description: >
+  3rd and 10. WR runs a comeback route (upfield 2.5s, then turns back toward QB at 180°).
+  Must-convert situation — QB should be conservative, wait for the WR to settle, don't force it.
+
+down: 3
+distance: 10
+wr_route: comeback
+expected_open_t: 2.8   # comeback cuts at t=2.5s; WR settles and creates separation shortly after
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
