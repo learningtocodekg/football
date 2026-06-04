@@ -151,12 +151,27 @@ def build_cb_pre_snap_observation(
     return "\n".join(lines)
 
 
+def _intercept_heading(cb: PlayerState, wr: PlayerState, cb_speed: float) -> float:
+    """Compute the heading CB should run to intercept WR's projected path.
+
+    Projects the WR forward 0.5s along its current heading/speed, then returns
+    the bearing from CB's current position to that projected point.  This gives
+    the CB a lead angle rather than always chasing the WR's current spot.
+    """
+    LOOK_AHEAD = 0.5  # seconds
+    wr_hdg_rad = math.radians(wr.heading)
+    proj_x = wr.x + math.sin(wr_hdg_rad) * wr.speed * LOOK_AHEAD
+    proj_y = wr.y + math.cos(wr_hdg_rad) * wr.speed * LOOK_AHEAD
+    return math.degrees(math.atan2(proj_x - cb.x, proj_y - cb.y)) % 360.0
+
+
 def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> list[str]:
     """Pre-computed situational context lines so the CB doesn't have to do trig."""
     dx = wr.x - cb.x   # positive = WR is to CB's right
     dy = wr.y - cb.y   # positive = WR is upfield of CB (further from QB)
     sep = math.hypot(dx, dy)
     bearing_to_wr = math.degrees(math.atan2(dx, dy)) % 360.0
+    intercept_hdg = _intercept_heading(cb, wr, cb_attrs.max_speed)
 
     if dx > 0.3:
         x_rel = f"WR is {dx:.1f} yd to your RIGHT"
@@ -165,8 +180,22 @@ def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> li
     else:
         x_rel = "You are directly in line with WR horizontally"
 
-    # Three meaningful situations with unambiguous action advice
-    if dy < -0.5:
+    # Is the WR running back toward the QB (comeback/out-and-in)?
+    # Heading 180° = straight back, treat 135–225° as "coming back."
+    wr_coming_back = 135.0 <= (wr.heading % 360.0) <= 225.0
+
+    # Four meaningful situations with unambiguous action advice
+    if dy < -0.5 and wr_coming_back:
+        # CB is upfield but WR has cut back toward QB — backpedaling further widens the gap.
+        # CB must flip and chase the WR downfield.
+        y_rel = f"You are {-dy:.1f} yd UPFIELD of WR — WR has cut BACK toward QB ✗ (comeback/curl)"
+        wr_motion = f"WR is running AWAY from you (back toward QB) at {wr.speed:.1f} yd/s heading {wr.heading:.0f}°"
+        action = (
+            f"RECOMMENDED: flip hips and CHASE downfield — WR is running away from you toward QB. "
+            f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path), facing ≈ {intercept_hdg:.0f}°. mode=normal. "
+            f"Do NOT backpedal — that moves you further away."
+        )
+    elif dy < -0.5:
         # CB is upfield (between WR and end zone) — correct position, WR approaching
         y_rel = f"You are {-dy:.1f} yd UPFIELD of WR — you are between WR and end zone ✓"
         wr_motion = f"WR is running TOWARD you at {wr.speed:.1f} yd/s"
@@ -180,7 +209,8 @@ def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> li
         wr_motion = f"WR is running AWAY from you at {wr.speed:.1f} yd/s"
         action = (
             f"RECOMMENDED: CHASE — flip hips and sprint toward WR. "
-            f"heading ≈ {bearing_to_wr:.0f}° (directly at WR), facing ≈ {bearing_to_wr:.0f}°. mode=normal"
+            f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path, not just current spot), "
+            f"facing ≈ {intercept_hdg:.0f}°. mode=normal"
         )
     elif dy > 0:
         # WR has just passed — close gap urgently
@@ -188,7 +218,8 @@ def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> li
         wr_motion = f"WR is running AWAY from you at {wr.speed:.1f} yd/s"
         action = (
             f"RECOMMENDED: sprint toward WR to close gap. "
-            f"heading ≈ {bearing_to_wr:.0f}° (toward WR), facing ≈ {bearing_to_wr:.0f}°. mode=normal"
+            f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path), "
+            f"facing ≈ {intercept_hdg:.0f}°. mode=normal"
         )
     else:
         y_rel = "You and WR are at roughly the same depth"
@@ -200,7 +231,7 @@ def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> li
         f"  {y_rel}",
         f"  {x_rel}",
         f"  {wr_motion}",
-        f"  Separation: {sep:.1f} yd  |  Heading directly to WR: {bearing_to_wr:.0f}°",
+        f"  Separation: {sep:.1f} yd  |  Bearing directly to WR: {bearing_to_wr:.0f}°  |  Intercept heading: {intercept_hdg:.0f}°",
         f"  {action}",
     ]
     return lines
@@ -214,6 +245,7 @@ def build_cb_observation(
     ball: BallState,
     wr_history: list[dict] | None = None,
     ball_total_eta: float | None = None,
+    cb_intent: str = "play_man",
 ) -> str:
     """Observation for the CB's per-step movement decision (LIVE and BALL_IN_AIR phases)."""
     sep = _dist(cb, wr)
@@ -258,15 +290,29 @@ def build_cb_observation(
         arm_tip_x = cb.x + math.sin(math.radians(cb.facing)) * CB_ARM_REACH
         arm_tip_y = cb.y + math.cos(math.radians(cb.facing)) * CB_ARM_REACH
         arm_dist_to_zone = math.hypot(arm_tip_x - ball.landing_x, arm_tip_y - ball.landing_y)
+
+        bearing_to_wr_now = math.degrees(math.atan2(wr.x - cb.x, wr.y - cb.y)) % 360.0
+        if cb_intent == "play_man":
+            facing_instruction = (
+                f"INTENT=play_man: face the WR ({bearing_to_wr_now:.0f}°), not the ball. "
+                f"Use heading={bearing_to_zone:.0f}° to close on the zone, facing={bearing_to_wr_now:.0f}° toward WR."
+            )
+        else:
+            facing_instruction = (
+                f"INTENT={cb_intent}: face the landing zone to contest the ball. "
+                f"Use heading={bearing_to_zone:.0f}° AND facing={bearing_to_zone:.0f}°."
+            )
+
         lines += [
             "",
-            f"BALL IN AIR:",
+            f"BALL IN AIR (your intent: {cb_intent}):",
             f"  ETA: {ball.eta:.2f}s",
             f"  Landing zone center: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  uncertainty: ±{fuzz:.1f} yd",
             f"  Your distance to zone center: {dist_to_zone:.1f} yd",
             f"  Heading to move toward zone: {bearing_to_zone:.0f}°",
             f"  Your arm tip (facing {cb.facing:.0f}°) is at ({arm_tip_x:.1f},{arm_tip_y:.1f}), "
             f"{arm_dist_to_zone:.1f}yd from zone center",
+            f"  FACING: {facing_instruction}",
         ]
 
     # WR history

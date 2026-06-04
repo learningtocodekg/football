@@ -1,14 +1,25 @@
 name: "3rd & 3 — Out"
 phase: A1
 description: >
-  3rd and 3. WR runs an out route (quick upfield burst 1.8s, then cuts outside toward sideline at 315°).
-  Short conversion — QB should throw quickly after the cut, safe window preferred over big play.
+  3rd and 3. WR runs an out route (quick upfield burst 1.8s, then cuts outside at 315°).
+  Scripted QB throws at t=2.6s — 0.8s after the cut. Out routes are fast-developing,
+  but WR still needs a beat to get up to speed on the new heading.
 
 down: 3
 distance: 3
 wr_route: out
-expected_open_t: 2.1   # out cuts at t=1.8s; WR typically creates separation shortly after
+expected_open_t: 2.1
 
-qb_model: "gpt-5-nano"
-qb_reasoning_effort: "low"
-qb_provider: "openai"
+# Scripted QB — no LLM tokens, for CB development
+qb_scripted: true
+qb_throw_t: 2.6
+qb_throw_mph: 48.0
+
+# To use the LLM QB instead, comment the three lines above and uncomment below:
+# qb_model: "gpt-5-nano"
+# qb_reasoning_effort: "low"
+# qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

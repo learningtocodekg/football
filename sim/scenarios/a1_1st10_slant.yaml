@@ -2,13 +2,23 @@ name: "1st & 10 — Slant"
 phase: A1
 description: >
   1st and 10. WR runs a slant route (upfield 2s, cut inside at 40°).
-  QB has room to be patient or take a shot early if separation opens.
+  Scripted QB throws at t=3.0s — 1s after the cut, WR is up to speed on the new heading.
 
 down: 1
 distance: 10
 wr_route: slant
-expected_open_t: 2.3   # slant cuts at t=2.0s; WR typically creates separation shortly after
+expected_open_t: 2.3
 
-qb_model: "gpt-5-nano"
-qb_reasoning_effort: "low"
-qb_provider: "openai"
+# Scripted QB — no LLM tokens, for CB development
+qb_scripted: true
+qb_throw_t: 3.0
+qb_throw_mph: 50.0
+
+# To use the LLM QB instead, comment the three lines above and uncomment below:
+# qb_model: "gpt-5-nano"
+# qb_reasoning_effort: "low"
+# qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

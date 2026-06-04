@@ -147,15 +147,9 @@ class ScriptedQB:
 
     def decide(self, observation: str, qb_x: float, qb_y: float,
                wr_x: float = 0.0, wr_y: float = 0.0,
-               wr_heading: float = 0.0, wr_speed: float = 0.0, **kwargs) -> dict:
-        import re
-        t_val = 0.0
-        for line in observation.splitlines():
-            if "sack_clock" in line and "t=" in line:
-                m = re.search(r"t=(\d+\.\d+)", line)
-                if m:
-                    t_val = float(m.group(1))
-                break
+               wr_heading: float = 0.0, wr_speed: float = 0.0,
+               t: float = 0.0, **kwargs) -> dict:
+        t_val = t
 
         if t_val < self.throw_t:
             self.last_action = {"action": "hold", "reasoning": "scripted QB holding"}

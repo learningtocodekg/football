@@ -1,21 +1,23 @@
-name: "CB test — Slant (scripted QB)"
+name: "CB test — Slant"
 phase: A2
 description: >
-  1st and 10. WR runs a slant route. QB is scripted to throw at t=2.3s
-  to the WR's expected post-cut position. Use this to iterate on CB
-  behavior without spending QB tokens.
+  1st and 10. WR runs a slant route. Scripted QB throws at t=3.0s —
+  1s after the cut, giving the WR time to build separation.
 
 down: 1
 distance: 10
 wr_route: slant
 
-# Scripted QB — no LLM calls, instant iteration
-# Leads WR automatically based on flight time at throw time
+# Scripted QB — no LLM tokens, for CB development
 qb_scripted: true
-qb_throw_t: 2.3
+qb_throw_t: 3.0
 qb_throw_mph: 50.0
 
-# CB model settings
+# To use the LLM QB instead, comment the three lines above and uncomment below:
+# qb_model: "gpt-5-nano"
+# qb_reasoning_effort: "low"
+# qb_provider: "openai"
+
 cb_model: "gpt-5-nano"
 cb_reasoning_effort: "low"
 cb_provider: "openai"

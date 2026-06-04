@@ -2,13 +2,23 @@ name: "2nd & 25 — Post"
 phase: A1
 description: >
   2nd and 25. WR runs a post route (upfield 2.5s, then diagonal cut inside at 45°).
-  Long yardage — QB needs to find a clean window, but an incompletion is acceptable.
+  Scripted QB throws at t=3.5s — 1s after the cut, WR has built speed on the post angle.
 
 down: 2
 distance: 25
 wr_route: post
-expected_open_t: 2.8   # post cuts at t=2.5s; WR typically creates separation shortly after
+expected_open_t: 2.8
 
-qb_model: "gpt-5-nano"
-qb_reasoning_effort: "low"
-qb_provider: "openai"
+# Scripted QB — no LLM tokens, for CB development
+qb_scripted: true
+qb_throw_t: 3.5
+qb_throw_mph: 52.0
+
+# To use the LLM QB instead, comment the three lines above and uncomment below:
+# qb_model: "gpt-5-nano"
+# qb_reasoning_effort: "low"
+# qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

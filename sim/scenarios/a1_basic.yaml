@@ -1,14 +1,23 @@
-name: "A1 Basic — QB agent, scripted WR/CB"
+name: "A1 Basic — Slant (scripted QB+WR)"
 phase: A1
 description: >
-  QB is an LLM agent (gpt-4o-mini default). WR runs a scripted slant route.
-  CB plays scripted man coverage with a 0.3s reaction delay.
+  Default scenario. WR runs a scripted slant route. Scripted QB throws at t=3.0s.
+  No LLM tokens spent on QB. CB is the only LLM agent.
 
-# Override model per-role (defaults to gpt-4o-mini if gpt-5-nano unavailable)
-qb_model: "gpt-5-nano"
-qb_reasoning_effort: "low"
+down: 1
+distance: 10
+wr_route: slant
 
-# Scripted route config
-wr_cut_time: 2.0     # seconds before WR breaks the slant
-wr_cut_heading: 40.0 # degrees (inside slant)
-cb_reaction_delay: 0.3
+# Scripted QB — no LLM tokens, for CB development
+qb_scripted: true
+qb_throw_t: 3.0
+qb_throw_mph: 50.0
+
+# To use the LLM QB instead, comment the three lines above and uncomment below:
+# qb_model: "gpt-5-nano"
+# qb_reasoning_effort: "low"
+# qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

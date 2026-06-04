@@ -1,15 +1,23 @@
-name: "A1 Local — QB agent via Ollama, scripted WR/CB"
+name: "A1 Local — Slant (scripted QB, Ollama CB)"
 phase: A1
 description: >
-  QB is a local Ollama model. WR runs a scripted slant route.
-  CB plays scripted man coverage with a 0.3s reaction delay.
+  WR runs a scripted slant route. Scripted QB. CB uses a local Ollama model.
   Run Ollama first: ollama serve
 
-qb_provider: "ollama"
-qb_model: "qwen3:8b"
-qb_reasoning_effort: null  # Ollama uses temperature (set in llm_client.py), not reasoning_effort
+down: 1
+distance: 10
+wr_route: slant
 
-# Scripted route config (same as a1_basic)
-wr_cut_time: 2.0
-wr_cut_heading: 40.0
-cb_reaction_delay: 0.3
+# Scripted QB — no LLM tokens
+qb_scripted: true
+qb_throw_t: 3.0
+qb_throw_mph: 50.0
+
+# To use the LLM QB instead, comment the three lines above and uncomment below:
+# qb_provider: "ollama"
+# qb_model: "qwen3:8b"
+# qb_reasoning_effort: null
+
+cb_provider: "ollama"
+cb_model: "qwen3:8b"
+cb_reasoning_effort: null

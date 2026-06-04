@@ -224,6 +224,7 @@ def run_play(
                     obs, states["QB"].x, states["QB"].y,
                     wr_x=states["WR1"].x, wr_y=states["WR1"].y,
                     wr_heading=states["WR1"].heading, wr_speed=states["WR1"].speed,
+                    t=t,
                 )
                 actions["QB"] = qb_action
                 p1 = qb_action.get("pass1")
@@ -274,6 +275,7 @@ def run_play(
             cb_obs = build_cb_observation(
                 t, states["CB1"], attrs["CB1"], states["WR1"], ball,
                 wr_history=move_history, ball_total_eta=ball_total_eta,
+                cb_intent=cb_intent,
             )
             cb_move = cb_agent.decide_movement(cb_obs)
             r = cb_move.get("reasoning", "").encode("ascii", "replace").decode("ascii")
