@@ -1,38 +1,37 @@
 # Left Off
-Date: 2026-06-03
-Last worked on: Phase A1 — QB agent scaffolding, realism fixes, two-pass decision system
+Date: 2026-06-04
+Last worked on: Phase A1 — test_e2e fix, Ollama/qwen3 JSON debugging, replay analysis
 
 ## What Got Done
 
-**Realism fixes:**
-- CB lockup: CB now stays tight on WR for first 2.0s before reaction delay kicks in (was giving up 4+ yd gap in first second)
-- PBU now requires CB within 1 yd of WR at arrival OR CB in passing lane — was firing at 5.91 yd separation (broken)
-- Removed hardcoded qb_min_hold_time from scenario YAML; QB is consulted every step from t=0.5s onward
+**test_e2e.py fixed:**
+- Updated mock_llm to handle two-pass system: pass 1 returns `thinking` JSON, pass 2 returns `throw` with `"option"` key
+- Detects pass 2 by checking for "CATCHABLE"/"MISS by" in user prompt
+- Test passes cleanly: CATCH outcome, 0 parse errors, 23 QB calls
 
-**QB observation improvements:**
-- Removed pre-computed projected throw options (model was anchoring on them instead of reasoning)
-- Added route schedule: cut time, heading, plain-English direction label, estimated WR position at cut time
-- Added ball travel time reference (bullet/regular/lob) at current WR distance
-- Added WR-CB separation context (>3 open, 1.5–3 contested, <1.5 tight)
+**runner.py Unicode fix:**
+- Print statements now sanitize non-ASCII chars to `?` before printing
+- Was crashing on Windows cp1252 when model used special chars (≈, →, etc.)
 
-**Two-pass decision system (agents/qb_agent.py, agents/schema.py):**
-- Pass 1: model reads field, outputs `hold` or `thinking` with rough landing target
-- Pass 2: concrete options shown at that target (5 speed tiers), each showing where WR will *actually be* at arrival and whether it's catchable or a miss
-- Forces model to confront whether its intended target is physically reachable
+**Ollama/qwen3:8b debugging:**
+- Root cause: `response_format={"type": "json_object"}` causes qwen3 to return empty `content` (answer goes to `model_extra["reasoning"]` instead)
+- Fix 1: removed `response_format` for Ollama provider in llm_client.py
+- Fix 2: added fallback — if `content` is empty and provider=ollama, read from `model_extra["reasoning"]`
+- Also removed `extra_body={"think": False}` (caused completely empty responses)
+- Local model still slow (~10-30s/call), left background run running — user killed it
 
-**Model/config:**
-- All scenarios switched to gpt-5-nano, reasoning_effort="low", max_completion_tokens=4000
-- Added python-dotenv; .env file now loaded automatically (OPENAI_API_KEY)
-- README updated with --local variants for all 4 hardcoded scenarios
+**GPT run confirmed working (seed 42, slant):**
+- QB held until t=1.6s (close but slightly before the t=2.0s cut — still an issue)
+- Outcome: DROP (probabilistic — WR was within CATCH_RADIUS, random roll failed, not a bug)
+- 0 parse errors, 0 sacks
 
-**article.md created** — tracks every scaffold addition + outcome for future article
+**tests/test_ollama.py created** — scratch file for Ollama debugging (can be deleted)
 
 ## What's Broken / Open
-- QB still throws too early sometimes — pass 2 shows "MISS by Xyd" correctly, but model occasionally picks an option anyway (needs more testing)
-- WR projection in pass 2 uses current heading/speed only — doesn't account for pending cuts, so post-cut targets still show as misses until cut actually happens
-- article.md not exhaustive yet — needs results section once QB is playing well
-- test_e2e.py uses old single-pass `decide()` signature — will break if run (needs updating to match new `decide(obs, qb_x, qb_y, wr_x, wr_y, wr_heading, wr_speed)`)
+- QB throws slightly too early (t=1.6s on slant when cut is t=2.0s) — model isn't waiting long enough for the route to develop. User noted this explicitly.
+- WR projection in pass 2 uses current heading/speed only — pre-cut throws all show as misses, which is correct, but model still sometimes commits early
+- Ollama local runs are very slow; background run was killed. Functional but impractical for iteration.
+- test_ollama.py scratch file left in tests/ — not a real test
 
 ## NEXT STEP
-Fix test_e2e.py to match new QBAgent.decide() signature, then run a full play and verify the QB waits for the slant cut (t=2.0s) before throwing:
-  python main.py --scenario sim/scenarios/a1_1st10_slant.yaml --seed 42
+Make the QB wait longer before throwing on developing routes. The likely fix is adding explicit route-awareness to pass 2: when a cut is pending within 0.5s, show a note like "WR cut in Xs — projected positions above assume current heading and will be wrong" to discourage early commitment. Check agents/prompts/qb_pass2.txt and qb_agent.py _build_options().

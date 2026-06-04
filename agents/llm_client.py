@@ -43,9 +43,10 @@ def call_llm(
     kwargs: dict = {"model": model, "messages": messages}
 
     if provider == "ollama":
-        # Local models: low temperature + JSON mode
+        # qwen3 via Ollama: thinking goes to model_extra["reasoning"], content has the answer.
+        # response_format=json_object causes content to be empty — don't use it.
+        # Instead rely on prompt instructions + _extract_json parser.
         kwargs["temperature"] = 0.3
-        kwargs["response_format"] = {"type": "json_object"}
     else:
         # gpt-5-nano: reasoning_effort, structured JSON output, tight token budget
         if reasoning_effort is not None:
@@ -54,4 +55,11 @@ def call_llm(
         kwargs["max_completion_tokens"] = 4000
 
     resp = client.chat.completions.create(**kwargs)
-    return resp.choices[0].message.content or ""
+    msg = resp.choices[0].message
+    content = msg.content or ""
+    # qwen3 via Ollama sometimes puts the answer only in model_extra["reasoning"]
+    # when thinking mode triggers and content ends up empty
+    if not content and provider == "ollama":
+        extra = getattr(msg, "model_extra", None) or {}
+        content = extra.get("reasoning", "") or ""
+    return content

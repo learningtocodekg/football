@@ -29,11 +29,22 @@ def mock_llm(system, user, model="x", reasoning_effort=None, provider="openai"):
                 t_val = float(m.group(1))
             break
 
-    # Throw at t >= 2.3 to the slant landing spot
-    if t_val >= 2.3:
+    # Pass 2 is identified by the options table (contains "CATCHABLE" or "MISS by")
+    is_pass2 = "CATCHABLE" in user or "MISS by" in user
+
+    if is_pass2:
+        # Pass 2: commit to throw if t >= 2.3, else hold
+        if t_val >= 2.3:
+            return (
+                '{"action":"throw","option":"medium","reasoning":"WR open on slant after cut"}'
+            )
+        return '{"action":"hold","reasoning":"waiting for WR to cut"}'
+
+    # Pass 1: at t >= 2.0 indicate thinking toward slant landing spot; else hold
+    if t_val >= 2.0:
         return (
-            '{"action":"throw","target_coord":[21.5,73.0],'
-            '"ball_speed_mph":40,"reasoning":"WR open on slant after cut"}'
+            '{"action":"thinking","target_area":[21.5,73.0],'
+            '"reasoning":"WR approaching cut point, targeting slant"}'
         )
     return '{"action":"hold","reasoning":"waiting for WR to cut"}'
 

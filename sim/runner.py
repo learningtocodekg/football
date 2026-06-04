@@ -169,8 +169,10 @@ def run_play(
                 actions["QB"] = qb_action
                 p1 = qb_action.get("pass1")
                 if p1 and p1["action"] == "thinking":
-                    print(f"  t={t:.1f}  QB pass1 -> thinking target={p1['target_area']} | {p1['reasoning']}")
-                print(f"  t={t:.1f}  QB pass2 -> {qb_action['action']!r:8}  | {qb_action['reasoning']}")
+                    r = p1['reasoning'].encode('ascii', 'replace').decode('ascii')
+                    print(f"  t={t:.1f}  QB pass1 -> thinking target={p1['target_area']} | {r}")
+                r = qb_action['reasoning'].encode('ascii', 'replace').decode('ascii')
+                print(f"  t={t:.1f}  QB pass2 -> {qb_action['action']!r:8}  | {r}")
 
                 if qb_action["action"] == "throw":
                     tc = qb_action["target_coord"]

@@ -266,7 +266,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "WR is not yet cleared; window expected around 2.3s after his cut, so I\u2019ll let the route develop a bit and throw to his future spot rather than current tight coverage."
+          "reasoning": "None of the landing spots align with the WR's projected position; waiting for a cleaner window reduces risk of a turnover."
         },
         {
           "id": "WR1",
@@ -315,7 +315,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "WR likely won\u2019t be at the landing spot by arrival; window not favorable yet and sack clock is tight, so wait for a clearer open window."
+          "reasoning": "Waiting for the 2.0s cut and the ~2.3s open window to develop; throwing now would lead the ball to a non-open spot and risk a sack."
         },
         {
           "id": "WR1",
@@ -364,7 +364,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "No available throw lands with WR in window; better to wait or throw away if sack clock tight"
+          "reasoning": "The available throw options all land ahead of the WR\u2019s expected arrival by several yards, risking an incomplete or turnover; waiting for a clearer window aligns with the route development and protection of the play."
         },
         {
           "id": "WR1",
@@ -413,7 +413,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "WR is about to cut upfield; none of the landing spots align with his expected arrival window (WR around ~16,60 while balls land ~18,68). Hold to reassess after the cut."
+          "reasoning": "waiting for the WR to complete the cut and create a clean window around 2.3s before the ball would arrive"
         },
         {
           "id": "WR1",
@@ -462,7 +462,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "No landing option aligns with WR\u2019s projected arrival within ~1.3 yd; risk of sack remains high if we force a throw now."
+          "reasoning": "No listed throw window aligns with WR arrival; better to wait for a clearer open window around t~2.3s before committing."
         },
         {
           "id": "WR1",
@@ -511,7 +511,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "No option lands where WR will be at arrival; better to wait for a clearer window or throw away if sack clock tight."
+          "reasoning": "Window not yet open and the sack clock is still ticking; better to wait for a clearer read and WR timing."
         },
         {
           "id": "WR1",
@@ -560,7 +560,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "None of the listed throws align with the WR\u2019s projected arrival window; waiting for the WR cut and open window improves the chance to place the ball accurately."
+          "reasoning": "WR will likely reach open window around t=2.3s; none of the provided throws align to land with the WR at arrival\u2014holding avoids a low-percentage throw and risk of sack."
         },
         {
           "id": "WR1",
@@ -609,7 +609,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "WR is about to cut and open around t=2.3s; holding now lets the route develop and timing improve for a cleaner window while reducing sack risk."
+          "reasoning": "Waiting for the WR cut and better alignment; current options miss by several yards and risk undercut by CB before window opens."
         },
         {
           "id": "WR1",
@@ -658,7 +658,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "Waiting for the WR cut and a cleaner window; none of the landing spots align with where he\u2019ll be at arrival."
+          "reasoning": "Waiting for the WR cut to fully develop and a cleaner window; current options all miss by several yards after travel, riskier than holding for a better open window."
         },
         {
           "id": "WR1",
@@ -707,7 +707,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "No throw leads to a clean window; better to wait for clearer separation before risking a contested ball."
+          "reasoning": "Window isn\u2019t clean yet and I can\u2019t trust any of the given throws to hit the WR\u2019s future spot without risking a sack."
         },
         {
           "id": "WR1",
@@ -756,7 +756,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "hold",
-          "reasoning": "None of the listed throws will land within ~1.3 yd of the WR at arrival; better to wait for a cleaner window before committing."
+          "reasoning": "Waiting for WR to complete the cut and reach the open window; available land targets miss by ~6\u20137 yards, not giving a clean, timely completion."
         },
         {
           "id": "WR1",
@@ -805,7 +805,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "throw",
-          "reasoning": "Throw now to (16.0,66.2) with 54 mph; ball arrives ~1.86s, WR projected at (16.0,65.0) when it lands, ~1.2 yd separation\u2014catchable and minimizes sack risk."
+          "reasoning": "WR should be near landing spot at arrival (66.5 vs 66.8) with a catchable window; faster throws risk slight miss, softer throw offers safer completion within ~1 yd."
         },
         {
           "id": "WR1",
@@ -837,21 +837,21 @@
           48.0
         ],
         "landing": [
-          16.0,
-          66.2
+          16.7,
+          66.8
         ],
-        "eta": 0.265
+        "eta": 0.43
       },
       "events": [
         {
           "type": "THROW",
           "target": [
-            16.0,
-            66.2
+            16.7,
+            66.8
           ],
-          "mph": 54.3,
-          "eta": 0.26,
-          "dist": 21.1
+          "mph": 33.7,
+          "eta": 0.43,
+          "dist": 21.3
         }
       ]
     },
@@ -869,7 +869,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "throw",
-          "reasoning": "Throw now to (16.0,66.2) with 54 mph; ball arrives ~1.86s, WR projected at (16.0,65.0) when it lands, ~1.2 yd separation\u2014catchable and minimizes sack risk."
+          "reasoning": "WR should be near landing spot at arrival (66.5 vs 66.8) with a catchable window; faster throws risk slight miss, softer throw offers safer completion within ~1 yd."
         },
         {
           "id": "WR1",
@@ -897,14 +897,14 @@
       "ball": {
         "state": "in_air",
         "pos": [
-          22.63,
-          54.87
+          24.34,
+          52.37
         ],
         "landing": [
-          16.0,
-          66.2
+          16.7,
+          66.8
         ],
-        "eta": 0.165
+        "eta": 0.33
       },
       "events": []
     },
@@ -922,7 +922,7 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "throw",
-          "reasoning": "Throw now to (16.0,66.2) with 54 mph; ball arrives ~1.86s, WR projected at (16.0,65.0) when it lands, ~1.2 yd separation\u2014catchable and minimizes sack risk."
+          "reasoning": "WR should be near landing spot at arrival (66.5 vs 66.8) with a catchable window; faster throws risk slight miss, softer throw offers safer completion within ~1 yd."
         },
         {
           "id": "WR1",
@@ -950,20 +950,20 @@
       "ball": {
         "state": "in_air",
         "pos": [
-          18.61,
-          61.75
+          22.03,
+          56.74
         ],
         "landing": [
-          16.0,
-          66.2
+          16.7,
+          66.8
         ],
-        "eta": 0.065
+        "eta": 0.23
       },
       "events": []
     },
     {
       "t": 1.9,
-      "phase": "END",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.1,
       "players": [
         {
@@ -975,13 +975,13 @@
           "heading": 0.0,
           "speed": 0.0,
           "action": "throw",
-          "reasoning": "Throw now to (16.0,66.2) with 54 mph; ball arrives ~1.86s, WR projected at (16.0,65.0) when it lands, ~1.2 yd separation\u2014catchable and minimizes sack risk."
+          "reasoning": "WR should be near landing spot at arrival (66.5 vs 66.8) with a catchable window; faster throws risk slight miss, softer throw offers safer completion within ~1 yd."
         },
         {
           "id": "WR1",
           "pos": [
             16.0,
-            65.29
+            66.24
           ],
           "heading": 0.0,
           "speed": 9.5,
@@ -992,9 +992,9 @@
           "id": "CB1",
           "pos": [
             15.99,
-            62.4
+            63.3
           ],
-          "heading": 0.3,
+          "heading": 0.2,
           "speed": 9.0,
           "action": "cover",
           "reasoning": "scripted man coverage"
@@ -1003,12 +1003,118 @@
       "ball": {
         "state": "in_air",
         "pos": [
-          14.58,
-          68.62
+          19.71,
+          61.11
         ],
         "landing": [
-          16.0,
-          66.2
+          16.7,
+          66.8
+        ],
+        "eta": 0.13
+      },
+      "events": []
+    },
+    {
+      "t": 2.0,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 3.0,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "speed": 0.0,
+          "action": "throw",
+          "reasoning": "WR should be near landing spot at arrival (66.5 vs 66.8) with a catchable window; faster throws risk slight miss, softer throw offers safer completion within ~1 yd."
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.55,
+            66.89
+          ],
+          "heading": 40.0,
+          "speed": 8.54,
+          "action": "run_route",
+          "reasoning": "running scripted slant"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            15.99,
+            64.2
+          ],
+          "heading": 0.0,
+          "speed": 9.0,
+          "action": "cover",
+          "reasoning": "scripted man coverage"
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          17.4,
+          65.47
+        ],
+        "landing": [
+          16.7,
+          66.8
+        ],
+        "eta": 0.03
+      },
+      "events": []
+    },
+    {
+      "t": 2.1,
+      "phase": "END",
+      "sack_clock": 2.9,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "speed": 0.0,
+          "action": "throw",
+          "reasoning": "WR should be near landing spot at arrival (66.5 vs 66.8) with a catchable window; faster throws risk slight miss, softer throw offers safer completion within ~1 yd."
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.55,
+            66.89
+          ],
+          "heading": 40.0,
+          "speed": 8.54,
+          "action": "run_route",
+          "reasoning": "running scripted slant"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            15.99,
+            64.2
+          ],
+          "heading": 0.0,
+          "speed": 9.0,
+          "action": "cover",
+          "reasoning": "scripted man coverage"
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          15.09,
+          69.84
+        ],
+        "landing": [
+          16.7,
+          66.8
         ],
         "eta": 0.0
       },
@@ -1016,7 +1122,7 @@
         {
           "type": "RESOLUTION",
           "outcome": "DROP",
-          "separation": 2.89
+          "separation": 2.75
         }
       ]
     }
@@ -1026,9 +1132,9 @@
     "telemetry": {
       "max_separation": 5.52,
       "throw_t": 1.6,
-      "throw_distance": 21.1,
+      "throw_distance": 21.3,
       "sack": false,
-      "qb_calls": 22,
+      "qb_calls": 21,
       "qb_parse_errors": 0
     }
   }
