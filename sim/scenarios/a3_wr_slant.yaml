@@ -1,0 +1,20 @@
+name: "A3 — LLM WR + LLM QB, slant route, no CB"
+phase: A3
+description: >
+  1st and 10. WR runs a slant (LLM-driven). QB is LLM-driven.
+  No CB on field — debugging WR route running, call-for-ball timing,
+  and QB responsiveness to the WR signal.
+
+down: 1
+distance: 10
+wr_route: slant
+
+a3_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"

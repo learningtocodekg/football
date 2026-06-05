@@ -2,36 +2,55 @@
 Date: 2026-06-04
 
 ## What We Worked On
-CB agent diagnostic and prompt/observation fixes. Analyzed play_42.json replays for slant and comeback routes.
+Built and debugged the WR agent (Phase A3) — LLM WR + LLM QB, no CB on field.
 
 ## What Got Done
 
-**CB observation — comeback route fix (`agents/observation.py`):**
-- `_cb_situation()` had only 3 states, all keyed on `dy` (who is upfield). On a comeback, the WR runs upfield past the CB, then reverses to 180°. When the WR cut back, `dy < -0.5` fired and told the CB to backpedal *further upfield* — 14.17 yd separation, CATCH.
-- Added `wr_coming_back` check: if WR heading is 135–225° AND CB is upfield of WR, emit a 4th state: "WR has cut BACK toward QB — flip hips and CHASE downfield. Do NOT backpedal."
-- Result after fix: 0.1 yd separation, DROP.
+**WR agent now working correctly (agents/wr_agent.py):**
+- Pre-snap: reads CB alignment, outputs deception plan.
+- Live (free): per-step heading + facing + throttle + call_for_ball. Three prompt states: free / committed / broken play.
+- Call-for-ball validated mechanically: only allowed within ±45° of prescribed cut heading.
+- Heading locked post-call (while ball held). Free again once ball is in air.
+- record_heading() detects cuts (30°+ heading change) → QB sees detected_cut_t.
+- trigger_broken_play(): called by runner when WR near sideline heading OOB.
 
-**CB observation — intercept heading (`agents/observation.py`):**
-- Added `_intercept_heading()`: projects WR 0.5s forward along current heading/speed, returns bearing from CB to that projected point. Chase actions now give "intercept heading" (leads WR) alongside "bearing directly to WR" (current spot). Helps CB converge faster rather than always chasing where the WR just was.
+**Deception behavior debugged and working:**
+- Bug 1: WR was cutting to 40° at t=0.2 (1.8s early). Root cause: prompt said "cutting early to exploit cushion" — model went straight to slant heading.
+- Fix: system prompt now explicitly distinguishes pre-cut phase (run 0°, no cut heading) vs cut window (execute break). Observation labels the current phase explicitly with "KEEP HEADING NEAR 0°" during pre-cut.
+- Bug 2: model understood "jab step" but camped at jab heading for entire play (e.g., hdg=330° for 20 steps). A "jab" that lasts 2s is just running the wrong direction.
+- Fix: live free prompt now shows exact correct pattern (jab 1 step → return to 0° → hold stem → jab again) and the explicit wrong pattern to avoid. Model now executes clean 1-step jabs alternating with 0° stem.
+- Key insight added to system prompt: CB sees exact heading/speed and projects WR forward 0.5s. Deception = making that projection wrong by briefly changing heading then snapping back.
 
-**CB prompt — stronger copy rule (`agents/prompts/cb_pass1.txt`):**
-- Previous: "Do NOT invent headings" (ignored by LLM). New: "Copy the heading and facing numbers EXACTLY from the RECOMMENDED line." Moved rule to top of prompt. Reduces hallucinated headings (the t=1.3 stutter where LLM emitted 129° instead of ~3°).
+**Prompt files (agents/prompts/):**
+- wr_system.txt: full job description, 2D deception mechanics, how CB intercept works, route execution phases.
+- wr_live_free.txt: phase-gated pre-cut / cut-window / post-cut logic with concrete jab pattern examples.
+- wr_live_committed.txt, wr_live_broken.txt, wr_ball_in_air.txt: unchanged.
 
-**CB ball-in-air facing — intent-aware (`agents/observation.py`, `sim/runner.py`):**
-- `build_cb_observation()` now accepts `cb_intent` parameter.
-- BALL IN AIR block emits a `FACING:` line keyed on intent:
-  - `swat`/`go_for_pick`: face the landing zone (bearing_to_zone for both heading and facing)
-  - `play_man`: face the WR (bearing_to_wr), heading toward zone
-- `cb_pass1.txt` updated: "follow the FACING line in BALL IN AIR exactly."
-- Runner wires `cb_intent` into the BALL_IN_AIR movement calls.
+**agents/observation.py:**
+- Pre-cut phase message now says "KEEP HEADING NEAR 0° (straight upfield). Do NOT move to X° yet."
+- Cut window and post-cut labels unchanged.
 
-**Confirmed: LLM calls are stateless — no compounding context.**
-- Each step is a fresh 2-message conversation (system + user). The `wr_history` table (last 10 steps) is embedded in the observation string as plain text — that's all the CB "remembers."
+**Bugs fixed from previous session:**
+- call_t NoneType format error: moved self.call_t = t into WRAgent.decide() so it's always set when called_for_ball is True.
+- wr_call_pending guard: added `not wr_call_visible and not wr_call_pending` to prevent re-triggering every step.
+- ScriptedQB / QBAgent interface: ScriptedQB gets t=t via isinstance dispatch; QBAgent signature untouched.
 
-## What's Broken / Open
-- t=1.3 heading stutter still appears (LLM emits 129° during backpedal phase on both slant and comeback). Prompt fix helps but doesn't eliminate it. Would need stronger enforcement or a deterministic gate in runner.py to ignore heading changes during backpedal unless a cut is detected.
-- CB pre-snap always picks offset=5, side=outside — not varying by situation.
-- CB intent is almost always "swat" even when too far; play_man rarely chosen.
+**Final A3 results (slant, no CB):**
+- Cut at prescribed t=2.0 (perfect timing).
+- Clean upfield stem with 1-step jabs at 330° interspersed.
+- Max separation: ~10-11 yd. Catch outcome.
+
+## What's Open / Known Issues
+- detected_cut_t fires on the first jab (any 30°+ heading change), not the real route break. Will matter in A4 when CB reads it.
+- QB sometimes holds 2-3 extra steps after WR calls (pass2 sees "MISS" due to stale WR heading projection). Non-critical in A3; may matter in A4.
+- No WR deception against a real CB has been tested yet — all A3 runs have no CB.
 
 ## NEXT STEP
-Build the WR agent (Phase A3). ScriptedWR exists and runs routes correctly — the LLM WR should replace it with a reactive agent that reads the CB's position and chooses when/how to execute route breaks. Start with observation + prompt design, then wire into runner.
+**A4 mode: LLM QB + LLM WR + LLM CB — all three agents live.**
+
+Steps:
+1. Add `a4_mode: true` flag to runner (or reuse existing runner — CB agent already wired for A2).
+2. Wire WR agent into the existing A2 runner path (currently uses ScriptedWR in A2).
+3. Create sim/scenarios/a4_wr_slant.yaml and a4_wr_comeback.yaml.
+4. Run and observe: does WR deception actually move the CB? Does QB wait for the call?
+5. Key thing to watch: CB gets exact WR heading each step — does the 1-step jab actually cause it to misstep, or is the CB fast enough to recover before the real cut?

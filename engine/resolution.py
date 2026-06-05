@@ -72,19 +72,35 @@ def _cb_arm_reaches_lane(
     return math.hypot(arm_x - closest_x, arm_y - closest_y) <= PBU_LANE_RANGE
 
 
+def _wr_facing_multiplier(wr: PlayerState, qb_x: float, qb_y: float) -> float:
+    """Catch probability multiplier based on how well WR is facing the incoming ball."""
+    dx = qb_x - wr.x
+    dy = qb_y - wr.y
+    ball_bearing = math.degrees(math.atan2(dx, dy)) % 360.0
+    diff = abs((ball_bearing - wr.facing + 180.0) % 360.0 - 180.0)
+    if diff <= 30.0:
+        return 1.15   # looking right at QB/ball
+    elif diff <= 90.0:
+        return 1.0    # sideways (normal catch after a cut)
+    else:
+        return 0.80   # running blind
+
+
 def resolve(
     wr: PlayerState,
-    cb: PlayerState,
+    cb: PlayerState | None,
     wr_attrs: PlayerAttrs,
-    cb_attrs: PlayerAttrs,
+    cb_attrs: PlayerAttrs | None,
     landing_x: float,
     landing_y: float,
     cb_intent: str,  # "play_man" | "go_for_pick" | "swat"
     rng: random.Random,
+    qb_x: float = 0.0,
+    qb_y: float = 0.0,
 ) -> dict:
 
     ball_offset = math.hypot(landing_x - wr.x, landing_y - wr.y)
-    separation = math.hypot(wr.x - cb.x, wr.y - cb.y)
+    separation = math.hypot(wr.x - cb.x, wr.y - cb.y) if cb is not None else 99.0
 
     if ball_offset > CATCH_RADIUS:
         return {
@@ -94,30 +110,32 @@ def resolve(
             "note": "ball landed out of WR reach",
         }
 
-    # CB can only contest (PBU/INT) if they are close enough to the WR at arrival,
-    # or are sitting in the passing lane between ball and WR.
-    cb_close = separation <= PBU_PROXIMITY
-    cb_in_lane = _cb_in_passing_lane(cb, landing_x, landing_y, wr)
-    cb_can_contest = cb_close or cb_in_lane
-
-    # Facing + arm reach checks gate PBU and INT attempts
-    cb_facing = _cb_facing_ball(cb, landing_x, landing_y)
-    cb_arm_pbu = cb_facing and _cb_arm_reaches_lane(cb, landing_x, landing_y, wr, CB_ARM_REACH)
-    cb_arm_int = cb_facing and _cb_arm_reaches_lane(cb, landing_x, landing_y, wr, CB_HALF_REACH)
+    cb_can_contest = False
+    cb_facing = False
+    cb_arm_pbu = False
+    cb_arm_int = False
+    if cb is not None and cb_attrs is not None:
+        cb_close = separation <= PBU_PROXIMITY
+        cb_in_lane = _cb_in_passing_lane(cb, landing_x, landing_y, wr)
+        cb_can_contest = cb_close or cb_in_lane
+        cb_facing = _cb_facing_ball(cb, landing_x, landing_y)
+        cb_arm_pbu = cb_facing and _cb_arm_reaches_lane(cb, landing_x, landing_y, wr, CB_ARM_REACH)
+        cb_arm_int = cb_facing and _cb_arm_reaches_lane(cb, landing_x, landing_y, wr, CB_HALF_REACH)
 
     # Base catch probability: smooth sigmoid over separation
     floor_prob = 0.15
     p_raw = floor_prob + (1 - floor_prob) * _sigmoid(separation)
     catch_factor = wr_attrs.catch / 99.0
-    coverage_suppression = (cb_attrs.coverage / 99.0) * 0.30 if cb_can_contest else 0.0
-    p_catch = p_raw * catch_factor * (1.0 - coverage_suppression)
+    coverage_suppression = (cb_attrs.coverage / 99.0) * 0.30 if (cb_can_contest and cb_attrs) else 0.0
+    wr_facing_mult = _wr_facing_multiplier(wr, qb_x, qb_y)
+    p_catch = p_raw * catch_factor * (1.0 - coverage_suppression) * wr_facing_mult
     p_catch = max(0.05, min(0.97, p_catch))
 
     r = rng.random()
     if r < p_catch:
         return {"outcome": "CATCH", "separation": round(separation, 2), "p_catch": round(p_catch, 3)}
 
-    if not cb_can_contest:
+    if not cb_can_contest or cb_attrs is None:
         return {"outcome": "DROP", "separation": round(separation, 2)}
 
     bs = cb_attrs.ball_skills / 99.0
@@ -141,7 +159,6 @@ def resolve(
         return {"outcome": "DROP", "separation": round(separation, 2)}
 
     # play_man — no facing requirement; closer hit = more likely drop
-    # Distance bonus: within 0.5 yd counts as a hard hit
     hit_bonus = max(0.0, (PBU_PROXIMITY - separation) / PBU_PROXIMITY) * 0.20
     if r2 < bs * 0.30 + hit_bonus:
         return {"outcome": "PBU", "separation": round(separation, 2)}

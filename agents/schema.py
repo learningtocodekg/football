@@ -86,6 +86,40 @@ def parse_cb_pass2(raw: str) -> dict | None:
     return {"intent": intent, "reasoning": str(obj.get("reasoning", ""))}
 
 
+def parse_wr_pre_snap(raw: str) -> dict | None:
+    """Parse WR pre-snap plan: just a plan string."""
+    obj = _extract_json(raw)
+    if obj is None:
+        return None
+    return {
+        "plan": str(obj.get("plan", "")),
+        "reasoning": str(obj.get("reasoning", "")),
+    }
+
+
+def parse_wr_live(raw: str) -> dict | None:
+    """Parse WR live movement: heading, facing, throttle, call_for_ball."""
+    obj = _extract_json(raw)
+    if obj is None:
+        return None
+    try:
+        heading = float(obj["heading"]) % 360.0
+        facing = float(obj.get("facing", heading)) % 360.0
+        throttle = str(obj.get("throttle", "accelerate")).strip().lower()
+        if throttle not in ("accelerate", "coast", "brake"):
+            throttle = "accelerate"
+        call_for_ball = bool(obj.get("call_for_ball", False))
+        return {
+            "heading": heading,
+            "facing": facing,
+            "throttle": throttle,
+            "call_for_ball": call_for_ball,
+            "reasoning": str(obj.get("reasoning", "")),
+        }
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def parse_qb_pass2(raw: str, options: list[dict]) -> dict | None:
     """Parse pass-2 response: hold or throw (by option label)."""
     obj = _extract_json(raw)

@@ -63,6 +63,7 @@ Watch any of them with:
 python -m render.renderer_pygame replays/play_42.json
 ```
 
+python main.py --scenario sim/scenarios/a3_wr_slant.yaml
 ### 6. Run with a local model via Ollama (no API key needed)
 
 Install [Ollama](https://ollama.com), then pull a model and run it:

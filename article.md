@@ -67,6 +67,18 @@ Each timestep is a fresh two-message LLM call. The model has no memory of its pr
 **Intent-aware facing during ball-in-air movement**
 Once the ball is in the air the CB locks an intent (swat, go_for_pick, play_man). Early versions told the CB to always face the landing zone when the ball was in the air — correct for swat/INT, but wrong for play_man, where the CB should face the receiver (no facing requirement for play_man in resolution). The fix was to pass the locked intent into the movement observation and emit a FACING line that varies by intent: swat/INT → face the zone, play_man → face the WR and head toward the zone. This also captures the real football logic: a CB playing the receiver on a comeback should be in the receiver's face at the catch, not turning to look at the ball.
 
+**WR agent: the model cut to the route heading immediately (1.8s early)**
+The system prompt said "the cut time is a strict guideline (±0.2s)" but the live prompt said "if CB is giving cushion, consider cutting early to exploit it." The model resolved the contradiction the greedy way: it jumped to heading 40° at t=0.2 on a slant with cut_time=2.0. The route was telegraphed 1.8 seconds early. Fix: remove the early-cut escape hatch entirely, and replace it with phase-explicit instructions. The observation now shows which phase the WR is in with a hard directive ("KEEP HEADING NEAR 0°. Do NOT move to 40° yet"). Contradictions in the prompt are resolved by the model, not the prompt — always in the direction of least resistance.
+
+**WR deception: "jab step" meant nothing without a mechanical definition**
+The initial system prompt described deception as "false steps, speed changes, body fakes." The model's output: reasonable-sounding reasoning ("jabbing inside before the slant cut") with heading=40° every single step. It understood the concept but had no way to express it — there are no animations in a 2D simulation. A jab step IS a heading change. Fixing this required explaining exactly how the CB tracks the WR: it reads heading and speed, projects forward 0.5s, and moves to that point. Once the model understood this, it immediately started outputting heading=330° for one step then snapping back to 0° — correct behavior. The lesson: tell the model what the CB *computes*, not what football moves look like.
+
+**WR deception: model understood "jab" but executed it for 20 steps**
+After adding the mechanical definition, the model correctly jabbed left (330°) — but held that heading for the entire pre-cut phase (2 seconds). A jab that lasts 2 seconds is just running the wrong direction. The word "jab" implies brevity; the model interpreted it as a technique to apply, not a 1-step move to execute and release. Fix: show the exact step-by-step pattern explicitly ("step N: 330°, step N+1: 0°, step N+2: 0°, step N+3: jab again"). Also show the *wrong* pattern ("330°, 330°, 330° — this is NOT a jab, this is running left"). Making the failure mode explicit was as important as making the correct pattern explicit.
+
+**call_t race condition: state mutation order matters**
+The WR `decide()` call returned `call_for_ball: true` and the runner set `wr_agent.call_t = t` after the call returned. The *next* step's observation then read `wr_agent.call_t` to format "COMMITTED: called at t=X.Xs" — but `call_t` was still None because `decide()` hadn't been called yet for the new step. Fix: move `self.call_t = t` inside `decide()` at the moment of call validation, before returning. Observation reads state that was set during the *previous* decide() call — the runner setting state after the fact is always one step behind.
+
 ---
 
 ## Observations

@@ -1,0 +1,19 @@
+name: "A3 — LLM WR + LLM QB, comeback route, no CB"
+phase: A3
+description: >
+  3rd and 10. WR runs a comeback (LLM-driven). QB is LLM-driven.
+  No CB — testing WR deception on a comeback and QB reading the call.
+
+down: 3
+distance: 10
+wr_route: comeback
+
+a3_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"

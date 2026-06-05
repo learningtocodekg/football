@@ -3,6 +3,10 @@ from engine.physics import PlayerState, PlayerAttrs, BACKPEDAL_SPEED_FRACTION
 from engine.ball import BallState
 from engine.resolution import CB_ARM_REACH, CB_HALF_REACH
 
+FIELD_WIDTH = 53.3   # yards sideline to sideline
+OOB_WARN_DIST = 3.0  # yards from sideline to trigger OOB warning in WR observation
+WR_HISTORY_WINDOW = 10
+
 MAX_BALL_SPEED_MPH = 60.0
 MIN_BALL_SPEED_MPH = 20.0
 
@@ -26,48 +30,78 @@ def build_qb_observation(
     qb_attrs: PlayerAttrs,
     wr: PlayerState,
     wr_attrs: PlayerAttrs,
-    cb: PlayerState,
-    cb_attrs: PlayerAttrs,
+    cb: PlayerState | None,
+    cb_attrs: PlayerAttrs | None,
     ball: BallState,
     down: int = 1,
     distance: int = 10,
-    history: list[dict] | None = None,  # [{"t": float, "wr": [x,y], "wr_hdg": float, "cb": [x,y], "cb_hdg": float}, ...]
+    history: list[dict] | None = None,
     expected_open_t: float | None = None,
-    route_phases: list[tuple[float, float]] | None = None,  # [(cut_time, heading_deg), ...]
+    route_phases: list[tuple[float, float]] | None = None,
+    wr_called_for_ball: bool = False,
+    wr_call_t: float | None = None,
+    wr_call_heading: float | None = None,
+    broken_play: bool = False,
+    detected_cut_t: float | None = None,
 ) -> str:
-    current_sep = _dist(wr, cb)
     max_mph = MIN_BALL_SPEED_MPH + (qb_attrs.throw_power / 99.0) * (MAX_BALL_SPEED_MPH - MIN_BALL_SPEED_MPH)
     mid_mph = (MIN_BALL_SPEED_MPH + max_mph) / 2.0
-
     dist_to_wr = _dist(qb, wr)
     MPH_TO_YDS_S = 1.46667
     bullet_t = dist_to_wr / (max_mph * MPH_TO_YDS_S)
     regular_t = dist_to_wr / (mid_mph * MPH_TO_YDS_S)
     lob_t = dist_to_wr / (MIN_BALL_SPEED_MPH * MPH_TO_YDS_S)
 
-    open_hint = (
-        f"ROUTE HINT: WR is expected to be open around t={expected_open_t:.1f}s — "
-        "but read the field. He may get open earlier or later. "
-        "Account for ball travel time: throw BEFORE he reaches the window."
-    ) if expected_open_t is not None else ""
+    facing_label, facing_mult = _wr_facing_modifier(wr, qb)
 
     lines = [
         f"=== QB OBSERVATION  t={t:.1f}s  sack_clock={sack_clock:.1f}s  |  {_down_str(down, distance)} ===",
-    ]
-    if open_hint:
-        lines += ["", open_hint]
-    lines += [
         "",
-        f"YOU (QB):  pos=({qb.x:.1f}, {qb.y:.1f})  speed={qb.speed:.1f}yd/s",
-        f"WR1 NOW:   pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}°",
-        f"CB1 NOW:   pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°",
-        f"Current WR-CB separation: {current_sep:.2f} yd  (>3 yd = open, 1.5–3 yd = contested, <1.5 yd = tight coverage)",
-        f"Ball travel time to WR's CURRENT position ({dist_to_wr:.1f} yd away): bullet={bullet_t:.2f}s ({max_mph:.0f} mph)  regular={regular_t:.2f}s ({mid_mph:.0f} mph)  lob={lob_t:.2f}s ({MIN_BALL_SPEED_MPH:.0f} mph)",
+        f"YOU (QB):  pos=({qb.x:.1f}, {qb.y:.1f})  dist_to_left_sideline={qb.x:.1f}yd  dist_to_right_sideline={FIELD_WIDTH - qb.x:.1f}yd",
+        f"WR1 NOW:   pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
+        f"  WR dist to sidelines: left={wr.x:.1f}yd  right={FIELD_WIDTH - wr.x:.1f}yd",
+        f"  WR facing: {facing_label}  (catch probability modifier: {'x{:.2f}'.format(facing_mult)})",
     ]
 
+    if cb is not None and cb_attrs is not None:
+        current_sep = _dist(wr, cb)
+        lines += [
+            f"CB1 NOW:   pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°",
+            f"Current WR-CB separation: {current_sep:.2f} yd  (>3 yd = open, 1.5–3 yd = contested, <1.5 yd = tight)",
+        ]
+    else:
+        lines.append("CB1: no CB on field this play.")
+
+    lines += [
+        f"Ball travel time to WR's CURRENT position ({dist_to_wr:.1f} yd away): "
+        f"bullet={bullet_t:.2f}s ({max_mph:.0f} mph)  regular={regular_t:.2f}s ({mid_mph:.0f} mph)  lob={lob_t:.2f}s ({MIN_BALL_SPEED_MPH:.0f} mph)",
+    ]
+
+    # WR signal block
+    lines += [""]
+    if broken_play:
+        lines += [
+            "!! BROKEN PLAY — WR deviated from route plan. Original cut schedule is void.",
+            "Wait for the WR to call for the ball and look for an open window.",
+        ]
+    elif wr_called_for_ball:
+        lines += [
+            f"** WR CALLED FOR BALL at t={wr_call_t:.1f}s — heading {wr_call_heading:.0f}° ({_heading_label(wr_call_heading)}) **",
+            "WR is committed to this path (heading locked). Speed may vary. Lead him where he will be when ball arrives.",
+            "If coverage is too tight, hold — WR stays on this path.",
+        ]
+    else:
+        if expected_open_t is not None:
+            lines.append(
+                f"ROUTE HINT: WR expected to break around t={expected_open_t:.1f}s — "
+                "WR has NOT yet called for the ball. Do not throw until WR signals."
+            )
+        if detected_cut_t is not None:
+            lines.append(f"DETECTED: WR made a significant heading change at t={detected_cut_t:.1f}s.")
+        lines.append("WR has not called for the ball. Hold until the call comes in.")
+
     if route_phases:
-        lines += ["", "WR ROUTE SCHEDULE (scripted — actual execution may vary slightly):"]
-        # Project WR position forward through each phase from current state
+        lines += ["", "WR ROUTE SCHEDULE (guideline — WR is AI-driven, actual timing may vary):"]
         proj_x, proj_y = wr.x, wr.y
         proj_hdg = wr.heading
         proj_t = t
@@ -83,36 +117,47 @@ def build_qb_observation(
                 proj_y += math.cos(math.radians(proj_hdg)) * wr.speed * dt
                 lines.append(
                     f"  t={cut_t:.1f}s  cut to {cut_hdg:.0f}° ({label})  "
-                    f"[in ~{cut_t - t:.1f}s — WR estimated near ({proj_x:.1f}, {proj_y:.1f})]"
+                    f"[in ~{cut_t - t:.1f}s — WR est. near ({proj_x:.1f}, {proj_y:.1f})]"
                 )
                 proj_hdg = cut_hdg
                 proj_t = cut_t
         final_hdg = route_phases[-1][1]
-        final_label = _heading_label(final_hdg)
-        lines.append(f"  after last cut: WR runs {final_hdg:.0f}° ({final_label}) — lead him to where he will be when ball arrives")
+        lines.append(f"  after last cut: WR runs {final_hdg:.0f}° ({_heading_label(final_hdg)}) — lead him")
 
-    # Movement history
     if history:
         recent = history[-HISTORY_WINDOW:]
-        lines += [
-            "",
-            "MOVEMENT HISTORY (most recent last):",
-            f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'CB pos':>14}  {'CB hdg':>7}  {'sep':>6}",
-        ]
-        for h in recent:
-            wx_h, wy_h = h["wr"]
-            cx_h, cy_h = h["cb"]
-            sep_h = math.hypot(wx_h - cx_h, wy_h - cy_h)
-            lines.append(
-                f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°"
-                f"  ({cx_h:5.1f},{cy_h:5.1f})  {h['cb_hdg']:>6.0f}°  {sep_h:>6.2f}"
-            )
+        if cb is not None:
+            lines += [
+                "",
+                "MOVEMENT HISTORY (most recent last):",
+                f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'CB pos':>14}  {'CB hdg':>7}  {'sep':>6}",
+            ]
+            for h in recent:
+                wx_h, wy_h = h["wr"]
+                cx_h, cy_h = h["cb"]
+                sep_h = math.hypot(wx_h - cx_h, wy_h - cy_h)
+                lines.append(
+                    f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°"
+                    f"  ({cx_h:5.1f},{cy_h:5.1f})  {h['cb_hdg']:>6.0f}°  {sep_h:>6.2f}"
+                )
+        else:
+            lines += [
+                "",
+                "MOVEMENT HISTORY (most recent last):",
+                f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR spd':>7}",
+            ]
+            for h in recent:
+                wx_h, wy_h = h["wr"]
+                lines.append(
+                    f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}"
+                )
 
     lines += [
         "",
         f"Your throw_power allows ball speeds {MIN_BALL_SPEED_MPH:.0f}–{max_mph:.0f} mph.",
-        "Ball travels straight-line to target_coord. Account for travel time — throw to where WR will be, not where he is now.",
+        "Ball travels straight-line to target_coord. Lead the WR — throw to where he will be, not where he is.",
         "WR must be within ~1.3 yd of target_coord when ball arrives.",
+        "CRITICAL: Do NOT throw until WR has called for the ball (unless broken play).",
         "",
         "ACTIONS:",
         '  hold  → {"action":"hold","reasoning":"..."}',
@@ -385,6 +430,193 @@ def build_cb_intent_observation(
         "  go_for_pick: INT attempt (0.5yd reach, must be facing ball, arm on path) — risky, high reward",
         "  swat: PBU attempt (1.0yd reach, must be facing ball, arm on path) — safer disruption",
         "  play_man: hit receiver at catch (no facing req, must be within 1yd of WR) — closer hit = more likely drop",
+    ]
+    return "\n".join(lines)
+
+
+def _wr_facing_modifier(wr: PlayerState, qb: PlayerState) -> tuple[str, float]:
+    """Return (label, multiplier) for WR catch probability based on facing vs ball direction."""
+    dx = qb.x - wr.x
+    dy = qb.y - wr.y
+    ball_bearing = math.degrees(math.atan2(dx, dy)) % 360.0
+    diff = abs((ball_bearing - wr.facing + 180.0) % 360.0 - 180.0)
+    if diff <= 30.0:
+        return "facing QB (looking back for ball)", 1.15
+    elif diff <= 90.0:
+        return "sideways to QB (after cut — normal)", 1.0
+    else:
+        return "facing away from QB (running blind)", 0.80
+
+
+def build_wr_pre_snap_observation(
+    wr: PlayerState,
+    wr_attrs: PlayerAttrs,
+    cb: PlayerState | None,
+    route: str,
+    cut_time: float,
+    cut_heading: float,
+    upfield_yards: float,
+) -> str:
+    lines = [
+        "=== WR PRE-SNAP OBSERVATION ===",
+        "",
+        f"YOUR POSITION: ({wr.x:.1f}, {wr.y:.1f})",
+        f"YOUR ATTRIBUTES:  speed={wr_attrs.max_speed:.1f}yd/s  accel={wr_attrs.acceleration:.1f}yd/s²  catch={wr_attrs.catch:.0f}/99",
+        "",
+        "ROUTE CALLED:",
+        f"  Route: {route}",
+        f"  Guideline: run roughly {upfield_yards:.0f} yards upfield, then cut to ~{cut_heading:.0f}° ({_heading_label(cut_heading)})",
+        f"  Cut timing: QB expects the cut around t={cut_time:.1f}s — stay within ±0.2s of this",
+        f"  The exact distance upfield is flexible, but the cut direction must be roughly correct (±45°).",
+        "",
+        "YOUR GOAL: get open. Use deception — vary your speed, take a false step, use your body.",
+        "The CB does not know your route. You do. Use that advantage.",
+    ]
+    if cb is not None:
+        sep = math.hypot(wr.x - cb.x, wr.y - cb.y)
+        dx = cb.x - wr.x
+        dy = cb.y - wr.y
+        cb_side = "to your RIGHT" if dx > 0.3 else ("to your LEFT" if dx < -0.3 else "directly across from you")
+        cb_depth = f"{abs(dy):.1f} yd {'UPFIELD' if dy > 0 else 'behind'} you"
+        lines += [
+            "",
+            "CB ALIGNMENT:",
+            f"  CB pos: ({cb.x:.1f}, {cb.y:.1f})  separation: {sep:.1f} yd",
+            f"  CB is {cb_side}, {cb_depth}",
+            "  Use this to decide your release plan — if CB is playing inside, attack outside. If press, use a push-off step.",
+        ]
+    lines += [
+        "",
+        "Decide your pre-snap plan: what deception technique will you use, and at what moment?",
+        "You will re-evaluate every step based on what the CB actually does.",
+    ]
+    return "\n".join(lines)
+
+
+def build_wr_observation(
+    t: float,
+    wr: PlayerState,
+    wr_attrs: PlayerAttrs,
+    cb: PlayerState | None,
+    qb: PlayerState,
+    ball: BallState,
+    route: str,
+    cut_time: float,
+    cut_heading: float,
+    wr_called_for_ball: bool,
+    call_t: float | None,
+    broken_play: bool,
+    wr_history: list[dict] | None = None,
+    ball_total_eta: float | None = None,
+    detected_cut_t: float | None = None,
+) -> str:
+    time_to_cut = cut_time - t
+
+    lines = [
+        f"=== WR OBSERVATION  t={t:.1f}s ===",
+        "",
+        f"YOU (WR): pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
+    ]
+
+    if cb is not None:
+        sep = math.hypot(wr.x - cb.x, wr.y - cb.y)
+        dx = cb.x - wr.x
+        dy = cb.y - wr.y
+        cb_side = "RIGHT" if dx > 0.3 else ("LEFT" if dx < -0.3 else "inline"  )
+        cb_rel = "UPFIELD of you" if dy > 0.5 else ("BEHIND you" if dy < -0.5 else "at same depth")
+        lines += [
+            f"CB:     pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°  facing={cb.facing:.0f}°",
+            f"  CB is {sep:.1f} yd away — {cb_side}, {cb_rel}",
+        ]
+        if sep > 4.0:
+            lines.append("  CB is giving you a big cushion — consider cutting early to exploit it.")
+        elif sep < 1.5:
+            lines.append("  CB is tight on you — you need a sharp move to create separation.")
+        else:
+            lines.append("  CB is in moderate coverage.")
+    else:
+        lines.append("CB: no CB on field this play.")
+
+    # Sideline proximity warning
+    dist_left = wr.x
+    dist_right = FIELD_WIDTH - wr.x
+    near_side = min(dist_left, dist_right)
+    if near_side < OOB_WARN_DIST:
+        side_name = "LEFT sideline" if dist_left < dist_right else "RIGHT sideline"
+        lines += [
+            "",
+            f"!! SIDELINE WARNING: you are {near_side:.1f} yd from the {side_name}.",
+            f"   If your heading takes you out of bounds, cut back in-bounds, call for the ball, and commit to that path.",
+        ]
+
+    # Play state
+    lines += [""]
+    if broken_play:
+        lines += [
+            "BROKEN PLAY — original gameplan is void.",
+            "Find open space, avoid going out of bounds. Call for the ball when you are open.",
+            "You are free to choose any heading and throttle.",
+        ]
+    elif wr_called_for_ball:
+        lines += [
+            f"COMMITTED: you called for the ball at t={call_t:.1f}s." if call_t is not None else "COMMITTED: you called for the ball.",
+            "Your heading is LOCKED — do not cut. Choose your throttle (accelerate/coast/brake) to position for the catch.",
+            "If the throw is bad once ball is in air, you may adjust heading to chase it.",
+        ]
+    else:
+        if time_to_cut > 0.3:
+            lines += [
+                f"PHASE: PRE-CUT  |  Route: {route}  |  Cut heading: ~{cut_heading:.0f}° ({_heading_label(cut_heading)}) at t≈{cut_time:.1f}s  |  Time to cut: {time_to_cut:.1f}s",
+                f"KEEP HEADING NEAR 0° (straight upfield). Do NOT move to {cut_heading:.0f}° yet — that telegraphs the route to the CB.",
+                "Deception while upfield: vary throttle, jab step (±10-20° then back to 0°), stutter. Do NOT call for the ball yet.",
+            ]
+        elif time_to_cut >= -0.2:
+            lines += [
+                f"CUT WINDOW — execute your break NOW (t={t:.1f}s, cut guideline t={cut_time:.1f}s).",
+                f"Cut toward ~{cut_heading:.0f}° ({_heading_label(cut_heading)}). If you are open after the cut, call for the ball.",
+            ]
+        else:
+            lines += [
+                f"PAST CUT TIME (cut was at t≈{cut_time:.1f}s, now t={t:.1f}s).",
+                "If you have not called for the ball yet, do so if you are open. QB is looking for you.",
+            ]
+
+    # Ball state
+    if ball.state == "in_air":
+        if ball_total_eta and ball_total_eta > 0:
+            fuzz = max(0.25, 4.0 * (ball.eta / ball_total_eta))
+        else:
+            fuzz = 4.0
+        dist_to_land = math.hypot(wr.x - ball.landing_x, wr.y - ball.landing_y)
+        bearing_to_ball = math.degrees(math.atan2(
+            ball.landing_x - wr.x, ball.landing_y - wr.y
+        )) % 360.0
+        facing_label, _ = _wr_facing_modifier(wr, qb)
+        lines += [
+            "",
+            f"BALL IN AIR — ETA: {ball.eta:.2f}s",
+            f"  Landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  ±{fuzz:.1f} yd",
+            f"  Your distance to landing zone: {dist_to_land:.1f} yd",
+            f"  Bearing to landing zone: {bearing_to_ball:.0f}°",
+            f"  Your facing: {wr.facing:.0f}° — {facing_label}",
+            "  Adjust your heading to get under the ball. Face toward the landing zone for best catch chance.",
+        ]
+
+    # Recent WR history
+    if wr_history:
+        recent = wr_history[-WR_HISTORY_WINDOW:]
+        lines += [
+            "",
+            "YOUR RECENT HISTORY:",
+            f"  {'t':>5}  {'pos':>14}  {'hdg':>6}  {'spd':>5}",
+        ]
+        for h in recent:
+            wx, wy = h["wr"]
+            lines.append(f"  {h['t']:>5.1f}  ({wx:5.1f},{wy:5.1f})  {h['wr_hdg']:>5.0f}°  {h.get('wr_spd', 0.0):>4.1f}")
+
+    lines += [
+        "",
+        f"YOUR MAX SPEED: {wr_attrs.max_speed:.1f} yd/s  accel={wr_attrs.acceleration:.1f} yd/s²",
     ]
     return "\n".join(lines)
 

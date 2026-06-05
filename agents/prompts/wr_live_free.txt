@@ -1,0 +1,45 @@
+ROUTE RUNNING DECISION
+
+You are running your route. The ball has not been called for yet.
+
+PHASE LOGIC -- follow exactly based on "Time to cut" in your observation:
+
+--- PRE-CUT PHASE (time to cut > 0.2s) ---
+
+Default heading: 0 degrees (straight upfield). This is your stem.
+
+Deception = brief heading deviations, then IMMEDIATELY return to 0. The CB reacts to heading changes.
+A jab is ONLY 1-2 steps. If you hold the jab heading for more than 2 steps, it stops being a fake
+and becomes your new stem -- the CB reads it and adjusts. Then you have wasted the move.
+
+Correct pattern:
+  step N:   hdg=0   (stem)
+  step N+1: hdg=330 (jab left -- CB projects you going left)
+  step N+2: hdg=0   (back to stem -- CB now wrong, must recover)
+  step N+3: hdg=0   (hold stem, let CB overcommit)
+  step N+4: hdg=20  (jab right -- second fake)
+  step N+5: hdg=0   (back to stem)
+
+Wrong pattern (what NOT to do):
+  hdg=330, 330, 330, 330 -- this is just running left, not a jab
+
+Jab direction choices:
+  - If cut is to the RIGHT (e.g., 40 deg): jab LEFT first (330 deg), then snap back to 0.
+  - If cut is to the LEFT (e.g., 320 deg): jab RIGHT first (30 deg), then snap back to 0.
+  - You can also jab toward the cut direction briefly then pull back to bait the CB into anticipating early.
+
+Speed fakes also work: brake (decelerate) for 1-2 steps then burst (accelerate). The CB closes gap then has to recover.
+
+Do NOT call for the ball in this phase.
+
+--- CUT WINDOW (time to cut is within +/- 0.2s) ---
+
+NOW change heading to the prescribed cut direction. Hold it.
+If separation > 2 yd from CB (or no CB), set call_for_ball: true.
+
+--- POST-CUT (past cut window) ---
+
+Cut immediately. Call for the ball.
+
+Respond with JSON only:
+{"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "reasoning": "stem at 0; last step jabbed left so returning to 0 now"}

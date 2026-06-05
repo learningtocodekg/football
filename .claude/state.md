@@ -1,21 +1,22 @@
 # Build State
-Current phase: A2 (CB agent complete, iterated and verified)
+Current phase: A3 complete (LLM WR agent working, tested in no-CB mode)
 
 ## Built
 - engine/physics.py — PlayerState, apply_action (backpedal mode, new_facing/new_mode params), BACKPEDAL_SPEED_FRACTION=0.75
 - engine/ball.py, field.py, resolution.py, state_machine.py
-- engine/resolution.py — facing+arm-reach geometry for PBU/INT; CB_ARM_REACH=1.0, CB_HALF_REACH=0.5, CB_FACING_CONE=60°; play_man proximity bonus
+- engine/resolution.py — facing+arm-reach geometry for PBU/INT; CB_ARM_REACH=1.0, CB_HALF_REACH=0.5, CB_FACING_CONE=60°; play_man proximity bonus; WR facing multiplier (x1.15/x1.0/x0.80); optional CB (None in A3)
 - replay/recorder.py
 - agents/qb_agent.py (two-pass: hold/thinking → concrete options)
 - agents/cb_agent.py (three-pass: pre_snap / decide_movement / decide_intent)
+- agents/wr_agent.py (three-pass: pre_snap / decide / ball_in_air; call-for-ball state machine; locked heading; broken play)
 - agents/scripted.py — ScriptedWR (4 routes), ScriptedCB (legacy), ScriptedQB (route-aware lead throw)
-- agents/observation.py — build_qb_observation, build_cb_observation (fuzzy zone, situation block with 4 states, intercept heading, intent-aware ball-in-air facing), build_cb_pre_snap_observation, build_cb_intent_observation
-- agents/schema.py — QB parsers + CB parsers
+- agents/observation.py — build_qb_observation (CB optional, WR call one-step delay, WR facing modifier, sideline distances), build_cb_observation (fuzzy zone, situation block, intercept heading, intent-aware facing), build_wr_observation (phase-gated: pre-cut/cut-window/post-cut, CB exact info, sideline warning), build_wr_pre_snap_observation, _wr_facing_modifier
+- agents/schema.py — QB parsers + CB parsers + WR parsers (parse_wr_pre_snap, parse_wr_live)
 - agents/llm_client.py (OpenAI + Ollama)
-- agents/prompts/ — qb_system, qb_pass1, qb_pass2, cb_system, cb_pre_snap, cb_pass1, cb_pass2
-- sim/runner.py — A2 runner: ScriptedQB wiring, CB pre-snap, per-step CB movement, intent decision, cb_intent wired to BALL_IN_AIR observation
+- agents/prompts/ — qb_*, cb_*, wr_system, wr_pre_snap, wr_live_free, wr_live_committed, wr_live_broken, wr_ball_in_air
+- sim/runner.py — A2 + A3 modes; WR pre-snap; per-step WR decide; call-for-ball one-step delay; OOB broken play trigger; heading lock; ScriptedQB isinstance dispatch
 - sim/seeds.py, rosters/default.yaml
-- sim/scenarios/ — a1_basic, a1_local, a1_1st10_slant, a1_2nd25_post, a1_3rd10_comeback, a1_3rd3_out, a2_cb_slant
+- sim/scenarios/ — a1_*, a2_cb_slant, a3_wr_slant, a3_wr_comeback
 - render/renderer_pygame.py
 - main.py
 - tests/test_e2e.py
@@ -32,20 +33,31 @@ Current phase: A2 (CB agent complete, iterated and verified)
 - LIVE (per step): heading + facing + mode (normal/backpedal/brake)
 - BALL_IN_AIR (once): intent = play_man / swat / go_for_pick; facing in subsequent movement steps is intent-aware
 
+**WR agent (three-pass):**
+- Pre-snap: reads CB alignment, outputs deception plan
+- LIVE (per step): heading + facing + throttle + call_for_ball
+  - Three prompt states: free (pre-call) / committed (post-call, ball held) / broken play
+  - Phase-gated: pre-cut (run 0°, jab fakes) / cut window (execute break + call) / post-cut
+  - call_for_ball validated: heading must be within ±45° of cut_heading (or broken play)
+  - Heading locked mechanically by runner post-call while ball held
+- BALL_IN_AIR: free to chase bad throws
+
 **CB observation SITUATION block — 4 states:**
 1. CB upfield, WR approaching → backpedal (heading ~0°, facing ~180°)
 2. CB upfield, WR running BACK toward QB → flip hips, CHASE downfield (comeback fix)
 3. WR just passed CB (0–2 yd ahead) → close gap immediately
 4. WR >2 yd ahead → CHASE (intercept heading, not just current bearing)
 
-**ScriptedQB:**
-- Simulates WR forward via ScriptedWR.move() for eta seconds (two-pass refinement)
-- Activated by qb_scripted: true in scenario YAML
+**Deception mechanics (WR):**
+- CB intercept calculation projects WR forward 0.5s along current heading/speed
+- WR jabs (1-step heading deviation) make that projection wrong → CB overcommits → separation on real cut
+- Jab pattern: 1 step off, snap back to 0°. Holding the jab heading = readable to CB.
 
 ## Known Issues
-- t=1.3 heading stutter: LLM occasionally emits a wrong heading mid-backpedal before self-correcting next step
-- CB pre-snap alignment not varying by route — always picks off-coverage outside
-- CB intent is almost always "swat" regardless of geometry; play_man rarely chosen
+- detected_cut_t fires on first jab (any 30°+ heading change), not the real route break. CB in A4 will see this.
+- QB sometimes holds 2-3 extra steps after WR calls due to stale heading projection in _build_options.
+- CB pre-snap alignment not varying by route type.
+- CB intent is almost always "swat."
 
 ## Not Started
-A3 (WR agent), A4 (all three live), B–E
+A4 (all three agents live), B–E
