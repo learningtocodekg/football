@@ -72,9 +72,12 @@ def build_qb_observation(
     else:
         lines.append("CB1: no CB on field this play.")
 
+    proj_x_reg = wr.x + math.sin(math.radians(wr.heading)) * wr.speed * regular_t
+    proj_y_reg = wr.y + math.cos(math.radians(wr.heading)) * wr.speed * regular_t
     lines += [
         f"Ball travel time to WR's CURRENT position ({dist_to_wr:.1f} yd away): "
         f"bullet={bullet_t:.2f}s ({max_mph:.0f} mph)  regular={regular_t:.2f}s ({mid_mph:.0f} mph)  lob={lob_t:.2f}s ({MIN_BALL_SPEED_MPH:.0f} mph)",
+        f"LEAD HINT: at regular speed WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — throw there, not to current pos. Adjust if WR is decelerating.",
     ]
 
     # WR signal block
@@ -97,7 +100,10 @@ def build_qb_observation(
                 "WR has NOT yet called for the ball. Do not throw until WR signals."
             )
         if detected_cut_t is not None:
-            lines.append(f"DETECTED: WR made a significant heading change at t={detected_cut_t:.1f}s.")
+            if expected_open_t is not None and abs(detected_cut_t - expected_open_t) <= 0.4:
+                lines.append(f"DETECTED: WR made a significant heading change at t={detected_cut_t:.1f}s — this matches the expected route cut (t≈{expected_open_t:.1f}s).")
+            else:
+                lines.append(f"DETECTED: WR made a heading change at t={detected_cut_t:.1f}s — likely a jab/fake (real cut expected around t≈{expected_open_t:.1f}s). Wait for the WR call.")
         lines.append("WR has not called for the ball. Hold until the call comes in.")
 
     if route_phases:
@@ -229,7 +235,11 @@ def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> li
     # Heading 180° = straight back, treat 135–225° as "coming back."
     wr_coming_back = 135.0 <= (wr.heading % 360.0) <= 225.0
 
-    # Four meaningful situations with unambiguous action advice
+    # Is the WR running mostly horizontally (drag, in, zig, corner routes)?
+    wr_hdg_norm = wr.heading % 360.0
+    wr_going_lateral = (45.0 <= wr_hdg_norm <= 135.0) or (225.0 <= wr_hdg_norm <= 315.0)
+
+    # Five meaningful situations with unambiguous action advice
     if dy < -0.5 and wr_coming_back:
         # CB is upfield but WR has cut back toward QB — backpedaling further widens the gap.
         # CB must flip and chase the WR downfield.
@@ -239,6 +249,16 @@ def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> li
             f"RECOMMENDED: flip hips and CHASE downfield — WR is running away from you toward QB. "
             f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path), facing ≈ {intercept_hdg:.0f}°. mode=normal. "
             f"Do NOT backpedal — that moves you further away."
+        )
+    elif dy < -0.5 and wr_going_lateral:
+        # CB is upfield but WR has broken horizontally — backpedaling widens the lateral gap.
+        # CB must drive sideways to cut off the route, not continue upfield.
+        y_rel = f"You are {-dy:.1f} yd UPFIELD of WR — but WR is running LATERALLY (heading {wr.heading:.0f}°) ✗"
+        wr_motion = f"WR is running SIDEWAYS at {wr.speed:.1f} yd/s — DO NOT backpedal"
+        action = (
+            f"RECOMMENDED: DRIVE LATERALLY to intercept — WR broke horizontal. "
+            f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path). facing ≈ {intercept_hdg:.0f}°. mode=normal. "
+            f"Backpedaling upfield lets WR separate freely on the horizontal — pursue them now."
         )
     elif dy < -0.5:
         # CB is upfield (between WR and end zone) — correct position, WR approaching
@@ -497,8 +517,9 @@ def build_wr_pre_snap_observation(
     if route == "curl":
         lines += [
             "",
-            "!! CURL TIMING: Call for ball the SAME step you execute the cut. QB throws immediately.",
-            "  Do not run the 180° heading for multiple steps before calling — the timing window is tight.",
+            "!! CURL TIMING: Call for ball as you BEGIN the turn (heading ~270°), one step BEFORE the full 180°.",
+            "  The ball arrives as you complete the turn to face the QB. QB throws immediately on your signal.",
+            "  Do not wait until you are fully at 180° — ball will arrive before you finish turning.",
         ]
     lines += [
         "",
@@ -601,7 +622,7 @@ def build_wr_observation(
         # Go route — no cut, straight vertical
         lines += [
             f"PHASE: STRAIGHT ROUTE ({route}) -- NO CUT. Run straight upfield the entire play.",
-            "Call for the ball when you have clear separation from the CB.",
+            "There is no prescribed cut. Call for the ball whenever you judge you are open — use your own read of the coverage.",
         ]
     elif route_phases and len(route_phases) >= 3:
         # Multi-phase route — determine current phase and show full schedule
@@ -639,14 +660,15 @@ def build_wr_observation(
             # Still in stem phase
             lines += [
                 f"STEM PHASE — run upfield (0°). {time_to_next:.1f}s until first cut.",
-                "Deception: subtle jab steps (±10-20° then snap back to 0°). Do NOT call for ball yet.",
+                "Deception: change jab angle each time (e.g., left then right, not same direction twice); go 2-3 steps in a direction before snapping back to sell the fake; mix speed changes (brake then burst) with heading fakes. Do NOT call for ball yet.",
             ]
         else:
             # In an intermediate phase (fake move)
             next_heading = cut_heading
             lines += [
-                f"INTERMEDIATE MOVE — run {route_phases[cur_phase_idx][1]:.0f}° now. {time_to_next:.1f}s until real break.",
-                f"After this move, cut hard to {next_heading:.0f}° ({_heading_label(next_heading)}) — that is your real break.",
+                f"INTERMEDIATE MOVE — hold {route_phases[cur_phase_idx][1]:.0f}° for {time_to_next:.1f}s until the real break.",
+                f"HOLD this heading for the FULL phase duration — do NOT return to 0° or oscillate. The CB must commit to this fake.",
+                f"After the fake, cut hard to {next_heading:.0f}° ({_heading_label(next_heading)}) — that is your REAL break.",
                 "Do NOT call for ball in this fake phase.",
             ]
     else:
@@ -654,7 +676,7 @@ def build_wr_observation(
             lines += [
                 f"PHASE: PRE-CUT  |  Route: {route}  |  Cut heading: ~{cut_heading:.0f}° ({_heading_label(cut_heading)}) at t≈{cut_time:.1f}s  |  Time to cut: {time_to_cut:.1f}s",
                 f"KEEP HEADING NEAR 0° (straight upfield). Do NOT move to {cut_heading:.0f}° yet — that telegraphs the route to the CB.",
-                "Deception while upfield: vary throttle, jab step (±10-20° then back to 0°), stutter. Do NOT call for the ball yet.",
+                "Deception: vary your fakes — change the jab angle each time (not always the same direction), go 2-3 steps in a direction to sell it before snapping back, mix in speed changes (brake then burst). A predictable pattern has no deception value.",
             ]
         elif time_to_cut >= -0.2:
             lines += [
@@ -662,7 +684,7 @@ def build_wr_observation(
                 f"Cut toward ~{cut_heading:.0f}° ({_heading_label(cut_heading)}). If you are open after the cut, call for the ball.",
             ]
             if route == "curl":
-                lines.append("!! CURL TIMING: Call for ball the SAME STEP you cut. QB throws immediately on your signal.")
+                lines.append("!! CURL TIMING: Call for ball as you BEGIN the turn (heading ~270°, one step before full 180°). This gives the ball time to arrive as you face up. QB throws immediately on your signal.")
         else:
             lines += [
                 f"PAST CUT TIME (cut was at t≈{cut_time:.1f}s, now t={t:.1f}s).",

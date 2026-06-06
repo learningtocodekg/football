@@ -110,6 +110,8 @@ class WRAgent:
         """Call is valid if heading is within tolerance of prescribed cut heading, or broken play."""
         if self.broken_play:
             return True
+        if self.cut_time >= 9.0:  # go route — no prescribed cut, any heading is valid
+            return True
         diff = abs((heading - self.cut_heading + 180.0) % 360.0 - 180.0)
         return diff <= self.call_tolerance
 

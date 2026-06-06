@@ -37,9 +37,10 @@ ROUTES: dict[str, list[tuple[float, float]]] = {
     # Zig: 3 yards up, jab left, cut hard right
     "zig":         [(0.6, 0.0), (0.9, 270.0), (999, 90.0)],
     # Drag: minimal upfield stem then drag horizontally across field
-    "drag":        [(0.3, 0.0), (999, 90.0)],
+    "drag":        [(0.7, 0.0), (999, 90.0)],
     # Corner: deep upfield stem, diagonal cut toward outside corner of end zone
-    "corner":      [(2.5, 0.0), (999, 315.0)],
+    # 290° pushes the left-side WR (x≈16) hard toward the sideline, not 315° which barely drifts x
+    "corner":      [(2.5, 0.0), (999, 290.0)],
     # Post-corner: stem up, fake post cut inside, then flip to corner (outside)
     "post_corner": [(2.0, 0.0), (2.4, 45.0), (999, 315.0)],
     # In: upfield stem, sharp 90° cut toward middle of field
@@ -50,9 +51,9 @@ ROUTES: dict[str, list[tuple[float, float]]] = {
 # call_tolerance: how many degrees from cut_heading the WR heading can be when calling for ball.
 #   Default 45°. Set higher for routes where the call happens before the final cut direction.
 ROUTE_META: dict[str, dict] = {
-    # Curl: WR should call for ball just AS they execute the curl cut — same-step call+cut.
-    # Raise tolerance so the LLM can call a step early if needed.
-    "curl": {"call_tolerance": 90.0},
+    # Curl: WR should call at ~270° (beginning of turn, one step before full 180°).
+    # Raise tolerance to 135° so calling at 270° (135° off from 180°) is permitted.
+    "curl": {"call_tolerance": 135.0},
 }
 
 

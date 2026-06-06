@@ -357,7 +357,7 @@ def run_play(
                     down=down, distance=distance,
                     history=move_history,
                     expected_open_t=expected_open_t,
-                    route_phases=route_phases if not isinstance(wr_agent, WRAgent) else None,
+                    route_phases=route_phases,
                     wr_called_for_ball=wr_call_visible,
                     wr_call_t=wr_call_t_pending,
                     wr_call_heading=wr_call_heading_pending,
@@ -481,9 +481,9 @@ def run_play(
         else:
             states["WR1"] = wr_agent.move(t, states["WR1"], attrs["WR1"], DT)
 
-        # Detect WR cut from heading change
+        # Detect WR cut from heading change — ignore early stem-phase jabs (t < 0.5s)
         new_wr_hdg = states["WR1"].heading
-        if _detect_cut(prev_wr_heading, new_wr_hdg) and detected_cut_t is None:
+        if t >= 0.5 and _detect_cut(prev_wr_heading, new_wr_hdg) and detected_cut_t is None:
             detected_cut_t = t
             telemetry["detected_cut_t"] = t
             print(f"  t={t:.1f}  [WR cut detected] heading changed to {new_wr_hdg:.0f}°")
