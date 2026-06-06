@@ -1,0 +1,27 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, curl route"
+phase: A4
+description: >
+  3rd and 8. All three agents live. WR runs a curl — upfield stem (0–1.5s), then
+  sharp 180° turn back toward QB. TIMING CRITICAL: WR signals for ball the same step
+  the cut executes. QB must read the signal and throw immediately — the WR expects the
+  ball fast. CB must react to the cutback and close quickly.
+  Tests: WR call timing, QB quick-release decision, CB cutback reaction.
+
+down: 3
+distance: 8
+wr_route: curl
+expected_open_t: 1.8
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

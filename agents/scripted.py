@@ -21,13 +21,38 @@ from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff, h
 
 ROUTES: dict[str, list[tuple[float, float]]] = {
     # Straight upfield, then sharp inside cut
-    "slant":    [(2.0, 0.0), (999, 40.0)],
+    "slant":       [(2.0, 0.0), (999, 40.0)],
     # Straight upfield longer, then diagonal toward middle of field (post)
-    "post":     [(2.5, 0.0), (999, 45.0)],
+    "post":        [(2.5, 0.0), (999, 45.0)],
     # Straight upfield, then turn back toward QB
-    "comeback": [(2.5, 0.0), (999, 180.0)],
+    "comeback":    [(2.5, 0.0), (999, 180.0)],
     # Quick upfield burst, then cut outside toward sideline
-    "out":      [(1.8, 0.0), (999, 315.0)],
+    "out":         [(1.8, 0.0), (999, 315.0)],
+    # No cut — straight vertical route, deception only through speed/subtle weaves
+    "go":          [(999, 0.0)],
+    # Double move: stem upfield, fake right (first move), cut back upfield (real break)
+    "double_move": [(1.5, 0.0), (2.2, 90.0), (999, 0.0)],
+    # Curl: upfield stem, then sharp 180° turn back toward QB — timing-critical throw
+    "curl":        [(1.5, 0.0), (999, 180.0)],
+    # Zig: 3 yards up, jab left, cut hard right
+    "zig":         [(0.6, 0.0), (0.9, 270.0), (999, 90.0)],
+    # Drag: minimal upfield stem then drag horizontally across field
+    "drag":        [(0.3, 0.0), (999, 90.0)],
+    # Corner: deep upfield stem, diagonal cut toward outside corner of end zone
+    "corner":      [(2.5, 0.0), (999, 315.0)],
+    # Post-corner: stem up, fake post cut inside, then flip to corner (outside)
+    "post_corner": [(2.0, 0.0), (2.4, 45.0), (999, 315.0)],
+    # In: upfield stem, sharp 90° cut toward middle of field
+    "in":          [(1.8, 0.0), (999, 90.0)],
+}
+
+# Per-route metadata for agents and observers.
+# call_tolerance: how many degrees from cut_heading the WR heading can be when calling for ball.
+#   Default 45°. Set higher for routes where the call happens before the final cut direction.
+ROUTE_META: dict[str, dict] = {
+    # Curl: WR should call for ball just AS they execute the curl cut — same-step call+cut.
+    # Raise tolerance so the LLM can call a step early if needed.
+    "curl": {"call_tolerance": 90.0},
 }
 
 

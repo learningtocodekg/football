@@ -15,7 +15,7 @@ from replay.recorder import Recorder
 from agents.qb_agent import QBAgent
 from agents.cb_agent import CBAgent
 from agents.wr_agent import WRAgent
-from agents.scripted import ScriptedWR, ScriptedQB, ROUTES
+from agents.scripted import ScriptedWR, ScriptedQB, ROUTES, ROUTE_META
 from agents.observation import (
     build_qb_observation,
     build_cb_pre_snap_observation,
@@ -131,8 +131,14 @@ def run_play(
 
     ball = BallState(x=states["QB"].x, y=states["QB"].y, holder_id="QB")
 
-    # ── Mode: A3 = LLM WR, no CB; A2 = scripted WR, LLM CB ─────────────
+    # ── Mode flags ───────────────────────────────────────────────────────
+    # a3_mode: LLM WR + LLM QB, no CB (isolated WR dev)
+    # a4_mode: LLM WR + LLM QB + LLM CB (full field)
+    # default (neither): scripted WR, LLM CB (A2)
     a3_mode = scenario.get("a3_mode", False)
+    a4_mode = scenario.get("a4_mode", False)
+    llm_wr = a3_mode or a4_mode
+    llm_cb = a4_mode or (not a3_mode)
 
     # ── Agents ───────────────────────────────────────────────────────────
     model = scenario.get("qb_model", "gpt-5-nano")
@@ -156,28 +162,45 @@ def run_play(
 
     route_name = scenario.get("wr_route", "slant")
     route_phases = ROUTES.get(route_name, ROUTES["slant"])
-    # cut_time = first phase threshold; cut_heading = second phase heading
-    cut_time = route_phases[0][0]
-    cut_heading = route_phases[1][1] if len(route_phases) > 1 else 0.0
-    upfield_yards = cut_time * 5.0  # rough estimate: ~5 yd/s upfield before cut
+    # For multi-phase routes, cut_time = time of the LAST real cut; cut_heading = final heading.
+    if len(route_phases) >= 2:
+        cut_time = route_phases[-2][0]
+        cut_heading = route_phases[-1][1]
+    else:
+        cut_time = 999.0    # go route — no cut
+        cut_heading = route_phases[0][1]
+    upfield_yards = cut_time * 5.0 if cut_time < 9.0 else 10.0
 
-    if a3_mode:
+    route_meta = ROUTE_META.get(route_name, {})
+    call_tolerance = route_meta.get("call_tolerance", 45.0)
+    multi_phase = len(route_phases) >= 3
+
+    if llm_wr:
         wr_model = scenario.get("wr_model", model)
         wr_r_effort = scenario.get("wr_reasoning_effort", r_effort)
         wr_provider = scenario.get("wr_provider", provider)
         wr_agent = WRAgent(
             model=wr_model, reasoning_effort=wr_r_effort, provider=wr_provider,
             route=route_name, cut_time=cut_time, cut_heading=cut_heading,
-            upfield_yards=upfield_yards,
+            upfield_yards=upfield_yards, call_tolerance=call_tolerance,
         )
-        cb_agent = None
-        print(f"  [A3 mode] LLM WR ({wr_model}) + LLM QB — no CB")
     else:
         wr_agent = ScriptedWR(route=route_name)
+
+    if llm_cb and not a3_mode:
         cb_model = scenario.get("cb_model", model)
         cb_r_effort = scenario.get("cb_reasoning_effort", r_effort)
         cb_provider = scenario.get("cb_provider", provider)
         cb_agent = CBAgent(model=cb_model, reasoning_effort=cb_r_effort, provider=cb_provider)
+    else:
+        cb_agent = None
+
+    if a4_mode:
+        print(f"  [A4 mode] LLM WR ({wr_agent.model}) + LLM QB + LLM CB ({cb_agent.model})")
+    elif a3_mode:
+        print(f"  [A3 mode] LLM WR ({wr_agent.model}) + LLM QB — no CB")
+    else:
+        print(f"  [A2 mode] scripted WR + LLM QB + LLM CB ({cb_agent.model})")
 
     # ScriptedQB needs WR agent for look-ahead simulation
     if isinstance(qb_agent, ScriptedQB):
@@ -190,7 +213,7 @@ def run_play(
     distance = scenario.get("distance", 10)
     expected_open_t = scenario.get("expected_open_t", cut_time + 0.3)
 
-    # ── CB pre-snap (A2 only) ────────────────────────────────────────────
+    # ── CB pre-snap (A2 + A4) ───────────────────────────────────────────
     if cb_agent is not None and "CB1" in states:
         pre_snap_obs = build_cb_pre_snap_observation(states["CB1"], attrs["CB1"], states["WR1"])
         pre_snap_result = cb_agent.pre_snap(pre_snap_obs)
@@ -198,16 +221,18 @@ def run_play(
         print(f"  CB pre-snap -> offset={pre_snap_result['offset_yards']:.1f}yd  side={pre_snap_result['side']}  | {r}")
         states["CB1"] = _apply_cb_pre_snap(states["CB1"], states["WR1"], pre_snap_result)
 
-    # ── WR pre-snap (A3 only) ────────────────────────────────────────────
+    # ── WR pre-snap ──────────────────────────────────────────────────────
     if isinstance(wr_agent, WRAgent):
-        cb_state_for_wr = states.get("CB1") if not a3_mode else None
+        cb_state_for_wr = states.get("CB1")
         wr_pre_obs = build_wr_pre_snap_observation(
             states["WR1"], attrs["WR1"], cb_state_for_wr,
             route_name, cut_time, cut_heading, upfield_yards,
+            route_phases=route_phases if multi_phase else None,
         )
         wr_pre_result = wr_agent.pre_snap(wr_pre_obs)
         r = wr_pre_result.get("reasoning", "").encode("ascii", "replace").decode("ascii")
-        print(f"  WR pre-snap plan: {wr_pre_result['plan'][:80]}  | {r}")
+        plan = wr_pre_result['plan'][:80].encode("ascii", "replace").decode("ascii")
+        print(f"  WR pre-snap plan: {plan}  | {r}")
 
     recorder = Recorder(header={"seed": seed, "scenario": scenario_path, "roster": roster_path,
                                 "down": down, "distance": distance})
@@ -288,15 +313,16 @@ def run_play(
                     _ball_snap(ball), events)
                 break
 
-            # ── WR decision (A3 mode) ────────────────────────────────────
+            # ── WR decision ──────────────────────────────────────────────
             if isinstance(wr_agent, WRAgent):
-                cb_state = states.get("CB1") if not a3_mode else None
+                cb_state = states.get("CB1")
                 wr_obs = build_wr_observation(
                     t, states["WR1"], attrs["WR1"], cb_state, states["QB"],
                     ball, route_name, cut_time, cut_heading,
                     wr_agent.called_for_ball, wr_agent.call_t, wr_agent.broken_play,
                     wr_history=move_history, ball_total_eta=ball_total_eta,
                     detected_cut_t=detected_cut_t,
+                    route_phases=route_phases if multi_phase else None,
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=False, t=t)
                 r = wr_decision.get("reasoning", "").encode("ascii", "replace").decode("ascii")
@@ -408,15 +434,16 @@ def run_play(
                 print(f"  t={t:.1f}  CB move   -> hdg={cb_move['heading']:.0f}° facing={cb_move['facing']:.0f}° mode={cb_move['mode']}  | {r}")
                 actions["CB1"] = {**cb_move, "action": "cover"}
 
-            # WR movement in air (A3 mode) — free to adjust heading
+            # WR movement in air — free to adjust heading
             if isinstance(wr_agent, WRAgent):
-                cb_state = states.get("CB1") if not a3_mode else None
+                cb_state = states.get("CB1")
                 wr_obs = build_wr_observation(
                     t, states["WR1"], attrs["WR1"], cb_state, states["QB"],
                     ball, route_name, cut_time, cut_heading,
                     wr_agent.called_for_ball, wr_agent.call_t, wr_agent.broken_play,
                     wr_history=move_history, ball_total_eta=ball_total_eta,
                     detected_cut_t=detected_cut_t,
+                    route_phases=route_phases if multi_phase else None,
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=True, t=t)
                 r = wr_decision.get("reasoning", "").encode("ascii", "replace").decode("ascii")

@@ -1,0 +1,27 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, in route"
+phase: A4
+description: >
+  2nd and 10. All three agents live. WR runs an in route — upfield stem (~1.8s,
+  ~9 yards), then sharp 90° cut toward the middle of the field at 90° (right).
+  Similar to a slant but at 90° (sharper, more horizontal) and at greater depth.
+  Tests: WR precision on a hard 90° cut, CB reaction to a sharp inside break,
+  QB timing on a short-to-intermediate crossing throw.
+
+down: 2
+distance: 10
+wr_route: in
+expected_open_t: 2.1
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

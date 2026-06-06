@@ -28,6 +28,7 @@ class WRAgent:
         cut_time: float = 2.0,
         cut_heading: float = 40.0,
         upfield_yards: float = 5.0,
+        call_tolerance: float = 45.0,
     ):
         self.model = model
         self.reasoning_effort = reasoning_effort
@@ -36,6 +37,7 @@ class WRAgent:
         self.cut_time = cut_time
         self.cut_heading = cut_heading
         self.upfield_yards = upfield_yards
+        self.call_tolerance = call_tolerance
 
         self.call_count = 0
         self.parse_errors = 0
@@ -109,7 +111,7 @@ class WRAgent:
         if self.broken_play:
             return True
         diff = abs((heading - self.cut_heading + 180.0) % 360.0 - 180.0)
-        return diff <= CALL_HEADING_TOLERANCE
+        return diff <= self.call_tolerance
 
     def record_heading(self, t: float, heading: float) -> None:
         """Call each step to detect cuts from heading history."""

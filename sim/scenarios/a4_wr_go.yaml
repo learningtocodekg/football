@@ -1,0 +1,25 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, go route"
+phase: A4
+description: >
+  1st and 10. All three agents live. WR runs a go route — straight upfield, no cut.
+  Tests whether WR can create separation purely through speed and subtle deception
+  (speed variation, micro head fakes) on a vertical stem. CB must decide whether
+  to press or give cushion. QB must read the go route and throw accurately downfield.
+
+down: 1
+distance: 10
+wr_route: go
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

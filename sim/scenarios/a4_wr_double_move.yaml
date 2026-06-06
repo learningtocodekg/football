@@ -1,0 +1,27 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, double move route"
+phase: A4
+description: >
+  1st and 10. All three agents live. WR runs a double move — stem upfield (0–1.5s),
+  fakes right at 90° (1.5–2.2s), then cuts back upfield (2.2s+) for the real break.
+  The CB should bite on the first move and need to recover for the second cut.
+  Tests: does the WR execute both phases cleanly? Does the QB wait for the real break?
+  Does the CB react to the first cut and get caught going the wrong way?
+
+down: 1
+distance: 10
+wr_route: double_move
+expected_open_t: 2.5
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

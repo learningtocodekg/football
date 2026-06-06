@@ -1,0 +1,27 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, post-corner route"
+phase: A4
+description: >
+  1st and 10. All three agents live. WR runs a post-corner — upfield stem (0–2.0s),
+  fakes an inside post cut at 45° (2.0–2.4s, 2 yards), then flips to a corner cut
+  at 315° (outside) for the real break. A premium double-move designed to make the
+  CB commit inside then get beat outside. The QB must read the second cut.
+  Tests: CB reaction to post fake, WR execution of two-step misdirection, QB patience.
+
+down: 1
+distance: 10
+wr_route: post_corner
+expected_open_t: 2.7
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

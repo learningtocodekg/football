@@ -1,0 +1,24 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, slant route"
+phase: A4
+description: >
+  1st and 10. All three agents live. WR runs a slant with deception.
+  Key questions: does the jab step create separation? Does QB throw
+  accurately? Is the CB/WR matchup competitive?
+
+down: 1
+distance: 10
+wr_route: slant
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

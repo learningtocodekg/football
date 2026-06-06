@@ -1,0 +1,24 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, comeback route"
+phase: A4
+description: >
+  3rd and 10. All three agents live. WR runs a comeback with deception.
+  The comeback tests CB reaction to an upfield stem followed by a hard
+  cut back toward QB — harder for CB to read than a slant.
+
+down: 3
+distance: 10
+wr_route: comeback
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

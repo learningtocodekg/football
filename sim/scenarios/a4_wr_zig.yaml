@@ -1,0 +1,27 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, zig route"
+phase: A4
+description: >
+  2nd and 5. All three agents live. WR runs a zig — 3 yards upfield (~0.6s), quick
+  jab left (270°, 0.3s), then hard cut back right (90°). Short route designed to
+  create quick separation underneath. The two-direction change should freeze the CB.
+  Tests: WR execution of the quick multi-step pattern, QB short-throw timing,
+  CB ability to mirror rapid direction changes.
+
+down: 2
+distance: 5
+wr_route: zig
+expected_open_t: 1.2
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"
