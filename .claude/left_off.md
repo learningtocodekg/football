@@ -1,56 +1,60 @@
 # Left Off
-Date: 2026-06-04
+Date: 2026-06-06
 
 ## What We Worked On
-Built and debugged the WR agent (Phase A3) — LLM WR + LLM QB, no CB on field.
+Round 2 fixes from Ollama qwen3:8b run (10 A4 routes — all 3 LLM agents live). Read problems.md
+P1–P10, applied original fixes, re-ran all 10 routes via `--ollama`, spawned subagents to analyze
+replay JSONs, wrote N1–N10 into problems.md, then applied code fixes for N1, N3, N7.
 
 ## What Got Done
 
-**WR agent now working correctly (agents/wr_agent.py):**
-- Pre-snap: reads CB alignment, outputs deception plan.
-- Live (free): per-step heading + facing + throttle + call_for_ball. Three prompt states: free / committed / broken play.
-- Call-for-ball validated mechanically: only allowed within ±45° of prescribed cut heading.
-- Heading locked post-call (while ball held). Free again once ball is in air.
-- record_heading() detects cuts (30°+ heading change) → QB sees detected_cut_t.
-- trigger_broken_play(): called by runner when WR near sideline heading OOB.
+**N1 — 2-step persistence for cut detection (sim/runner.py):**
+- `t >= 0.5` gate wasn't enough — WR jabs at exactly t=0.5.
+- New logic: heading change ≥30° creates a "candidate." Next step: if WR snaps back within 20° of
+  pre-jab heading → discard (jab). If it holds → confirm as cut.
+- Variables: `cut_candidate_t`, `cut_candidate_from_hdg` in runner loop.
 
-**Deception behavior debugged and working:**
-- Bug 1: WR was cutting to 40° at t=0.2 (1.8s early). Root cause: prompt said "cutting early to exploit cushion" — model went straight to slant heading.
-- Fix: system prompt now explicitly distinguishes pre-cut phase (run 0°, no cut heading) vs cut window (execute break). Observation labels the current phase explicitly with "KEEP HEADING NEAR 0°" during pre-cut.
-- Bug 2: model understood "jab step" but camped at jab heading for entire play (e.g., hdg=330° for 20 steps). A "jab" that lasts 2s is just running the wrong direction.
-- Fix: live free prompt now shows exact correct pattern (jab 1 step → return to 0° → hold stem → jab again) and the explicit wrong pattern to avoid. Model now executes clean 1-step jabs alternating with 0° stem.
-- Key insight added to system prompt: CB sees exact heading/speed and projects WR forward 0.5s. Deception = making that projection wrong by briefly changing heading then snapping back.
+**N3 — LEAD HINT y-direction labels (agents/observation.py):**
+- QB was throwing upfield on comebacks because heading 180° was ambiguous.
+- LEAD HINT now explicitly labels: "y is DECREASING toward QB (current y=X.X → projected y=X.X)"
+  vs "y is INCREASING upfield".
 
-**Prompt files (agents/prompts/):**
-- wr_system.txt: full job description, 2D deception mechanics, how CB intercept works, route execution phases.
-- wr_live_free.txt: phase-gated pre-cut / cut-window / post-cut logic with concrete jab pattern examples.
-- wr_live_committed.txt, wr_live_broken.txt, wr_ball_in_air.txt: unchanged.
+**N7 — Self-action history in both agent observations (agents/observation.py):**
+- WR section renamed to "YOUR RECENT ACTIONS" with throttle column.
+- CB now also gets "YOUR RECENT ACTIONS" showing its own heading + mode history per step.
+- Both agents can notice their own oscillation patterns without being told what to do.
 
-**agents/observation.py:**
-- Pre-cut phase message now says "KEEP HEADING NEAR 0° (straight upfield). Do NOT move to X° yet."
-- Cut window and post-cut labels unchanged.
+**Round 1 fixes (P1–P10) also completed this session:**
+- P1: `_can_call()` returns True for go routes (cut_time >= 9.0). Observation guides WR to call
+  when it judges it's open — no hardcoded "YOU ARE OPEN" directive.
+- P3: Deception coaching rewritten with richer taxonomy (jab, hold fake, speed fake, double fake;
+  no same move twice). Removed "AT MOST ONE jab" limit.
+- P5: corner cut_heading 315° → 290°.
+- P6: REVERTED — WR abandoning routes is valid AI behavior, not a bug.
+- P7: CB SITUATION block detects `wr_going_lateral` (45–135° or 225–315°) and emits "DRIVE
+  LATERALLY to intercept" instead of continuing backpedal.
+- P10: drag stem 0.3 → 0.7s; curl call_tolerance 90° → 135°.
+- run_all_routes.py: added `--ollama` / `--model` flags.
 
-**Bugs fixed from previous session:**
-- call_t NoneType format error: moved self.call_t = t into WRAgent.decide() so it's always set when called_for_ball is True.
-- wr_call_pending guard: added `not wr_call_visible and not wr_call_pending` to prevent re-triggering every step.
-- ScriptedQB / QBAgent interface: ScriptedQB gets t=t via isinstance dispatch; QBAgent signature untouched.
+**Problems.md updated:**
+- N2: OPEN (WR deception upgrade TBD). N4/N9: SKIP (AI decisions).
+- N5: SKIP (broader ball-in-air question). N6: SKIP (QB throw-speed question).
+- N8/N10: CLOSED (expected artifacts, not bugs).
 
-**Final A3 results (slant, no CB):**
-- Cut at prescribed t=2.0 (perfect timing).
-- Clean upfield stem with 1-step jabs at 330° interspersed.
-- Max separation: ~10-11 yd. Catch outcome.
+**Memory saved:** `memory/feedback_high_freedom.md` — guide agents with context/tips only; never
+enforce. Failures are test data. N4/N5/N6/N9/N10 are intentionally left open.
 
 ## What's Open / Known Issues
-- detected_cut_t fires on the first jab (any 30°+ heading change), not the real route break. Will matter in A4 when CB reads it.
-- QB sometimes holds 2-3 extra steps after WR calls (pass2 sees "MISS" due to stale WR heading projection). Non-critical in A3; may matter in A4.
-- No WR deception against a real CB has been tested yet — all A3 runs have no CB.
+- **N2**: WR jab is cookie-cutter 330°/30° across all 10 routes despite richer coaching.
+  Self-action history may help the WR notice its own pattern; not yet verified.
+- **N5**: Curl WR drifts sideways during ball-in-air. Broader design question: how should all
+  agents track a ball in flight? Don't patch curl-specifically.
+- **N6**: QB throw speed selection (when to bullet vs lob). Fundamental QB reasoning question.
+- **N4/N9**: WR exits fake phases early. Intentional — AI decides when to break.
 
 ## NEXT STEP
-**A4 mode: LLM QB + LLM WR + LLM CB — all three agents live.**
-
-Steps:
-1. Add `a4_mode: true` flag to runner (or reuse existing runner — CB agent already wired for A2).
-2. Wire WR agent into the existing A2 runner path (currently uses ScriptedWR in A2).
-3. Create sim/scenarios/a4_wr_slant.yaml and a4_wr_comeback.yaml.
-4. Run and observe: does WR deception actually move the CB? Does QB wait for the call?
-5. Key thing to watch: CB gets exact WR heading each step — does the 1-step jab actually cause it to misstep, or is the CB fast enough to recover before the real cut?
+1. Re-run all 10 routes to verify N1/N3/N7 fixes improved outcomes.
+2. Discuss N2: how to get WR to vary deception beyond the 330°/30° template.
+   - Does self-action history make the WR self-correct?
+   - Or do we need explicit per-step callout: "you've jabbed 330° 4 times — stop"?
+3. Discuss N5 + N6 when ready.

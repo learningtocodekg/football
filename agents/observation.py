@@ -74,10 +74,15 @@ def build_qb_observation(
 
     proj_x_reg = wr.x + math.sin(math.radians(wr.heading)) * wr.speed * regular_t
     proj_y_reg = wr.y + math.cos(math.radians(wr.heading)) * wr.speed * regular_t
+    wr_hdg_norm = wr.heading % 360.0
+    if 90.0 < wr_hdg_norm < 270.0:
+        y_dir = f"DECREASING toward QB (current y={wr.y:.1f} → projected y={proj_y_reg:.1f})"
+    else:
+        y_dir = f"INCREASING upfield (current y={wr.y:.1f} → projected y={proj_y_reg:.1f})"
     lines += [
         f"Ball travel time to WR's CURRENT position ({dist_to_wr:.1f} yd away): "
         f"bullet={bullet_t:.2f}s ({max_mph:.0f} mph)  regular={regular_t:.2f}s ({mid_mph:.0f} mph)  lob={lob_t:.2f}s ({MIN_BALL_SPEED_MPH:.0f} mph)",
-        f"LEAD HINT: at regular speed WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — throw there, not to current pos. Adjust if WR is decelerating.",
+        f"LEAD HINT: at regular speed WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
     ]
 
     # WR signal block
@@ -380,12 +385,12 @@ def build_cb_observation(
             f"  FACING: {facing_instruction}",
         ]
 
-    # WR history
+    # WR movement history
     if wr_history:
         recent = wr_history[-CB_HISTORY_WINDOW:]
         lines += [
             "",
-            "WR HISTORY (recent last):",
+            "WR RECENT MOVES (recent last):",
             f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR spd':>7}",
         ]
         for h in recent:
@@ -393,6 +398,19 @@ def build_cb_observation(
             lines.append(
                 f"  {h['t']:>5.1f}  ({wx:5.1f},{wy:5.1f})  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}"
             )
+
+    # CB self-action history
+    if wr_history:
+        recent = wr_history[-CB_HISTORY_WINDOW:]
+        cb_entries = [h for h in recent if h.get("cb_mode")]
+        if cb_entries:
+            lines += [
+                "",
+                "YOUR RECENT ACTIONS (what you actually did — check your own pattern):",
+                f"  {'t':>5}  {'hdg':>6}  {'mode':<10}",
+            ]
+            for h in cb_entries:
+                lines.append(f"  {h['t']:>5.1f}  {h['cb_hdg']:>5.0f}°  {h.get('cb_mode', ''):<10}")
 
     return "\n".join(lines)
 
@@ -712,17 +730,17 @@ def build_wr_observation(
             "  Adjust your heading to get under the ball. Face toward the landing zone for best catch chance.",
         ]
 
-    # Recent WR history
+    # Recent WR action history
     if wr_history:
         recent = wr_history[-WR_HISTORY_WINDOW:]
         lines += [
             "",
-            "YOUR RECENT HISTORY:",
-            f"  {'t':>5}  {'pos':>14}  {'hdg':>6}  {'spd':>5}",
+            "YOUR RECENT ACTIONS (headings and throttle you chose — check your own pattern):",
+            f"  {'t':>5}  {'hdg':>6}  {'throttle':<10}  {'spd':>5}",
         ]
         for h in recent:
-            wx, wy = h["wr"]
-            lines.append(f"  {h['t']:>5.1f}  ({wx:5.1f},{wy:5.1f})  {h['wr_hdg']:>5.0f}°  {h.get('wr_spd', 0.0):>4.1f}")
+            throttle = h.get("wr_throttle", "")
+            lines.append(f"  {h['t']:>5.1f}  {h['wr_hdg']:>5.0f}°  {throttle:<10}  {h.get('wr_spd', 0.0):>4.1f}")
 
     lines += [
         "",

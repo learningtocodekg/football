@@ -234,3 +234,133 @@ extend the stem to 0.6–0.8s, or address the root jab problem (P3) which elimin
 | P8 | Curl: mid-rotation catch | curl | MEDIUM | QB throws before WR completes 180° turn |
 | P9 | QB lead miscalculation | slant, corner | MEDIUM | parse error delay + no WR decel accounting |
 | P10 | Drag stem too short to survive jab noise | drag | MINOR | 0.3s stem eaten by P3 jab on first step |
+
+---
+
+# Round 2 — Ollama qwen3:8b run (seed=42, post-fix)
+
+Results: slant→DROP, comeback→INCOMPLETE, go→DROP, double_move→INTERCEPTION,
+curl→INCOMPLETE, zig→DROP, drag→CATCH, corner→CATCH, post_corner→DROP, in→DROP
+
+Score: 2 CATCH, 5 DROP, 1 INTERCEPTION, 1 INCOMPLETE
+
+---
+
+## N1 — detected_cut_t threshold still fires on t=0.5 jabs (HIGH)
+
+**Affected routes:** all 10  
+**Symptom:** detected_cut_t=0.5 in every replay — still a false positive in 9 of 10 routes.
+
+The fix raised the gate to `t >= 0.5` but the WR jabs at exactly t=0.5 on every route, so the condition is still met. In corner the WR jabbed to 290° (same as the cut heading) at t=0.7, firing the detector 1.5s before the real cut.
+
+The detector fires on single-step jabs. A real cut is sustained — the WR holds the new heading for multiple steps. A jab snaps back to 0° in 1 step.
+
+**Fix:** Implemented — 2-step heading persistence required before confirming a cut. Jab snap-backs (heading returns within 20° of pre-jab heading) are discarded.
+
+---
+
+## N2 — WR jab template is identical across all routes (HIGH)
+
+**Affected routes:** all 10  
+**Symptom:** Every route shows the same alternating 330°/30° pattern. 330° appears 4–8 times per route. Prompt and observation changes did not break the habit.
+
+post_corner: 330° at t=0.0, 0.3, 0.5, 0.7, 1.0, 1.3, 1.6, 1.8 (8 occurrences). corner: 9 jabs in 2.2s, 330° repeated 4 times. In every route the WR uses the same template regardless of route design or CB alignment.
+
+**Status: OPEN — not yet solved. Need to think about how to upgrade WR deception fundamentally. Self-action history (N7 fix) may help the WR notice its own pattern. Further approach TBD.**
+
+---
+
+## N3 — Comeback: QB throw direction inverted (HIGH)
+
+**Affected routes:** comeback → INCOMPLETE (ball_offset=2.44 yd)
+
+WR called at t=2.2 heading 180° (running back toward QB, decreasing y). QB threw to target y=63.7. At throw time WR was at y=63.35 moving toward lower y. Correct target: y ≈ 63.35 − 3.71×0.26 ≈ 62.4. QB threw to y=63.7 — upfield from where the WR was. WR ended at y=62.19, ball at y=63.7 — 1.51 yd miss in wrong direction.
+
+**Fix:** Implemented — LEAD HINT now explicitly labels y-direction ("y is DECREASING toward QB" vs "y is INCREASING upfield") so the QB cannot confuse heading 180° as upfield motion.
+
+---
+
+## N4 — Double-move: fake phase ended 0.3s early; resulted in interception (HIGH)
+
+**Affected routes:** double_move → INTERCEPTION
+
+Fake-right phase (90°) specified t=1.5–2.2. WR held 90° from t=1.5–1.8 and snapped back at t=1.9 — 0.3s early. At t=1.9 the CB was only 1.8 yd away, not yet committed to the wrong direction.
+
+**Status: SKIP for now. This is AI decision-making — we guide, not enforce. The AI should decide when to break based on the situation.**
+
+---
+
+## N5 — Curl: WR drifts sideways during ball-in-air (HIGH)
+
+**Affected routes:** curl → INCOMPLETE
+
+WR called at t=1.4 heading 180° (locked). During ball-in-air at t=1.6: WR heading changed to 90°, drifting away from the ball. Ball landed 1.5 yd from WR.
+
+**Status: SKIP — part of a larger open question about ball-in-air tracking behavior across all routes. Do not patch curl specifically.**
+
+---
+
+## N6 — In route: QB threw a lob (26.9 mph) and waited 0.2s after call (HIGH)
+
+**Affected routes:** in → DROP (separation=1.67)
+
+QB threw at 26.9 mph (ETA=0.39s vs. 0.19s at regular speed), giving the CB nearly double time to close. QB also waited 0.2s after the WR called.
+
+**Status: SKIP — this is a fundamental QB decision-making question (throw speed selection, when to throw after call) that needs broader discussion.**
+
+---
+
+## N7 — CB oscillates between backpedal and lateral pursuit (MEDIUM)
+
+**Affected routes:** in (t=2.0 reversal), corner (t=0.8, 1.3 false reactions)
+
+CB correctly pivoted to pursue at t=1.7, then reverted to backpedal at t=2.0, then pivoted again at t=2.1. No memory of having just committed to a direction.
+
+**Fix:** Implemented — CB (and WR) now see their own recent action history in each observation step, showing headings and mode they chose. This gives both agents the context to notice their own patterns and make more consistent decisions without enforcing any particular behavior.
+
+---
+
+## N8 — Zig: call event heading ≠ physical heading (MEDIUM)
+
+**Affected routes:** zig
+
+At t=0.9, `WR_CALL_FOR_BALL` event reports heading=90.0 but physical heading was 180.0 (one step before apply_decision runs).
+
+**Status: CLOSED — not a real problem. The event heading reflects the WR's intended heading (what it decided), and the QB uses the call to anticipate where the WR is going, not where it physically is that instant. The 1-step lag is an expected simulation artifact and does not materially affect QB decision-making.**
+
+---
+
+## N9 — Post_corner: post fake only 0.2s instead of 0.4s (MEDIUM)
+
+**Affected routes:** post_corner → DROP (separation=2.41)
+
+WR held the 45° post fake for 2 steps (0.2s) instead of the spec'd 4 steps (0.4s).
+
+**Status: SKIP — the AI decides when to break. We can inform the WR what the route expects, but we do not force minimum phase durations. If the WR judges the CB is committed, it may break early. That is a valid decision.**
+
+---
+
+## N10 — Go: WR overran landing spot (MEDIUM)
+
+**Affected routes:** go → DROP
+
+WR ran through the catch point by ~0.15 yd.
+
+**Status: CLOSED — not a code problem. This is the QB's and WR's spatial judgment. The simulation exists to test exactly this kind of LLM decision-making. A 0.15 yd miss is within the expected range of LLM imprecision.**
+
+---
+
+## Summary Table (Round 2)
+
+| # | Problem | Routes Affected | Severity | Status |
+|---|---------|----------------|----------|--------|
+| N1 | detected_cut_t still fires at t=0.5 jabs | all 10 | HIGH | FIXED — 2-step persistence |
+| N2 | WR jab template identical across all routes | all 10 | HIGH | OPEN — approach TBD |
+| N3 | Comeback QB throw direction inverted | comeback | HIGH | FIXED — y-direction labels in LEAD HINT |
+| N4 | Double-move fake phase ended 0.3s early | double_move | HIGH | SKIP — AI decision |
+| N5 | Curl: WR drifts sideways during ball-in-air | curl | HIGH | SKIP — broader ball-in-air question |
+| N6 | In: QB threw lob + waited after call | in | HIGH | SKIP — broader QB throw-speed question |
+| N7 | CB/WR oscillates without action memory | in, corner | MEDIUM | FIXED — self-action history in observations |
+| N8 | Zig: call event heading ≠ physical heading | zig | MEDIUM | CLOSED — expected 1-step artifact, not a real bug |
+| N9 | Post_corner: post fake only 0.2s | post_corner | MEDIUM | SKIP — AI decision |
+| N10 | Go: WR overran landing spot (0.15 yd) | go | MEDIUM | CLOSED — LLM spatial judgment, not a code bug |

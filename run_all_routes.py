@@ -33,10 +33,19 @@ def main():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--routes", nargs="+", choices=list(ROUTE_SCENARIOS), default=None,
                    help="Subset of routes to run (default: all)")
+    p.add_argument("--ollama", action="store_true",
+                   help="Override all agents to use local Ollama (qwen3:8b)")
+    p.add_argument("--model", default="qwen3:8b", help="Ollama model name (default: qwen3:8b)")
     args = p.parse_args()
 
     routes_to_run = args.routes or list(ROUTE_SCENARIOS)
     seed = args.seed
+
+    ollama_overrides = {
+        "wr_model": args.model, "wr_provider": "ollama", "wr_reasoning_effort": None,
+        "qb_model": args.model, "qb_provider": "ollama", "qb_reasoning_effort": None,
+        "cb_model": args.model, "cb_provider": "ollama", "cb_reasoning_effort": None,
+    } if args.ollama else None
 
     results = {}
     Path("replays").mkdir(exist_ok=True)
@@ -53,7 +62,8 @@ def main():
         print(f"{'='*60}")
 
         try:
-            outcome, telemetry = run_play(scenario, ROSTER, seed, output)
+            outcome, telemetry = run_play(scenario, ROSTER, seed, output,
+                                          scenario_overrides=ollama_overrides)
             results[route] = {"outcome": outcome, "telemetry": telemetry, "output": output}
         except Exception as e:
             print(f"  [ERROR] {route}: {e}")

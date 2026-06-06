@@ -1,5 +1,5 @@
 # Build State
-Current phase: A3 complete (LLM WR agent working, tested in no-CB mode)
+Current phase: A4 in progress (all 3 LLM agents live; 10 routes run and analyzed twice)
 
 ## Built
 - engine/physics.py — PlayerState, apply_action (backpedal mode, new_facing/new_mode params), BACKPEDAL_SPEED_FRACTION=0.75
@@ -16,7 +16,8 @@ Current phase: A3 complete (LLM WR agent working, tested in no-CB mode)
 - agents/prompts/ — qb_*, cb_*, wr_system, wr_pre_snap, wr_live_free, wr_live_committed, wr_live_broken, wr_ball_in_air
 - sim/runner.py — A2 + A3 modes; WR pre-snap; per-step WR decide; call-for-ball one-step delay; OOB broken play trigger; heading lock; ScriptedQB isinstance dispatch
 - sim/seeds.py, rosters/default.yaml
-- sim/scenarios/ — a1_*, a2_cb_slant, a3_wr_slant, a3_wr_comeback
+- sim/scenarios/ — a1_*, a2_cb_slant, a3_wr_slant, a3_wr_comeback, a4_wr_{slant,comeback,curl,go,zig,drag,corner,in,double_move,post_corner}
+- run_all_routes.py — runs all 10 A4 scenarios; --ollama / --model flags for Ollama provider
 - render/renderer_pygame.py
 - main.py
 - tests/test_e2e.py
@@ -53,11 +54,23 @@ Current phase: A3 complete (LLM WR agent working, tested in no-CB mode)
 - WR jabs (1-step heading deviation) make that projection wrong → CB overcommits → separation on real cut
 - Jab pattern: 1 step off, snap back to 0°. Holding the jab heading = readable to CB.
 
+**CB SITUATION block — 5 states (updated):**
+5. WR going lateral (heading 45–135° or 225–315°) → DRIVE LATERALLY to intercept (not backpedal)
+
+**Observation additions (this session):**
+- WR observation: "YOUR RECENT ACTIONS" with heading + throttle per step
+- CB observation: "YOUR RECENT ACTIONS" with heading + mode per step
+- QB LEAD HINT: y-direction labeled explicitly (DECREASING/INCREASING)
+- QB detected_cut_t: labels whether it matches expected cut time or is likely a jab
+
 ## Known Issues
-- detected_cut_t fires on first jab (any 30°+ heading change), not the real route break. CB in A4 will see this.
-- QB sometimes holds 2-3 extra steps after WR calls due to stale heading projection in _build_options.
+- **N2**: WR jab template is 330°/30° on every route regardless of coaching. Self-action history
+  may help; not yet verified. Approach TBD.
+- **N5**: Curl WR drifts sideways during ball-in-air free phase. Broader ball-in-air tracking
+  question — don't patch curl-specifically.
+- **N6**: QB throw speed selection — tends to lob horizontal routes. Fundamental QB question.
 - CB pre-snap alignment not varying by route type.
 - CB intent is almost always "swat."
 
 ## Not Started
-A4 (all three agents live), B–E
+B–E

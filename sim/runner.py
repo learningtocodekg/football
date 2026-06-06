@@ -277,6 +277,8 @@ def run_play(
 
     prev_wr_heading: float | None = None
     detected_cut_t: float | None = None
+    cut_candidate_t: float | None = None       # N1: heading changed last step — awaiting confirmation
+    cut_candidate_from_hdg: float | None = None  # heading before the candidate change
 
     for step in range(MAX_STEPS):
         t = round(step * DT, 3)
@@ -481,12 +483,23 @@ def run_play(
         else:
             states["WR1"] = wr_agent.move(t, states["WR1"], attrs["WR1"], DT)
 
-        # Detect WR cut from heading change — ignore early stem-phase jabs (t < 0.5s)
+        # Detect WR cut via 2-step heading persistence:
+        # A jab snaps back in 1 step; a real cut holds for 2+ steps.
         new_wr_hdg = states["WR1"].heading
-        if t >= 0.5 and _detect_cut(prev_wr_heading, new_wr_hdg) and detected_cut_t is None:
-            detected_cut_t = t
-            telemetry["detected_cut_t"] = t
-            print(f"  t={t:.1f}  [WR cut detected] heading changed to {new_wr_hdg:.0f}°")
+        if detected_cut_t is None:
+            if cut_candidate_t is not None:
+                snapped_back = abs(((new_wr_hdg - cut_candidate_from_hdg + 180) % 360) - 180) < 20
+                if not snapped_back:
+                    detected_cut_t = cut_candidate_t
+                    telemetry["detected_cut_t"] = cut_candidate_t
+                    print(f"  t={cut_candidate_t:.1f}  [WR cut confirmed] heading held at {new_wr_hdg:.0f}°")
+                cut_candidate_t = None
+                cut_candidate_from_hdg = None
+            if detected_cut_t is None and prev_wr_heading is not None:
+                diff = abs((new_wr_hdg - prev_wr_heading + 180) % 360 - 180)
+                if diff >= CUT_DETECT_THRESHOLD:
+                    cut_candidate_t = t
+                    cut_candidate_from_hdg = prev_wr_heading
         prev_wr_heading = new_wr_hdg
 
         # CB movement (A2 mode)
@@ -498,8 +511,10 @@ def run_play(
             "wr": [round(states["WR1"].x, 1), round(states["WR1"].y, 1)],
             "wr_hdg": round(states["WR1"].heading, 1),
             "wr_spd": round(states["WR1"].speed, 1),
+            "wr_throttle": actions.get("WR1", {}).get("throttle", ""),
             "cb": [round(states["CB1"].x, 1), round(states["CB1"].y, 1)] if "CB1" in states else [0.0, 0.0],
             "cb_hdg": round(states["CB1"].heading, 1) if "CB1" in states else 0.0,
+            "cb_mode": states["CB1"].mode if "CB1" in states else "",
         })
 
         recorder.record_step(
