@@ -231,73 +231,45 @@ def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> li
     else:
         x_rel = "You are directly in line with WR horizontally"
 
-    # Is the WR running back toward the QB (comeback/out-and-in)?
-    # Heading 180° = straight back, treat 135–225° as "coming back."
-    wr_coming_back = 135.0 <= (wr.heading % 360.0) <= 225.0
-
-    # Is the WR running mostly horizontally (drag, in, zig, corner routes)?
     wr_hdg_norm = wr.heading % 360.0
+    wr_coming_back = 135.0 <= wr_hdg_norm <= 225.0
     wr_going_lateral = (45.0 <= wr_hdg_norm <= 135.0) or (225.0 <= wr_hdg_norm <= 315.0)
 
-    # Five meaningful situations with unambiguous action advice
-    if dy < -0.5 and wr_coming_back:
-        # CB is upfield but WR has cut back toward QB — backpedaling further widens the gap.
-        # CB must flip and chase the WR downfield.
-        y_rel = f"You are {-dy:.1f} yd UPFIELD of WR — WR has cut BACK toward QB ✗ (comeback/curl)"
-        wr_motion = f"WR is running AWAY from you (back toward QB) at {wr.speed:.1f} yd/s heading {wr.heading:.0f}°"
-        action = (
-            f"RECOMMENDED: flip hips and CHASE downfield — WR is running away from you toward QB. "
-            f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path), facing ≈ {intercept_hdg:.0f}°. mode=normal. "
-            f"Do NOT backpedal — that moves you further away."
-        )
-    elif dy < -0.5 and wr_going_lateral:
-        # CB is upfield but WR has broken horizontally — backpedaling widens the lateral gap.
-        # CB must drive sideways to cut off the route, not continue upfield.
-        y_rel = f"You are {-dy:.1f} yd UPFIELD of WR — but WR is running LATERALLY (heading {wr.heading:.0f}°) ✗"
-        wr_motion = f"WR is running SIDEWAYS at {wr.speed:.1f} yd/s — DO NOT backpedal"
-        action = (
-            f"RECOMMENDED: DRIVE LATERALLY to intercept — WR broke horizontal. "
-            f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path). facing ≈ {intercept_hdg:.0f}°. mode=normal. "
-            f"Backpedaling upfield lets WR separate freely on the horizontal — pursue them now."
-        )
-    elif dy < -0.5:
-        # CB is upfield (between WR and end zone) — correct position, WR approaching
-        y_rel = f"You are {-dy:.1f} yd UPFIELD of WR — you are between WR and end zone ✓"
-        wr_motion = f"WR is running TOWARD you at {wr.speed:.1f} yd/s"
-        action = (
-            f"RECOMMENDED: backpedal to maintain cushion. "
-            f"Move upfield (heading ≈ 0°) while facing WR (facing ≈ 180°). mode=backpedal"
-        )
+    if dy < -0.5:
+        y_rel = f"You are {-dy:.1f} yd UPFIELD of WR — you are between WR and end zone"
+        if wr_coming_back:
+            wr_motion = (
+                f"WR is running BACK toward QB at {wr.speed:.1f} yd/s (heading {wr.heading:.0f}°). "
+                f"Backpedaling widens the gap — you would move further from the WR."
+            )
+        elif wr_going_lateral:
+            wr_motion = (
+                f"WR is running LATERALLY at {wr.speed:.1f} yd/s (heading {wr.heading:.0f}°). "
+                f"Backpedaling does not close lateral separation."
+            )
+        else:
+            wr_motion = f"WR is running toward you at {wr.speed:.1f} yd/s (heading {wr.heading:.0f}°)."
     elif dy > 2.0:
-        # WR has beaten CB by more than 2 yd — CB must chase, not backpedal
-        y_rel = f"WR is {dy:.1f} yd UPFIELD of you — WR has beaten you, you are behind ✗"
-        wr_motion = f"WR is running AWAY from you at {wr.speed:.1f} yd/s"
-        action = (
-            f"RECOMMENDED: CHASE — flip hips and sprint toward WR. "
-            f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path, not just current spot), "
-            f"facing ≈ {intercept_hdg:.0f}°. mode=normal"
-        )
+        y_rel = f"WR is {dy:.1f} yd UPFIELD of you — WR has gotten past you"
+        wr_motion = f"WR is running away from you at {wr.speed:.1f} yd/s."
     elif dy > 0:
-        # WR has just passed — close gap urgently
-        y_rel = f"WR is {dy:.1f} yd UPFIELD of you — WR just got past you, close immediately"
-        wr_motion = f"WR is running AWAY from you at {wr.speed:.1f} yd/s"
-        action = (
-            f"RECOMMENDED: sprint toward WR to close gap. "
-            f"Use intercept heading ≈ {intercept_hdg:.0f}° (leads WR's path), "
-            f"facing ≈ {intercept_hdg:.0f}°. mode=normal"
-        )
+        y_rel = f"WR is {dy:.1f} yd UPFIELD of you — WR just got past you"
+        wr_motion = f"WR is running away from you at {wr.speed:.1f} yd/s."
     else:
         y_rel = "You and WR are at roughly the same depth"
-        wr_motion = f"WR speed: {wr.speed:.1f} yd/s"
-        action = f"Mirror WR's horizontal movement. heading ≈ {bearing_to_wr:.0f}° toward WR. mode=normal"
+        wr_motion = f"WR speed: {wr.speed:.1f} yd/s  heading: {wr.heading:.0f}°"
 
+    bp_speed = cb_attrs.max_speed * BACKPEDAL_SPEED_FRACTION
     lines = [
         "SITUATION:",
         f"  {y_rel}",
         f"  {x_rel}",
         f"  {wr_motion}",
-        f"  Separation: {sep:.1f} yd  |  Bearing directly to WR: {bearing_to_wr:.0f}°  |  Intercept heading: {intercept_hdg:.0f}°",
-        f"  {action}",
+        f"  Separation: {sep:.1f} yd  |  Bearing to WR: {bearing_to_wr:.0f}°  |  Intercept heading (leads WR 0.5s): {intercept_hdg:.0f}°",
+        "  YOUR OPTIONS:",
+        f"    backpedal  — move upfield (heading≈0°) while watching WR (facing≈180°). Max speed: {bp_speed:.1f} yd/s. Maintains cushion; you stay between WR and end zone.",
+        f"    intercept  — sprint toward WR's projected position at heading≈{intercept_hdg:.0f}°, mode=normal, full speed. Closes gap fastest; commits you in that direction.",
+        f"    mirror     — match WR's lateral drift, heading≈{bearing_to_wr:.0f}°, mode=normal. Stays in phase horizontally; neither closes nor opens the gap.",
     ]
     return lines
 
@@ -577,10 +549,10 @@ def build_wr_observation(
         sep = math.hypot(wr.x - cb.x, wr.y - cb.y)
         dx = cb.x - wr.x
         dy = cb.y - wr.y
-        cb_side = "RIGHT" if dx > 0.3 else ("LEFT" if dx < -0.3 else "inline"  )
+        cb_side = "RIGHT" if dx > 0.3 else ("LEFT" if dx < -0.3 else "inline")
         cb_rel = "UPFIELD of you" if dy > 0.5 else ("BEHIND you" if dy < -0.5 else "at same depth")
         lines += [
-            f"CB:     pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°  facing={cb.facing:.0f}°",
+            f"CB:     pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°  facing={cb.facing:.0f}°  mode={cb.mode}",
             f"  CB is {sep:.1f} yd away — {cb_side}, {cb_rel}",
         ]
         if sep > 4.0:
@@ -712,17 +684,30 @@ def build_wr_observation(
             "  Adjust your heading to get under the ball. Face toward the landing zone for best catch chance.",
         ]
 
-    # Recent WR history
+    # Side-by-side WR move + CB reaction log
     if wr_history:
         recent = wr_history[-WR_HISTORY_WINDOW:]
         lines += [
             "",
-            "YOUR RECENT HISTORY:",
-            f"  {'t':>5}  {'pos':>14}  {'hdg':>6}  {'spd':>5}",
+            "MOVE LOG — your moves vs CB reaction (did your moves change what the CB did?):",
+            f"  {'t':>5}  {'WR hdg':>7}  {'WR spd':>7}  {'CB hdg':>7}  {'CB mode':<10}  {'CB Δhdg':>8}",
         ]
+        prev_cb_hdg: float | None = None
         for h in recent:
-            wx, wy = h["wr"]
-            lines.append(f"  {h['t']:>5.1f}  ({wx:5.1f},{wy:5.1f})  {h['wr_hdg']:>5.0f}°  {h.get('wr_spd', 0.0):>4.1f}")
+            cb_hdg = h.get("cb_hdg")
+            cb_mode = h.get("cb_mode", "")
+            if cb_hdg is not None and prev_cb_hdg is not None:
+                delta = abs((cb_hdg - prev_cb_hdg + 180.0) % 360.0 - 180.0)
+                delta_str = f"{delta:+.0f}°" if delta >= 1.0 else "   0°"
+            else:
+                delta_str = "   --"
+            cb_hdg_str = f"{cb_hdg:.0f}°" if cb_hdg is not None else "  --"
+            lines.append(
+                f"  {h['t']:>5.1f}  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}  "
+                f"{cb_hdg_str:>7}  {cb_mode:<10}  {delta_str:>8}"
+            )
+            if cb_hdg is not None:
+                prev_cb_hdg = cb_hdg
 
     lines += [
         "",

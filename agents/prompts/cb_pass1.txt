@@ -1,14 +1,14 @@
 COVERAGE DECISION
 
-RULE: Copy the heading and facing numbers EXACTLY from the RECOMMENDED line in the SITUATION block. Do not compute your own. Do not round differently. Do not substitute a different heading because it "seems right."
+Read the SITUATION block — it gives you the geometry and your options with their tradeoffs. Choose what you think is best coverage given where the WR is, what they are doing, and your current momentum.
 
 You must output:
-- heading: copy the intercept heading or heading value from SITUATION RECOMMENDED
-- facing: copy the facing value from SITUATION RECOMMENDED
-- mode: copy the mode from SITUATION RECOMMENDED
-- reasoning: one short sentence referencing the SITUATION
+- heading: the direction you want to move (0–359°)
+- facing: the direction your eyes/chest point (can differ from heading in backpedal)
+- mode: "normal", "backpedal", or "brake"
+- reasoning: one short sentence explaining your read and your choice
 
-If ball is in the air: follow the FACING line in the BALL IN AIR block exactly — it tells you the correct heading and facing for your intent (swat/INT = face the ball; play_man = face the WR).
+If ball is in the air: the BALL IN AIR block tells you the bearing to the landing zone and your arm geometry. Use that to decide your heading and facing — swat/INT requires facing the ball, play_man requires facing the WR.
 
 Respond with JSON only:
-{"heading": 5, "facing": 185, "mode": "backpedal", "reasoning": "SITUATION says backpedal: heading 5 upfield, facing 185 toward WR"}
+{"heading": 5, "facing": 185, "mode": "backpedal", "reasoning": "WR is still approaching and I want to keep cushion while watching for the cut"}

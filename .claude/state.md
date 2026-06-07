@@ -1,5 +1,5 @@
 # Build State
-Current phase: A3 complete (LLM WR agent working, tested in no-CB mode)
+Current phase: A4 in progress (all three agents live; CB freed from prescriptions; WR gets CB reaction log)
 
 ## Built
 - engine/physics.py — PlayerState, apply_action (backpedal mode, new_facing/new_mode params), BACKPEDAL_SPEED_FRACTION=0.75
@@ -42,11 +42,10 @@ Current phase: A3 complete (LLM WR agent working, tested in no-CB mode)
   - Heading locked mechanically by runner post-call while ball held
 - BALL_IN_AIR: free to chase bad throws
 
-**CB observation SITUATION block — 4 states:**
-1. CB upfield, WR approaching → backpedal (heading ~0°, facing ~180°)
-2. CB upfield, WR running BACK toward QB → flip hips, CHASE downfield (comeback fix)
-3. WR just passed CB (0–2 yd ahead) → close gap immediately
-4. WR >2 yd ahead → CHASE (intercept heading, not just current bearing)
+**CB observation SITUATION block — contextual, not prescriptive:**
+- Shows positional geometry (separation, bearing, WR motion) and three movement options (backpedal / intercept / mirror) with tradeoffs and heading numbers for each.
+- No RECOMMENDED action is emitted — CB decides based on context.
+- Comeback/lateral states still described via `wr_coming_back` / `wr_going_lateral` flags as plain context.
 
 **Deception mechanics (WR):**
 - CB intercept calculation projects WR forward 0.5s along current heading/speed
@@ -54,10 +53,11 @@ Current phase: A3 complete (LLM WR agent working, tested in no-CB mode)
 - Jab pattern: 1 step off, snap back to 0°. Holding the jab heading = readable to CB.
 
 ## Known Issues
-- detected_cut_t fires on first jab (any 30°+ heading change), not the real route break. CB in A4 will see this.
+- CB changes untested — need re-run of all 10 routes to observe free CB behavior.
+- detected_cut_t fires on first jab (any 30°+ heading change), not the real route break.
 - QB sometimes holds 2-3 extra steps after WR calls due to stale heading projection in _build_options.
 - CB pre-snap alignment not varying by route type.
 - CB intent is almost always "swat."
 
 ## Not Started
-A4 (all three agents live), B–E
+B–E phases

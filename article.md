@@ -79,6 +79,12 @@ After adding the mechanical definition, the model correctly jabbed left (330°) 
 **call_t race condition: state mutation order matters**
 The WR `decide()` call returned `call_for_ball: true` and the runner set `wr_agent.call_t = t` after the call returned. The *next* step's observation then read `wr_agent.call_t` to format "COMMITTED: called at t=X.Xs" — but `call_t` was still None because `decide()` hadn't been called yet for the new step. Fix: move `self.call_t = t` inside `decide()` at the moment of call validation, before returning. Observation reads state that was set during the *previous* decide() call — the runner setting state after the fact is always one step behind.
 
+**CB "freedom" was fake: prescriptive scaffolding overrode the model**
+The CB agent prompt claimed to give the CB free decision-making, but the SITUATION block was emitting `RECOMMENDED: backpedal, heading=0°, facing=180°` and `cb_pass1.txt` said "Copy the heading and facing numbers EXACTLY from the RECOMMENDED line. Do not compute your own." The CB was a lookup table with LLM overhead — it was never making a decision. The deeper problem: `_cb_situation()` had a geometry gap. WR jabs at 330° and 30° fall outside the `wr_going_lateral` threshold (45–135° or 225–315°), so they never triggered the lateral/intercept path — they always fell into the `elif dy < -0.5: backpedal` branch. Even if the CB had been free to decide, it was getting incorrect geometry analysis. The lesson: freedom in the prompt text is meaningless if the observation scaffolding has already pre-selected the answer.
+
+**WR deception had no feedback loop**
+The WR's history table previously showed only its own headings and speeds — no CB data except the static current-step snapshot. The WR could jab left all day with no way to know whether the CB was reacting at all. Deception without feedback is just randomness. Adding a side-by-side MOVE LOG (WR hdg/spd + CB hdg/mode/Δhdg per step) gives the WR the observability it needs: did my jab at t=1.2 actually change what the CB did at t=1.3? A Δhdg of 0° means the jab was invisible; a Δhdg of 15°+ means the CB reacted. The model can now close the loop.
+
 ---
 
 ## Observations

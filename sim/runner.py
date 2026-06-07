@@ -500,6 +500,7 @@ def run_play(
             "wr_spd": round(states["WR1"].speed, 1),
             "cb": [round(states["CB1"].x, 1), round(states["CB1"].y, 1)] if "CB1" in states else [0.0, 0.0],
             "cb_hdg": round(states["CB1"].heading, 1) if "CB1" in states else 0.0,
+            "cb_mode": states["CB1"].mode if "CB1" in states else "",
         })
 
         recorder.record_step(
