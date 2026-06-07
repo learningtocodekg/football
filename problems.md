@@ -1,366 +1,340 @@
-# Problems Found — Route Tree Analysis (seed=42)
+# Problems — Full Run Analysis (seed=42, gpt-5-nano / A4 prompts)
 
-Results: slant→DROP, comeback→CATCH, go→SACK, double_move→CATCH, curl→CATCH,
-zig→CATCH, drag→CATCH, corner→DROP, post_corner→CATCH, in→CATCH
+## Run 5 Results (latest run, post P-NEW + angle-blacklist + ball-in-air-lock + QB judgment fixes)
 
----
+| Route | Outcome | Notes |
+|-------|---------|-------|
+| slant | DROP | WR called at t=1.9 (post-cut ✓), QB used medium speed, but ball arrived 4.83 yd from WR — QB threw to wrong geometry |
+| comeback | CATCH | QB waited through 6 parse errors but still connected (9.36 yd sep, p=0.886) ✓ |
+| go | INCOMPLETE | QB threw WITHOUT a WR call, at t=0.8 — P-NEW fix did not help here (WR never called) |
+| double_move | CATCH | WR held 90° fake t=1.5–1.7, QB threw at t=1.8 without WR call, ball to (20.1,61.3), sep=4.83, p=0.794 ✓ |
+| curl | DROP | WR called at t=1.3 heading 270° mid-rotation, then went to 150° during ball flight — heading abandonment |
+| zig | PBU | WR executed 270° fake well (t=0.6–0.8) then broke 90°, called t=1.2, CB barely missed, sep=0.75 |
+| drag | CATCH | WR executed long stem w/ 0°/90°/40° jabs, finally called at t=1.5 heading 90°, sep=6.39 ✓ |
+| corner | CATCH | WR broke 290° at t=2.2, called at t=2.3 — first time corner actually completed the real cut ✓ |
+| post_corner | PBU | Post fake held 45° for 5 steps (t=2.0–2.4), real break to 315°, sep=1.54 — CB barely in range |
+| in | INTERCEPTION | WR called at t=0.8 STILL ON STEM (heading 0°), CB had `go_for_pick` intent, CB picked it off |
 
-## P1 — Go route: WR never calls for ball (CRITICAL)
+**Score: 4 CATCH/1 DROP(slant miss)/2 PBU/1 INCOMPLETE/1 INTERCEPTION = 4 catches out of 10**
 
-**Affected routes:** go  
-**Outcome impact:** SACK (entire play held, QB sacked at t=5.0s)
-
-The WR call-for-ball logic is cut-gated: `_can_call()` returns True only when the WR's heading is
-within `call_tolerance` degrees of `cut_heading`. For the go route, `cut_time=999.0` so the cut
-window never opens and the call condition never fires. The WR ran 51 steps straight upfield without
-ever signaling the QB. QB waited the entire play and was sacked.
-
-**Fix needed:** For routes with no cut (`cut_time >= 9.0`), the WR should call for the ball when
-it has sufficient separation from the CB (e.g., > 2 yards) after a minimum stem time (e.g., 1.0s
-upfield). The separation-based call trigger should replace the cut-heading check for go routes.
-
----
-
-## P2 — False-positive cut detection: detected_cut_t fires on first jab step (HIGH)
-
-**Affected routes:** comeback, curl, zig, drag, double_move, post_corner, in (7 of 10)  
-**Symptom:** `detected_cut_t: 0.1` or `0.2` in replay telemetry; the cut is recorded on the first
-jab step, not the actual route break.
-
-The cut-detection logic triggers on the first lateral heading change (the WR's habitual t=0.0/0.1
-left-jab at 330°), recording the cut at t≈0.1 instead of the real break time. This corrupts the
-QB's timing signal: the QB receives a `detected_cut_t` that is 1–2 seconds too early, which can
-cause premature throw decisions or bad lead calculations.
-
-**Fix needed:** Raise the cut-detection threshold: ignore heading changes before t=0.5s, or require
-a minimum lateral displacement before registering a cut, or filter out heading changes that return
-to near-0° within the next step (jab reversals vs. real breaks).
+Comparison vs Round 4 (A4r4, GPT-5-nano): A4r4 was 4C/2D/3PBU/1INT. This run is approximately equivalent with mixed changes — corner improved, in got worse (INT not PBU).
 
 ---
 
-## P3 — WR repetitive left-jab pattern: same 330° fake every route, every step (HIGH)
+## 1. WR DECEPTION PATTERNS
 
-**Affected routes:** all routes with stem phase (comeback, slant, curl, zig, double_move,
-post_corner, corner, in — at least 8 of 10)
+### R1 — WR still calls based on current separation, not projected separation (CRITICAL, OPEN)
 
-The WR LLM has adopted a fixed micro-deception pattern inherited from A3 route running: it jabs
-left to 330° on nearly every step throughout the stem phase (t=0.0, 0.2, 0.5, 0.6, 0.8, 1.0,
-...). The CB agent never bites on this pattern because:
-1. It repeats identically — no variation in angle, timing, or intensity.
-2. The CB's backpedal logic is purely vertical; lateral micro-jabs don't affect it.
-3. A real CB would pattern-read three identical jabs in 1 second and stop reacting.
+**Affected routes:** in (most damaging — INTERCEPTION), slant, drag, zig  
+**What we fixed:** P-NEW prompt said "anticipate future separation" before calling.  
+**What actually happened:**
 
-Side effects:
-- Contaminates the stem phase of multi-phase routes (double_move, zig, post_corner) with
-  noise that has nothing to do with the designed fake.
-- Triggers P2 (false-positive cut detection).
-- Artificially inflates "separation earned" metrics — the jabs aren't creating separation,
-  the CB's cushion is.
+- **In route:** WR called at t=0.8 heading 0° with current separation 2.65 yd from the CB. The WR was still on its upfield stem — it had NOT yet executed the 90° cut. The WR judged "open by >2 yd" on the stem and called immediately. The real cut (90° in-break) never happened. QB threw to a go-route-style projection. CB with `go_for_pick` intent had already positioned for the ball — INTERCEPTION.
+- **Slant:** WR called at t=1.9 heading 40° (correct post-cut), but the stem-phase call habit means WR is often not anticipating the post-cut window — it just fires when current separation > 2 yd.
+- The prompt fix (anticipate trajectory, call after cut) worked for routes that have explicit cut windows. It failed for the in route because the WR decided the current situation was already open enough to call.
 
-**Fix needed:** The WR prompt or observation should discourage repeating the same move more than
-once per route. Consider adding a note in the stem-phase observation that warns against mechanical
-repetition and encourages varied timing.
+**Root cause:** WR measures current Euclidean distance to CB, not projected post-cut gap. The stem phase keeps the WR upfield of the CB and separation appears ">2 yd" before the cut even happens.
+
+**Impact:** In-route: INTERCEPTION. Zig: nearly a PBU due to calling too early during rotation.
 
 ---
 
-## P4 — Multi-phase routes: intermediate fake phases skipped or garbled (HIGH)
+### R2 — WR jab pattern: some improvement but still template-heavy (HIGH, PARTIALLY IMPROVED)
 
-**Affected routes:** post_corner (Phase 2 skipped), double_move (Phase 2 noisy), zig (phases
-interleaved)
+**Affected routes:** slant, comeback, go, double_move, curl, post_corner, in, corner  
+**Previous state:** Pure 330°/30° alternation on ALL routes.
 
-### post_corner
-The WR jumped directly from stem (0°) to the real break (315°) at t=2.3s, skipping the 45° post
-fake entirely. The post fake was never executed — the route became a simple corner, so the CB had
-nothing to bite on. The catch succeeded only because of the CB's large pre-existing cushion (7.44
-yd separation).
+**What changed in Run 5:**
+- More routes show **actual jab variation** (20°, 30°, 40°, 340° in addition to 330°):
+  - `in`: jabbed 340° (t=0.1), 340° (t=0.5, t=0.7), 20° (t=0.6) — varied leftward micro-jabs
+  - `curl`: jabbed 30° (t=0.2), 30° (t=0.8) — showing rightward fakes too
+  - `comeback`: 30° (t=0.9), 20° (t=1.2), 30° (t=1.8) — some right variation
+- Some routes like corner went **pure straight stem** with no micro-jabs at all (0° throughout until t=2.2 real cut)
+- The angle blacklist (from O7/N2 fix) appears to have **broken the strict 330°/30° lock** somewhat
 
-### double_move
-Phase 2 (90° right fake, t=1.5–2.2s) was inconsistently executed. The WR oscillated between 0°,
-60°, and 90° during the fake window rather than committing to a clean 90° break. The WR's
-reasoning labeled some steps as "jab left (330°)" while actually heading 0° — the stem-phase jab
-pattern bled into the fake phase. `detected_cut_t=0.1` confirms cut-detection fired on a stem jab.
-The CB never committed to the fake and was not out of position at the real break.
+**What's still wrong:**
+- The jabs **never produce CB displacement**. Looking at CB heading changes across all 10 routes: CB heading ΔHdg is ≤ 5° in response to WR jabs on every single route. The CB effectively ignores all pre-cut fakes.
+- Post-corner: WR held a full 45° post fake for **5 consecutive steps** (t=2.0–2.4) — this is the **best fake execution** we've ever seen. But the CB still backpedaled straight at heading ~5° the entire time (never moved laterally to bite on the post fake). sep=1.54 at resolution.
+- Comeback: WR's fakes are all leftward small angles (20°–30°) — no variation toward field-away side.
+- The **fundamental problem remains**: small angle jabs (even varied ones) do not trigger the CB's lateral pursuit logic. The CB is only doing straight backpedal unless it detects a sustained cut.
 
-### zig
-Phase execution was garbled from step 0. The WR was already jab-oscillating at t=0.0 before the
-stem was even established. The designed sequence (stem 0.6s → jab left 0.3s → cut right) was
-replaced by continuous 330°/0° oscillation from t=0. The actual 270° jab appeared at t=0.6–0.7
-and the 90° cut at t=0.9, but the stem phase was contaminated throughout.
-
-**Fix needed:** The observation for multi-phase routes needs to more strongly enforce phase
-sequencing — especially for the intermediate fake phase. Consider requiring the WR to hold the fake
-heading for a minimum duration (1–3 steps) before the real break, rather than just passing through
-it.
+**LLM freedom assessment:** The WR is now showing *more creative reasoning* — it explains jab direction choices, references CB's previous reactions, and varies angles. But the LLM is not generating truly large deception moves (45°–90° committed fakes during the stem) unless the route spec demands it (like post_corner's 45° phase). This is a prompt guidance gap, not an LLM incapability.
 
 ---
 
-## P5 — Corner route: wrong geometry for left-side WR alignment (MEDIUM)
+### R3 — CB never reacts to WR stem-phase jabs: pure deterministic backpedal (HIGH, OPEN)
 
-**Affected routes:** corner → DROP
+**Affected routes:** All 10  
+**Symptom:** CB heading during stem phase is almost always within 5–10° of straight upfield (0°–5°) regardless of WR lateral movement. Even when the WR holds a direction for 2+ steps, the CB doesn't track it. CB reasoning consistently says "WR is approaching, keep cushion while watching for the cut" — a rote template response.
 
-The `corner` route uses `cut_heading=315°` (upfield-left diagonal), which is hardcoded in
-`agents/scripted.py`. But the WR lines up at x=16 on a field that runs from x=0 (left sideline) to
-x=53. For a WR at x=16, the outside corner is toward the left sideline, requiring decreasing x —
-meaning the cut heading should be closer to 270–300° (more lateral, less upfield), not 315°.
+**Evidence from Run 5:**
+- **post_corner**: WR held 45° fake for t=2.0–2.4 (5 steps). CB heading: 5°, 5°, 5°, 5°, 5° throughout. CB never laterally responded.
+- **double_move**: WR held 90° fake t=1.5–1.7 (3 steps). CB moved from x=15.64 to x=15.23 — that's leftward (270°), moving AWAY from WR's rightward fake. CB was already at x=15.6 before the fake and ended at x=15.2 — it actually retreated from the fake direction.
+- **corner**: WR broke 290° at t=2.2. CB at t=2.2 was at x=15.86, y=61.7. At resolution x=14.38, y=65.15 — CB moved upfield-leftward (toward sideline, heading ~326°). CB was pursuing after the throw was in air, not before.
+- **zig**: The 270° fake (t=0.6–0.8) shows the CB's best response: CB moved from x=15.79 to x=15.2 (heading 270°) — following the WR leftward. But this was because the WR had actually physically moved to x=14.05, not because the CB was "fooled."
 
-At 315°, the WR only drifts x by ≈0.7 per yard of travel; starting at x=16, the WR reached
-x≈14–15 — not near the sideline. A proper corner should end near x=4–6, forcing the CB to run
-with the WR toward the boundary.
+**Is the CB just copying deterministic guidance?**  
+The CB uses an LLM, so it's not deterministic in the strict sense — but its reasoning chain is: "WR approaching → maintain cushion → backpedal." The LLM always reaches for this template when the WR is running straight. The CB only breaks this pattern when:
+1. Ball is in the air (it actively pursues landing zone)
+2. WR makes a sustained multi-step lateral break (like the zig's 270° phase)
 
-Secondary problem: the WR abandoned the corner cut at t=2.7s and reverted to heading 0° (go
-route), running upfield until the QB finally threw at t=3.8s. The WR's own reasoning said
-"not open, CB ~1.1–1.8 yd separation" through t=3.7s despite telemetry showing max 5.02 yd
-separation, suggesting the WR's spatial reasoning was off during the route.
-
-**Fix needed:** Change `corner` cut_heading from 315° to ~285°–300° to push toward the sideline.
-Also address WR abandoning routes mid-play (see P6).
+The CB's prompt likely doesn't give it enough "signal" from small jabs to justify committing to a lateral direction. It's playing conservatively — which is actually correct CB technique — but it means WR micro-jabs are useless. We need to ask: **should we help CB respond to fakes more, or help WR create deception that actually threatens CB's positioning?**
 
 ---
 
-## P6 — WR abandons route and reverts to go route mid-play (MEDIUM)
+## 2. QB BEHAVIOR: DOES QB WAIT FOR WR TO BE OPEN OR THROW IMMEDIATELY AFTER PRE-CUT CALL?
 
-**Affected routes:** corner → DROP (WR reverted at t=2.7 to heading 0°)  
-Also seen: zig WR never cleanly transitioned between phases
+### R4 — QB judgment on calls: showing good restraint in some cases (MEDIUM, MIXED)
 
-After executing the corner cut (315°) for 3–4 steps, the WR reversed back to 0° (straight upfield)
-and stayed there until t=3.8s when it finally called for the ball. The WR's own justification was
-"not open yet" — it essentially judged the route had failed and improvised a go route.
+**Evidence from Run 5:**
 
-This is a behavior issue: the WR should complete the designed route arc and call for the ball at
-the geometry the play expects, not unilaterally convert to a different route because it doesn't
-read separation clearly in the moment.
+**Good QB judgment (waited appropriately):**
+- **Comeback:** WR called at t=2.2. QB had 6 consecutive parse errors (t=2.2–2.7). Threw at t=2.8. Despite being forced to wait by parse errors, the throw was good (9.36 yd sep, CATCH).
+- **Slant:** WR called at t=1.9. QB threw at t=2.0 (1 step later). Short wait was appropriate.
+- **Corner:** WR called at t=2.3. QB threw at t=2.4 (1 step later). Appropriate.
 
-**Fix needed:** The observation should reinforce that once the cut is executed, the WR must
-maintain the cut heading and call for the ball (within the route's call tolerance window). A WR
-should not reverse heading mid-route.
+**Bad QB judgment (threw too soon or without call):**
+- **Go route:** QB threw at t=0.8 WITHOUT any WR call. `wr_call_t: null`. This is the same P1 problem from Round 1 — the go route WR never called, but QB just threw anyway at t=0.8 when it saw the WR's t=0.7 jab-right (30°). QB reasoning: "medium option ensures ball arrives when WR is at (17.5,56.4)." WR was at y=55.56 heading 0°. The projected catch point (17.5,56.4) was never reached — ball landed 1.49 yd away (INCOMPLETE).
+- **Double_move:** QB threw at t=1.8 WITHOUT WR call (`wr_call_t: null`). QB judged the WR was open during the fake phase (heading 90°). In this case it worked (CATCH) because WR stayed on 90° — but it was luck not coordination.
+- **In route:** WR called pre-cut at t=0.8 heading 0° (still on stem). QB waited 1 step (t=0.9: "no clear open window yet"), then threw at t=1.0 leading WR to (15.7, 57.4) — a go-route-style target. The QB tried to exercise judgment but the underlying call was wrong (WR called on stem, QB threw to a stem-trajectory target). INTERCEPTION.
 
----
-
-## P7 — CB fails to pursue lateral routes: no hip-flip on horizontal cuts (HIGH)
-
-**Affected routes:** drag, in (worst), corner, zig  
-**Symptom:** CB backpedals away from WR on horizontal routes; separation is "gifted," not earned.
-
-### drag
-The WR executed a horizontal drag (heading 90°) from t=0.1. The CB backpedaled straight upfield
-(heading 0°, facing 180°) from t=0.3 through the end of play — moving in the exact opposite
-direction of the WR. The CB's intent was logged as "swat" but its behavior was purely vertical
-backpedal. Separation at resolution: 6.39 yd (mostly the pre-existing gap widening). p_catch=0.97.
-
-### in
-WR cut cleanly to 90° at t=1.7. CB continued backpedaling straight upfield (heading 0°) for the
-remainder of the play, ending at y=65.3 while WR caught at y=59.8 — 5.5 yards behind. CB never
-transitioned to lateral pursuit.
-
-The CB agent's coverage algorithm does not handle horizontal routes. The backpedal-to-maintain-
-cushion heuristic is correct for vertical stems but produces the wrong behavior once the WR breaks
-laterally. The CB needs a trigger that fires on WR lateral breaks and switches from vertical
-backpedal to lateral pursuit (hip-flip / drive on ball).
-
-**Fix needed:** CB observation/logic needs a lateral pursuit mode: when WR heading deviates > 45°
-from vertical (0°), the CB should drive to the WR's projected catch point, not continue backpedaling
-upfield.
+**Key finding:** The QB judgment-after-call fix (from left_off.md) IS working in some cases — QB does evaluate whether to throw when WR calls. But it breaks down when: (a) go route has no call at all and QB freelances, (b) double_move QB also freelances.
 
 ---
 
-## P8 — Curl: WR still rotating when ball arrives (MEDIUM)
+## 3. WR POST-CUT CALLING: ANTICIPATION OF FUTURE POSITION
 
-**Affected routes:** curl → CATCH (p_catch=0.785, below expected for a clean curl)
+### R5 — WR calls mid-rotation or on-stem, not after completing cut (HIGH, PARTIALLY FIXED)
 
-The WR's heading at the cut step (t=1.1) was 270° (lateral), not yet 180° (back to QB). The
-`WR_CALL_FOR_BALL` event fired at t=1.1 with `heading: 180.0` in the event fields, but the WR's
-actual sim heading that tick was 270°. The QB threw at t=1.2 (one step after call), and the ball
-arrived while the WR was still rotating from 270° to 180°. The WR was mid-rotation at catch.
+**Affected routes:** curl, in, zig (partially)
 
-A clean curl should have the WR fully facing the QB (heading ≈180°) at catch, creating a high
-catch probability. Mid-rotation catch depresses p_catch and risks a dropped ball.
+**What's improved:**
+- Slant: WR called at t=1.9 heading 40° — this is AFTER the cut to 40°. The WR held the cut heading for at least 1 step before calling. ✓
+- Corner: WR called at t=2.3 heading 290° — called while executing the cut. ✓  
+- Post_corner: WR called at t=2.4 heading 315° on the first step of the real break. ✓ (slightly early but acceptable)
+- Drag: WR called at t=1.5 heading 90° — at least 2 steps into the cut. ✓
+- Comeback: WR called at t=2.2 heading 270° (mid-rotation to 180°). Still mid-turn, but the QB saw heading=180° in the call event (intended heading) and the eventual 180° execution was clean.
 
-**Fix needed:** Either (a) add a 1-step delay to the QB's throw on a curl (wait for WR to complete
-the turn) so the ball arrives when the WR is set, or (b) adjust the call-for-ball logic to fire one
-step earlier so the WR has time to turn before ball arrival.
-
----
-
-## P9 — QB lead calculation: under-leading and over-leading WR (MEDIUM)
-
-**Affected routes:** slant → DROP (under-led), corner → DROP (over-led by ~1 yd)
-
-### slant
-A parse error on the first LLM call delayed QB decision by 1 tick. This caused the throw to target
-[16.8, 63.7] but the WR ended at [17.3, 64.1] — ball arrived behind the WR. The WR had already
-passed the landing spot when the ball arrived.
-
-### corner
-QB targeted [14.8, 85.0], estimating WR would be at y≈83.8 at arrival. WR reached y=83.96
-(froze there in final frames). Ball landed ~1 yard beyond. QB over-led by roughly one step.
-
-Both errors trace to the QB's lead formula not correctly accounting for either (a) the tick delay
-from parse errors, or (b) the WR freezing/decelerating at route's end.
-
-**Fix needed:** The QB lead calculation should be audited against the WR physics. The formula needs
-to account for WR speed at throw time, not just average route speed. Parse errors that delay the
-decision must cause the QB to recalculate based on the new WR position.
+**Still failing:**
+- **In route:** WR called at t=0.8 heading 0° — still on upfield stem, **never executed the in-break cut**. The P-NEW fix was supposed to prevent this but the WR reasoned "open >2 yd" and called immediately. This is the most damaging case.
+- **Curl:** WR called at t=1.3 with physical heading 270° (mid-rotation). The event header reported heading=180° (intended), but the body was sideways. The 150° ball-flight heading drift (O1 issue) then lost the ball.
+- **Zig:** WR went from 270° fake to 0° at t=0.9 (parse error), then back to 90° at t=1.0 and 1.2. Called at t=1.2 heading 90°. Reasonably timed but the route was chaotic.
 
 ---
 
-## P10 — Drag route: stem phase not executed (MINOR)
+## 4. BALL-IN-AIR HEADING MANAGEMENT
 
-**Affected routes:** drag
+### R6 — Ball-in-air heading lock: significantly improved but one failure (MEDIUM, MOSTLY FIXED)
 
-The drag route spec is `[(0.3, 0.0), (999, 90.0)]` — 0.3s upfield stem before the horizontal
-break. In the replay, the WR's heading was already at 90° by t=0.1 (one step in). The upfield
-displacement at cut time was ≈0.2 yards instead of the ~1.5 yards a proper 0.3s stem would produce.
-The drag route became essentially a pure horizontal route from snap.
+**Routes where heading stayed locked during ball flight:**
+- Slant: held 40° throughout ball flight ✓
+- Comeback: held 180° throughout ball flight ✓  
+- Double_move: held 90° throughout ball flight ✓
+- Corner: held 290° throughout ball flight ✓
+- Drag: held 90° throughout ball flight ✓
+- Post_corner: held 315° throughout ball flight ✓
+- Zig: held 90° throughout ball flight ✓
 
-This may be because the WR's first reasoning step (t=0.0) was spent on a left-jab (the P3 pattern)
-rather than an upfield step, which immediately ate the 0.3s stem budget. The stem phase evaporated.
+**Still failing:**
+- **Curl:** WR called at t=1.3 heading 270° (mid-turn). At t=1.6 during ball flight WR heading changed to 150° — the WR drifted laterally despite the ball-in-air lock instructions. The WR's reasoning at t=1.6: "sharp 30° cut left to deceive CB's intercept projection" — the WR was STILL executing deception moves during ball flight. Outcome: DROP, sep=2.31.
 
-**Fix needed:** The short 0.3s drag stem is too small to survive the jab-pattern noise. Either
-extend the stem to 0.6–0.8s, or address the root jab problem (P3) which eliminates the stem.
-
----
-
-## Summary Table
-
-| # | Problem | Routes Affected | Severity | Root Cause |
-|---|---------|----------------|----------|------------|
-| P1 | Go route: no call-for-ball trigger | go | CRITICAL | call logic is cut-gated; no cut = no call |
-| P2 | False-positive cut detection at t=0.1 | 7/10 | HIGH | jab at t=0.0 triggers cut detector |
-| P3 | Repetitive same left-jab every stem step | 8/10 | HIGH | WR LLM defaults to 330° jab pattern |
-| P4 | Multi-phase fake phases skipped/garbled | post_corner, double_move, zig | HIGH | WR substitutes jab pattern for designed fake |
-| P5 | Corner: wrong cut heading geometry | corner | MEDIUM | 315° wrong for x=16 WR; should be ~285–300° |
-| P6 | WR abandons route mid-play | corner | MEDIUM | WR converts to go route when not immediately open |
-| P7 | CB no lateral pursuit on horizontal routes | drag, in, corner, zig | HIGH | CB backpedal logic doesn't trigger on lateral cuts |
-| P8 | Curl: mid-rotation catch | curl | MEDIUM | QB throws before WR completes 180° turn |
-| P9 | QB lead miscalculation | slant, corner | MEDIUM | parse error delay + no WR decel accounting |
-| P10 | Drag stem too short to survive jab noise | drag | MINOR | 0.3s stem eaten by P3 jab on first step |
+The ball-in-air lock is now working for 9/10 routes. The curl failure is a special case because the WR called mid-rotation (heading 270° not 180°), so the lock anchored on the wrong heading.
 
 ---
 
-# Round 2 — Ollama qwen3:8b run (seed=42, post-fix)
+## 5. CB SHADOWING QUALITY
 
-Results: slant→DROP, comeback→INCOMPLETE, go→DROP, double_move→INTERCEPTION,
-curl→INCOMPLETE, zig→DROP, drag→CATCH, corner→CATCH, post_corner→DROP, in→DROP
+### R7 — CB backpedal is pure vertical, never laterally pursues during stem phase (HIGH, OPEN)
 
-Score: 2 CATCH, 5 DROP, 1 INTERCEPTION, 1 INCOMPLETE
+**All 10 routes:** CB heading during stem phase is 0°–10° (nearly pure upfield backpedal), mode="backpedal", reasoning="WR is still approaching and I want to keep cushion while watching for the cut" — this **exact phrase appears verbatim across almost every step of every route**. It is a reasoning template.
 
----
+**CB positional analysis at cut time:**
+| Route | CB heading at WR's cut | CB lateral displacement from WR? |
+|-------|------------------------|----------------------------------|
+| slant | 5° (backpedal) | CB x=16.87 vs WR x=19.97 at cut — CB inline/left |
+| comeback | 5° | CB 4+ yd upfield of WR at cut — completely out of position ✓ |
+| go | 5° | CB was ahead of WR the whole time (cushion technique) — correct |
+| double_move | 5° | CB behind WR despite 90° fake |
+| curl | 5° | CB 1.67 yd upfield when WR cut back |
+| zig | 270° following WR | CB actually tracked the 270° fake laterally ✓ |
+| drag | 5° | CB 6+ yd upfield at ball arrival — completely gone ✓ |
+| corner | 1° | CB 7+ yd behind WR at ball arrival ✓ |
+| post_corner | 5° | CB ~1.5 yd from WR at resolution (tight) |
+| in | 0° backpedal → then goes for pick | CB was 0.34 yd from catch point — INTERCEPTION |
 
-## N1 — detected_cut_t threshold still fires on t=0.5 jabs (HIGH)
+**Notable:** The `go_for_pick` intent on the in route gave the CB specific instructions to position for an interception, not just backpedal. This is what produced the INT — it wasn't CB route reading, it was CB intent mode. The CB's random intent selection apparently chose `go_for_pick` for the in route and the CB specifically played the interception angle.
 
-**Affected routes:** all 10  
-**Symptom:** detected_cut_t=0.5 in every replay — still a false positive in 9 of 10 routes.
-
-The fix raised the gate to `t >= 0.5` but the WR jabs at exactly t=0.5 on every route, so the condition is still met. In corner the WR jabbed to 290° (same as the cut heading) at t=0.7, firing the detector 1.5s before the real cut.
-
-The detector fires on single-step jabs. A real cut is sustained — the WR holds the new heading for multiple steps. A jab snaps back to 0° in 1 step.
-
-**Fix:** Implemented — 2-step heading persistence required before confirming a cut. Jab snap-backs (heading returns within 20° of pre-jab heading) are discarded.
-
----
-
-## N2 — WR jab template is identical across all routes (HIGH)
-
-**Affected routes:** all 10  
-**Symptom:** Every route shows the same alternating 330°/30° pattern. 330° appears 4–8 times per route. Prompt and observation changes did not break the habit.
-
-post_corner: 330° at t=0.0, 0.3, 0.5, 0.7, 1.0, 1.3, 1.6, 1.8 (8 occurrences). corner: 9 jabs in 2.2s, 330° repeated 4 times. In every route the WR uses the same template regardless of route design or CB alignment.
-
-**Status: OPEN — not yet solved. Need to think about how to upgrade WR deception fundamentally. Self-action history (N7 fix) may help the WR notice its own pattern. Further approach TBD.**
+**LLM freedom question (CB):** The CB is clearly over-constrained. Its reasoning is a near-identical template step after step. A real CB would show: foot fire at the LOS, press or off coverage decisions, reading WR hips for cut anticipation, driving on the ball. Our CB does none of this during the stem phase. The CB needs more freedom + better context to make coverage decisions.
 
 ---
 
-## N3 — Comeback: QB throw direction inverted (HIGH)
+## 6. OVERALL QUALITY ASSESSMENT
 
-**Affected routes:** comeback → INCOMPLETE (ball_offset=2.44 yd)
+### Route Running Quality
+- **Good:** Comeback (clean 180° cut + acceleration), Double_move (held 90° fake for 3 steps), Post_corner (held 45° fake for 5 steps — best fake execution in any run)
+- **Mediocre:** Zig (chaotic but recovered), Corner (stem was clean, cut was executed)
+- **Bad:** Curl (mid-rotation call, wrong heading during flight), In (called on stem, never ran the route), Slant (right cut direction but QB aimed wrong), Go (QB freelanced, WR never signaled)
+- **Detected cut threshold still fires early:** `detected_cut_t: 0.1` for slant, `0.3` for curl, `0.8` for go/drag, `0.7` for in. The persistence-check fix from N1 is not eliminating all false positives.
 
-WR called at t=2.2 heading 180° (running back toward QB, decreasing y). QB threw to target y=63.7. At throw time WR was at y=63.35 moving toward lower y. Correct target: y ≈ 63.35 − 3.71×0.26 ≈ 62.4. QB threw to y=63.7 — upfield from where the WR was. WR ended at y=62.19, ball at y=63.7 — 1.51 yd miss in wrong direction.
+### QB Accuracy
+- Comeback: 9.36 yd sep, led perfectly downfield ✓
+- Double_move: 4.83 yd sep, lateral lead correct ✓
+- Drag: 6.39 yd sep, clean lateral lead ✓
+- Corner: 6.66 yd sep ✓
+- **Slant: 4.83 yd separation but DROP** — the geometry was wrong. QB targeted (19.5, 67.7) but WR ended at (19.97, 68.25) — off by ~0.7 yd. The WR overran the landing point.
+- **Go (INCOMPLETE):** QB targeted (17.5, 56.4), ball_offset=1.49 yd. WR was at (16.46, 57.46) — WR was past the target point y-wise but wrong x-wise. Freelance throw with wrong geometry.
+- **In (INTERCEPTION):** Target (15.7, 57.4) was reasonable given WR's heading 0°, but the WR had not cut yet. Ball and CB arrived at the same spot.
 
-**Fix:** Implemented — LEAD HINT now explicitly labels y-direction ("y is DECREASING toward QB" vs "y is INCREASING upfield") so the QB cannot confuse heading 180° as upfield motion.
-
----
-
-## N4 — Double-move: fake phase ended 0.3s early; resulted in interception (HIGH)
-
-**Affected routes:** double_move → INTERCEPTION
-
-Fake-right phase (90°) specified t=1.5–2.2. WR held 90° from t=1.5–1.8 and snapped back at t=1.9 — 0.3s early. At t=1.9 the CB was only 1.8 yd away, not yet committed to the wrong direction.
-
-**Status: SKIP for now. This is AI decision-making — we guide, not enforce. The AI should decide when to break based on the situation.**
-
----
-
-## N5 — Curl: WR drifts sideways during ball-in-air (HIGH)
-
-**Affected routes:** curl → INCOMPLETE
-
-WR called at t=1.4 heading 180° (locked). During ball-in-air at t=1.6: WR heading changed to 90°, drifting away from the ball. Ball landed 1.5 yd from WR.
-
-**Status: SKIP — part of a larger open question about ball-in-air tracking behavior across all routes. Do not patch curl specifically.**
+### CB Quality
+As noted in R7: pure vertical backpedal template on 9/10 routes (only zig showed lateral tracking). The CB is not a realistic defender — it can't press, doesn't read hips, doesn't react to jabs, and only pursues after the real cut is sustained for 2+ steps. The `go_for_pick` intent mode is the only mechanism that makes the CB dangerous.
 
 ---
 
-## N6 — In route: QB threw a lob (26.9 mph) and waited 0.2s after call (HIGH)
+## PRIOR PROBLEMS — TRACKING STATUS
 
-**Affected routes:** in → DROP (separation=1.67)
+### From Round 1 (P-series) — Status Update
 
-QB threw at 26.9 mph (ETA=0.39s vs. 0.19s at regular speed), giving the CB nearly double time to close. QB also waited 0.2s after the WR called.
+| # | Problem | Status |
+|---|---------|--------|
+| P1 | Go: no call trigger (no cut = no call) | **STILL OPEN.** Go route WR never called in Run 5. QB freelanced and missed. |
+| P2 | False-positive cut detection | **PARTIALLY FIXED.** Persistence check helps but `detected_cut_t` still fires early on curl (0.3), slant (0.1). |
+| P3 | WR repetitive left-jab pattern | **PARTIALLY FIXED.** Angle variation improved. Pure 330° lock broken. But CB still unaffected. |
+| P4 | Multi-phase routes skipped/garbled | **IMPROVED.** Post_corner held 45° fake for 5 steps (best ever). Double_move held 90° for 3 steps. |
+| P5 | Corner: wrong cut heading geometry (315° should be ~290°) | **FIXED.** Corner now uses 290° and WR successfully executed it in Run 5. Outcome: CATCH. |
+| P6 | WR abandons route mid-play | **FIXED.** Corner no longer abandoned. WR held 290° all the way to the call. |
+| P7 | CB no lateral pursuit on horizontal routes | **STILL OPEN.** CB backpedals straight upfield even on drag/in routes. |
+| P8 | Curl: QB throws before WR completes 180° turn | **STILL OPEN.** WR called at 270° (mid-rotation). Curl remains a DROP. |
+| P9 | QB lead miscalculation | **PARTIALLY FIXED.** Comeback fixed. Slant still missed by ~0.7 yd. Go freelance miss. |
+| P10 | Drag stem too short | **FIXED.** Drag now runs a long stem (15 steps) before cutting at t=1.5. CATCH. |
 
-**Status: SKIP — this is a fundamental QB decision-making question (throw speed selection, when to throw after call) that needs broader discussion.**
+### From Round 2 (N-series) — Status Update
 
----
+| # | Problem | Status |
+|---|---------|--------|
+| N1 | detected_cut_t fires on jabs | **PARTIALLY FIXED.** Persistence check implemented. Still fires early on some routes. |
+| N2 | WR cookie-cutter 330°/30° jabs | **PARTIALLY FIXED.** More variation in Run 5. Angle blacklist is working. But CB unaffected. |
+| N3 | Comeback: QB throw direction inverted | **FIXED.** Comeback CATCH, ball went to correct downfield target. |
+| N4 | Double-move fake phase ended early | **IMPROVED.** Fake held 3 steps in Run 5, better than 0.3s in Round 2. |
+| N5 | Curl: WR drifts sideways during ball-in-air | **STILL OPEN.** Run 5: WR went to 150° during ball flight. Different heading, same failure mode. |
+| N6 | In: QB lob throw + delay | **CHANGED.** Run 5: QB threw bullet (54.3 mph) immediately (0 delay after call at t=0.8). But the call was wrong — WR hadn't cut yet — so speed didn't help. INTERCEPTION. |
+| N7 | CB oscillates between backpedal and pursuit | **IMPROVED.** In Run 5 CB didn't oscillate. Backpedal was more consistent. But it's consistently ignoring fakes. |
+| N8 | Zig: call event heading ≠ physical heading | **CLOSED.** Not observed as a problem in Run 5. |
+| N9 | Post_corner: post fake only 0.2s | **IMPROVED.** Run 5: 5 steps (0.5s) of fake. But CB didn't bite anyway. |
+| N10 | Go: WR overran landing spot (0.15 yd) | **NEW VARIANT.** Go route: QB freelanced, ball 1.49 yd off. Different cause. |
 
-## N7 — CB oscillates between backpedal and lateral pursuit (MEDIUM)
+### From Round 3 (O-series) — Status Update
 
-**Affected routes:** in (t=2.0 reversal), corner (t=0.8, 1.3 false reactions)
-
-CB correctly pivoted to pursue at t=1.7, then reverted to backpedal at t=2.0, then pivoted again at t=2.1. No memory of having just committed to a direction.
-
-**Fix:** Implemented — CB (and WR) now see their own recent action history in each observation step, showing headings and mode they chose. This gives both agents the context to notice their own patterns and make more consistent decisions without enforcing any particular behavior.
-
----
-
-## N8 — Zig: call event heading ≠ physical heading (MEDIUM)
-
-**Affected routes:** zig
-
-At t=0.9, `WR_CALL_FOR_BALL` event reports heading=90.0 but physical heading was 180.0 (one step before apply_decision runs).
-
-**Status: CLOSED — not a real problem. The event heading reflects the WR's intended heading (what it decided), and the QB uses the call to anticipate where the WR is going, not where it physically is that instant. The 1-step lag is an expected simulation artifact and does not materially affect QB decision-making.**
-
----
-
-## N9 — Post_corner: post fake only 0.2s instead of 0.4s (MEDIUM)
-
-**Affected routes:** post_corner → DROP (separation=2.41)
-
-WR held the 45° post fake for 2 steps (0.2s) instead of the spec'd 4 steps (0.4s).
-
-**Status: SKIP — the AI decides when to break. We can inform the WR what the route expects, but we do not force minimum phase durations. If the WR judges the CB is committed, it may break early. That is a valid decision.**
-
----
-
-## N10 — Go: WR overran landing spot (MEDIUM)
-
-**Affected routes:** go → DROP
-
-WR ran through the catch point by ~0.15 yd.
-
-**Status: CLOSED — not a code problem. This is the QB's and WR's spatial judgment. The simulation exists to test exactly this kind of LLM decision-making. A 0.15 yd miss is within the expected range of LLM imprecision.**
+| # | Problem | Status |
+|---|---------|--------|
+| O1 | WR changes heading during ball-in-air | **MOSTLY FIXED.** 9/10 routes held heading. Curl still fails (called at wrong heading). |
+| O2 | WR abandons corner break | **FIXED.** Corner executed cleanly in Run 5. |
+| O3 | Go: QB target behind CB | **CHANGED.** Go QB freelanced at t=0.8 — wrong geometry entirely. |
+| O4 | Slant: WR cut to 40° instead of ~315° | **CHANGED.** Slant WR now cuts to 40° and calls — but QB missed. Slant cut direction is still shallow-right, not a true crossing slant. |
+| O5 | Double move: WR runs east during fake | **IMPROVED.** CATCH in Run 5. WR stayed in bounds. |
+| O6 | Post_corner: 0.7s call delay after real break | **IMPROVED.** Called immediately at break (t=2.4). |
+| O7 | Cookie-cutter 330°/30° jabs | **PARTIALLY FIXED.** Same as N2. |
+| O8 | QB lead direction wrong for lateral routes | **IMPROVED.** Drag CATCH with correct lateral lead. |
 
 ---
 
-## Summary Table (Round 2)
+## NEW PROBLEMS — Run 5 Specific
 
-| # | Problem | Routes Affected | Severity | Status |
-|---|---------|----------------|----------|--------|
-| N1 | detected_cut_t still fires at t=0.5 jabs | all 10 | HIGH | FIXED — 2-step persistence |
-| N2 | WR jab template identical across all routes | all 10 | HIGH | OPEN — approach TBD |
-| N3 | Comeback QB throw direction inverted | comeback | HIGH | FIXED — y-direction labels in LEAD HINT |
-| N4 | Double-move fake phase ended 0.3s early | double_move | HIGH | SKIP — AI decision |
-| N5 | Curl: WR drifts sideways during ball-in-air | curl | HIGH | SKIP — broader ball-in-air question |
-| N6 | In: QB threw lob + waited after call | in | HIGH | SKIP — broader QB throw-speed question |
-| N7 | CB/WR oscillates without action memory | in, corner | MEDIUM | FIXED — self-action history in observations |
-| N8 | Zig: call event heading ≠ physical heading | zig | MEDIUM | CLOSED — expected 1-step artifact, not a real bug |
-| N9 | Post_corner: post fake only 0.2s | post_corner | MEDIUM | SKIP — AI decision |
-| N10 | Go: WR overran landing spot (0.15 yd) | go | MEDIUM | CLOSED — LLM spatial judgment, not a code bug |
+### A1 — In route: WR called pre-cut on stem, QB threw to wrong geometry, INTERCEPTION (CRITICAL)
+
+**Route:** in → INTERCEPTION  
+**What happened:** WR stem at heading 0°, CB 2.65 yd ahead at y=57.19 vs WR y=54.53. WR decided "open >2 yd" and called at t=0.8 heading 0°. The in-route cut (90° toward center) was never executed. QB held 1 step ("no clear open window"), then threw at t=1.0 leading WR on a 0° (upfield) trajectory to (15.7, 57.4). CB had `go_for_pick` intent and was positioned exactly at the ball's landing zone. INTERCEPTION.
+
+**Root cause:** WR measured current vertical separation (CB behind and above), thought it was open, and called before the 90° cut. The "anticipate future trajectory" prompt guidance was not internalized — the WR didn't project: "After I cut 90°, where will I be vs. the CB?"
+
+**Why it wasn't caught by our fixes:** The prompt says "call AFTER the cut." But the WR reasoned it was already past the CB (it was, vertically) and called. The distinction between "upfield of CB on a stem" and "actually open after breaking across" wasn't made.
+
+---
+
+### A2 — Slant: QPB targeted wrong leading point despite WR calling post-cut (MEDIUM)
+
+**Route:** slant → DROP  
+**What happened:** WR cut to 40° at t=1.9, called heading 40°, QB threw at t=2.0 to (19.5, 67.7). WR reached (19.97, 68.25) — 0.69 yd past the landing point with the ball arriving at the wrong angle. The throw was too short for the WR's actual trajectory. `separation: 4.83` at END (ball was 4.83 yd from WR, not WR from ball — ball overshot or WR overran).
+
+**Note from telemetry:** `max_separation: 5.02` — this field equals the separation at resolution in every replay, suggesting the max was never higher than the end state. Ball flew past the WR's catch window.
+
+---
+
+### A3 — Go route: QB threw without WR call, freelanced to wrong target (HIGH)
+
+**Route:** go → INCOMPLETE  
+**What happened:** WR never called for ball (`wr_call_t: null`). At t=0.7 WR jabbed right to 30°. QB interpreted this as a throw signal and threw at t=0.8 to (17.5, 56.4) with 40.6 mph. WR was at (16.46, 55.56) heading 0°, and the ball_offset was 1.49 yd. The WR was still accelerating upfield and had not broken to any route direction.
+
+**This is P1 from Round 1, still not fixed.** The go route WR never calls because (a) the stem phase is `cut_time=999.0` and (b) the WR keeps jab-returning and never judges a clean open window. Worse, the QB now freelances after seeing a jab, treating it as a directional signal.
+
+**Additional issue:** QB logic that was supposed to throw only when WR calls is being overridden when the QB thinks it sees an opening. The "use your own judgment" block in the QB observation may be too permissive.
+
+---
+
+### A4 — detected_cut_t still misfires (MEDIUM, PERSISTENT)
+
+**Observed in Run 5:**
+- Slant: `detected_cut_t: 0.1` — jab at t=0.0 (heading 30°) triggered detector
+- Curl: `detected_cut_t: 0.3` — jab at t=0.2 (heading 30°) triggered detector
+- Go: `detected_cut_t: 0.8` — WR jab at t=0.7 (30°) triggered detector (this is when QB threw)
+- In: `detected_cut_t: 0.7` — jab at t=0.7 (340°) triggered detector
+- Zig: `detected_cut_t: 0.6` — first 270° step (may be correct here)
+- Drag: `detected_cut_t: 0.8` — jab at t=0.7 (90°, real cut start actually)
+
+The go route case is particularly damaging: detected_cut_t fired at 0.8 (the jab moment) and this correlates exactly with when the QB decided to throw.
+
+---
+
+## FUNDAMENTAL DESIGN QUESTIONS (for experiment steering)
+
+### Q1 — LLM freedom: are we too restrictive?
+
+**Current state:** We have:
+- Prompt guidance for cut timing, anticipation, fake variety
+- Structural blacklists (angle blacklist in observation)
+- Ball-in-air heading lock (observation)
+- Self-action history (observation)
+
+**Where the LLM is showing genuine spatial reasoning (good):**
+- Post_corner: WR held the fake for 5 steps, reasoning about the CB's commitment — this was NOT scripted, the WR evaluated and chose to hold
+- Comeback: WR and QB coordinated cleanly on a comeback despite 6 QB parse errors
+- Double_move: QB freelanced a throw during the WR's fake phase and it worked (the WR maintained heading through ball flight)
+- Drag: WR executed a long stem with varied jabs (40°, 90°, 330°, then cut 90°), showed adaptive reasoning
+
+**Where the LLM is failing from lack of physical intuition:**
+- WR calling pre-cut because current Euclidean distance looks large
+- WR ignoring the heading-lock during ball flight (one failure left)
+- QB interpreting a jab as a call signal (go route)
+- CB never physically committing to a pursuit direction during stem phase
+
+**Verdict:** The guidance level is appropriate for the cuts and phases. The failure modes are mostly about **spatial projection** (WR thinking about current state not future state, CB thinking about cushion maintenance not pursuit angles). More freedom would not help here — more precise *context* (show WR its projected position post-cut vs CB position) would.
+
+### Q2 — CB: is it just copying deterministic guidance?
+
+**Yes, partially.** The CB's step-by-step reasoning is a near-identical template: "WR approaching → backpedal → maintain cushion." This appears on 80%+ of stem-phase steps. It is LLM behavior (not hardcoded) but the LLM always resolves to the same strategy because the observation context doesn't give it enough information to do otherwise:
+- CB doesn't know the route type
+- CB doesn't see WR's cut history contextually
+- CB doesn't have explicit guidance on when to fire on the ball vs. maintain cushion
+
+The `go_for_pick` intent is the only non-backpedal behavior, and it is randomly assigned. A real CB would have these tools: press coverage, jam at LOS, drive on ball, hip-flip, backpedal. Ours only does backpedal + a random intent. **The CB needs more behavioral richness if this experiment is to test real separation quality.**
+
+---
+
+## SUMMARY TABLE
+
+| ID | Problem | Routes | Severity | Status |
+|----|---------|--------|----------|--------|
+| R1 | WR calls on stem (pre-cut), not after cut | in, drag, slant | CRITICAL | OPEN |
+| R2 | WR jab variation improved but CB unaffected | all 10 | HIGH | PARTIALLY FIXED |
+| R3 | CB pure backpedal template — no real coverage | all 10 | HIGH | OPEN |
+| R4 | QB judgment on calls: mostly good but freelances on go | go, in | MEDIUM | PARTIALLY FIXED |
+| R5 | WR post-cut calling: improved for most, still failing for in/curl | curl, in | HIGH | PARTIALLY FIXED |
+| R6 | Ball-in-air heading: mostly fixed, curl still fails | curl | MEDIUM | MOSTLY FIXED |
+| R7 | CB no lateral pursuit during stem phase | all 10 | HIGH | OPEN |
+| A1 | In route: pre-cut call caused INTERCEPTION | in | CRITICAL | NEW |
+| A2 | Slant: QB targeted wrong leading point post-cut | slant | MEDIUM | NEW |
+| A3 | Go route: QB freelanced without WR call, missed | go | HIGH | NEW |
+| A4 | detected_cut_t still misfires on jabs | slant,curl,go,in | MEDIUM | PERSISTENT |
+| P1 | Go route: WR never calls (cut_time=999) | go | CRITICAL | OPEN |
+| P7 | CB no lateral pursuit on horizontal routes | drag, in, corner | HIGH | OPEN |
+| P8 | Curl: WR calls mid-rotation (270° not 180°) | curl | MEDIUM | OPEN |
+| O4 | Slant: WR cuts shallow-right (40°) not crossing (315°) | slant | MEDIUM | OPEN |

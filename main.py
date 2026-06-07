@@ -34,10 +34,17 @@ def main():
     overrides: dict = {}
 
     if args.local:
+        local_model = args.model or DEFAULT_LOCAL_MODEL
         overrides["qb_provider"] = "ollama"
-        overrides["qb_model"] = args.model or DEFAULT_LOCAL_MODEL
+        overrides["qb_model"] = local_model
         overrides["qb_reasoning_effort"] = None
-        print(f"[local] Using Ollama model: {overrides['qb_model']}")
+        overrides["wr_provider"] = "ollama"
+        overrides["wr_model"] = local_model
+        overrides["wr_reasoning_effort"] = None
+        overrides["cb_provider"] = "ollama"
+        overrides["cb_model"] = local_model
+        overrides["cb_reasoning_effort"] = None
+        print(f"[local] Using Ollama model: {local_model}")
     elif args.model:
         overrides["qb_model"] = args.model
 

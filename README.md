@@ -80,6 +80,8 @@ python main.py --scenario sim/scenarios/a3_wr_comeback.yaml --seed 42   # Comeba
 ```
 
 **A4 scenarios** — all three agents live (LLM WR + LLM QB + LLM CB):
+
+With OpenAI:
 ```
 python main.py --scenario sim/scenarios/a4_wr_slant.yaml        --seed 42   # Slant
 python main.py --scenario sim/scenarios/a4_wr_comeback.yaml     --seed 42   # Comeback
@@ -92,9 +94,32 @@ python main.py --scenario sim/scenarios/a4_wr_post_corner.yaml  --seed 42   # Po
 python main.py --scenario sim/scenarios/a4_wr_zig.yaml          --seed 42   # Zig
 python main.py --scenario sim/scenarios/a4_wr_double_move.yaml  --seed 42   # Double move
 ```
-Watch any of them with the debug viewer:
+
+With local Ollama — run all routes in one shot (no API key needed):
 ```
-python -m viewer.debug_viewer replays/play_42.json
+python run_all_routes.py --ollama                          # all 10 routes, seed 42
+python run_all_routes.py --ollama --seed 7                 # different seed
+python run_all_routes.py --ollama --model qwen3:8b         # explicit model
+python run_all_routes.py --ollama --routes slant go curl   # specific routes only
+```
+Replays saved to `replays/<route>_<seed>.json`. Watch any with:
+```
+python -m viewer.debug_viewer replays/slant_42.json
+python -m viewer.debug_viewer replays/                     # browse all
+```
+
+Or run a single route:
+```
+python main.py --local --scenario sim/scenarios/a4_wr_slant.yaml        --seed 42   # Slant
+python main.py --local --scenario sim/scenarios/a4_wr_comeback.yaml     --seed 42   # Comeback
+python main.py --local --scenario sim/scenarios/a4_wr_go.yaml           --seed 42   # Go
+python main.py --local --scenario sim/scenarios/a4_wr_curl.yaml         --seed 42   # Curl
+python main.py --local --scenario sim/scenarios/a4_wr_in.yaml           --seed 42   # In
+python main.py --local --scenario sim/scenarios/a4_wr_drag.yaml         --seed 42   # Drag
+python main.py --local --scenario sim/scenarios/a4_wr_corner.yaml       --seed 42   # Corner
+python main.py --local --scenario sim/scenarios/a4_wr_post_corner.yaml  --seed 42   # Post-corner
+python main.py --local --scenario sim/scenarios/a4_wr_zig.yaml          --seed 42   # Zig
+python main.py --local --scenario sim/scenarios/a4_wr_double_move.yaml  --seed 42   # Double move
 ```
 
 ### 7. Run with a local model via Ollama (no API key needed)
@@ -110,6 +135,8 @@ python main.py --local --seed 42
 python main.py --local --model qwen3:8b --seed 42
 python -m render.renderer_pygame replays/play_42.json
 ```
+`--local` routes **all agents** (QB, WR, CB) to the local Ollama model — no API key needed for any scenario including A4.
+
 Or use the pre-made local scenario directly:
 ```
 python main.py --scenario sim/scenarios/a1_local.yaml --seed 42

@@ -194,7 +194,7 @@ def run_play(
         cb_agent = None
 
     if a4_mode:
-        print(f"  [A4 mode] LLM WR ({wr_agent.model}) + LLM QB + LLM CB ({cb_agent.model})")
+        print(f"  [A4 mode] LLM WR ({wr_agent.model}) + LLM QB ({qb_agent.model}) + LLM CB ({cb_agent.model})")
     elif a3_mode:
         print(f"  [A3 mode] LLM WR ({wr_agent.model}) + LLM QB — no CB")
     else:

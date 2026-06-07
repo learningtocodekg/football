@@ -3,7 +3,8 @@
     "allow": [
       "Bash(Get-ChildItem -Recurse -File)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Sort-Object)"
+      "Bash(Sort-Object)",
+      "Bash(.venv\\\\Scripts\\\\python.exe run_all_routes.py --seed 42)"
     ]
   }
 }
