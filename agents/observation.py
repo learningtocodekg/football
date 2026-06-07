@@ -85,6 +85,29 @@ def build_qb_observation(
         f"LEAD HINT: at regular speed WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
     ]
 
+    # After WR calls, show projected WR+CB positions and separation at each throw speed
+    if wr_called_for_ball and wr_call_heading is not None and cb is not None:
+        call_hdg_rad = math.radians(wr_call_heading)
+        cb_hdg_rad = math.radians(cb.heading)
+        speed_rows = [
+            ("bullet", max_mph),
+            ("regular", mid_mph),
+            ("lob", MIN_BALL_SPEED_MPH),
+        ]
+        lines += ["", "PROJECTED ARRIVAL (WR heading locked at call heading — CB still moving):"]
+        lines += [f"  {'speed':<8}  {'flight':>6}  {'WR arrives':>14}  {'CB arrives':>14}  {'sep at arrival':>14}  {'window'}"]
+        for label, mph in speed_rows:
+            flight_t = dist_to_wr / (mph * MPH_TO_YDS_S)
+            wx = wr.x + math.sin(call_hdg_rad) * wr.speed * flight_t
+            wy = wr.y + math.cos(call_hdg_rad) * wr.speed * flight_t
+            cx = cb.x + math.sin(cb_hdg_rad) * cb.speed * flight_t
+            cy = cb.y + math.cos(cb_hdg_rad) * cb.speed * flight_t
+            sep = math.hypot(wx - cx, wy - cy)
+            window = "open" if sep > 3.0 else ("contested" if sep > 1.5 else "tight")
+            lines.append(
+                f"  {label:<8}  {flight_t:>5.2f}s  ({wx:5.1f},{wy:5.1f})    ({cx:5.1f},{cy:5.1f})    {sep:>5.2f} yd       {window}"
+            )
+
     # WR signal block
     lines += [""]
     if broken_play:

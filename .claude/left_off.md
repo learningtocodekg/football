@@ -2,47 +2,55 @@
 Date: 2026-06-07
 
 ## What We Worked On
-WR agent freedom redesign — moved from prescriptive phase-by-phase instructions to a context-only model. Then iterated on several bugs surfaced by live runs (seed=42, gpt-5-nano, A4 slant).
+- Analyzed all 10 replay JSONs from Run 5 (seed=42, gpt-5-nano, A4 prompts, post P-NEW + angle blacklist + ball-in-air-lock + QB judgment fixes)
+- Consolidated problems.md (merged from problems.md + problems2.md + problems3.md + new Run 5 findings), deleted problems2.md and problems3.md
+- Redesigned the CB observation to remove prescriptive option labels and give raw field geometry instead
 
 ## What Got Done
 
-### WR freedom redesign (previous session, carried in)
-- Removed jab angle blacklist, pre-computed turn cost, oppressive phase instructions from observation
-- Route schedule kept as shared QB/WR language but no longer enforced timing
-- `wr_system.txt` rewritten: deception section now explains CB tracking mechanic and why multi-step commitment is required
-- `wr_live_free.txt` simplified to context + deception reminder
+### problems.md consolidated
+- Single problems.md now contains: Run 5 results table, 6-dimension analysis (WR deception, QB timing, WR anticipation, CB determinism, LLM freedom, overall quality), full problem tracking table with statuses from Rounds 1–3 (P/N/O series) + new Run 5 findings (A1–A4)
+- problems2.md and problems3.md deleted
 
-### Persistent WR scratchpad (`wr_note`)
-- WR now outputs a `wr_note` field each step — one line, ~120 chars
-- `WRAgent.wr_note` stores it; passed back into next step's observation as "YOUR NOTE (from last step)"
-- `parse_wr_live` in schema.py returns it; all prompt templates updated to include `wr_note` in JSON schema
-- The note is a living plan — WR is told to overwrite it, not accumulate it, and to verify it against the move log (not treat it as ground truth)
-- No hard truncation in code — WR owns the discipline
+### CB observation redesign (the main work)
+Three files changed:
 
-### Encoding fix
-- Reasoning strings were `.encode("ascii","replace").decode("ascii")` in runner.py — all non-ASCII (°, →, ') became `?`
-- Stripped all 9 instances; now passes through as UTF-8
+**`agents/observation.py` — `_cb_situation()` rewritten (~55 → ~12 lines):**
+- Removed: all three labeled options ("backpedal / intercept / mirror"), tradeoff descriptions, `wr_motion` prose ("Backpedaling widens the gap"), `y_rel`/`x_rel` prescriptive prose, `wr_coming_back`/`wr_going_lateral` flags
+- New output: lean `GEOMETRY:` block — separation, bearing to WR, WR projected position in 0.5s, bearing to intercept that projection
+- Philosophy: raw geometry only, no pre-selected answer
 
-### Calling-too-early fix
-- WR was calling for ball with heading correct but CB still right next to it
-- Added to `wr_system.txt` and `wr_live_free.txt`: call only when BOTH heading is near break AND separation is actually real and growing
+**`agents/prompts/cb_system.txt`:**
+- Replaced `THE SITUATION BLOCK:` paragraph (which mentioned option labels/tradeoffs) with `YOUR OBSERVATION:` paragraph describing raw data, no option framing
 
-### Ball-in-air facing fix
-- Resolution scores facing toward QB (ball comes FROM QB), but observation was telling WR to face the landing zone (upfield) — opposite directions on a slant
-- Fixed observation to show "QB is at bearing X° from you — ball is coming from that direction"
-- Fixed `wr_ball_in_air.txt` to say: the ball is coming from the QB, face that direction to see it
-- Added facing compass anchors (0°=upfield, 90°=right, 180°=toward QB, 270°=left) to both `wr_system.txt` and `wr_ball_in_air.txt`
+**`agents/prompts/cb_pass1.txt`:**
+- Instruction line no longer references "SITUATION block" or "options with tradeoffs"
+- Example JSON changed from `{"heading": 5, "facing": 185, "mode": "backpedal", "reasoning": "WR is still approaching and I want to keep cushion..."}` to `{"heading": 95, "facing": 95, "mode": "normal", "reasoning": "WR cut right and accelerated — closing to cut off the angle"}`
+- New example anchors the model on forward/lateral movement with observed-action reasoning, not cushion-maintenance
 
-### Note hallucination fix
-- WR was writing "2-step fake completed" after only 1 step
-- Added to `wr_live_free.txt`: "Your note is a plan — not ground truth. Always verify against the move log before acting on it."
+### Run 6 slant_42 result (first test after CB redesign)
+- **Outcome: PBU, separation=1.24** (vs Run 5 DROP, separation=4.83)
+- CB heading varied across the entire play: 190°, 139°, 147°, 60°, 69°, 355°, 59°, 149°, 59°, 0°, 36°, 35°, 38°, 39°, 45°, 60°, 50°, 342° — genuinely tracking the WR
+- CB switched to `mode=normal` at t=1.1 and ran laterally at 36°–39° for 5 consecutive steps, matching the WR's 40° slant
+- CB intent=swat, closed to 1.24 yd at resolution — a legitimate PBU
+- Previous run: CB was pure backpedal heading=5° the entire play
 
 ## What's Open / Known Issues
-- **WR still calls too early sometimes** — calls at t=1.5 with 1 step of fake, says "deception completed"
-- **QB throws too fast after WR call** — throw_distance consistently 10–17yd on slant, ball arrives before WR has real separation
-- **CB swats almost every play** — intent almost always swat, rarely play_man or INT
-- **All plays ending PBU or DROP** — no CATCH yet this session on seed=42 slant
-- **max_separation=5.02 every run** — same seed, same WR behavior, separation profile unchanged
+
+### CB issues (mostly improved)
+- CB still uses `mode=backpedal` on some steps while heading laterally (e.g., heading 60° mode=backpedal at t=0.6) — incoherent but minor; physics apply backpedal speed cap unnecessarily
+- Only one route tested so far — need full 10-route run to assess overall improvement
+
+### WR issues (unchanged from Run 5)
+- **A1 / P-NEW**: In-route WR still calls pre-cut at heading=0° → INTERCEPTION. The "anticipate future position" prompt fix didn't prevent it.
+- **A3 / Go route**: QB still freelances without WR call
+- **R5-3 / O1**: Curl WR still changes heading during ball flight (called mid-rotation at 270°, then drifted to 150°)
+- **R5-4 / O4**: Slant WR cuts to 40° (shallow right) not ~315° (true crossing slant)
+- **detected_cut_t**: Still misfires on jabs (fires at 0.1–0.8 on most routes)
 
 ## NEXT STEP
-**Diagnose why WR note hallucination persists even after fix** — run seed=42 slant again and check if WR note now tracks steps correctly vs the move log. If WR is still overclaiming fake completion, the note mechanism isn't grounding it. May need to inject actual step count into the observation ("you have been on heading X° for N steps") rather than relying on the WR to count from its own note.
+**Run all 10 routes with seed=42 (Run 6) after CB redesign** and compare to Run 5 (4C/2D/3PBU/1INT → 4 catches). Primary questions:
+1. Does CB now contest horizontal routes it was ignoring before (drag, in, zig)?
+2. Does CB's fake-reading improve on post_corner (which held a 5-step fake that had zero effect in Run 5)?
+3. Does PBU/INT rate increase meaningfully, or does the LLM regress to a different template?
+4. Run: `.venv\Scripts\python run_all_routes.py` then check all 10 replay JSONs

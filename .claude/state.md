@@ -43,10 +43,11 @@ Current phase: A4 in progress (all three agents live; CB freed from prescription
   - Heading locked mechanically by runner post-call while ball held
 - BALL_IN_AIR: free to chase bad throws
 
-**CB observation SITUATION block — contextual, not prescriptive:**
-- Shows positional geometry (separation, bearing, WR motion) and three movement options (backpedal / intercept / mirror) with tradeoffs and heading numbers for each.
-- No RECOMMENDED action is emitted — CB decides based on context.
-- Comeback/lateral states still described via `wr_coming_back` / `wr_going_lateral` flags as plain context.
+**CB observation — raw geometry, no option labels:**
+- `_cb_situation()` now emits a lean `GEOMETRY:` block: separation, bearing to WR, WR projected pos in 0.5s, bearing to intercept that projection.
+- No option labels (backpedal/intercept/mirror), no tradeoff descriptions, no wr_motion prose.
+- `cb_system.txt` and `cb_pass1.txt` updated to match — example JSON now shows forward/lateral movement, not backpedal template.
+- First result (slant_42, Run 6): CB varied heading across entire play, ran laterally at 36°–39° for 5 steps, PBU at 1.24 yd separation (vs pure backpedal → DROP at 4.83 yd in Run 5).
 
 **Deception mechanics (WR):**
 - CB intercept calculation projects WR forward 0.5s along current heading/speed
@@ -77,7 +78,9 @@ Current phase: A4 in progress (all three agents live; CB freed from prescription
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT
 - Round 2 (Ollama qwen3:8b, post-fix): 2C/5D/1INC/1INT
 - Round 3 (OpenAI gpt-5-nano): 2C/6D/1PBU/1INT
-- Round 4 (OpenAI gpt-5-nano): **4C/2D/3PBU/1INT** ← current best
+- Round 4 (OpenAI gpt-5-nano): **4C/2D/3PBU/1INT** ← best full-run score
+- Round 5 (OpenAI gpt-5-nano, post P-NEW + blacklist + ball-in-air fixes): 4C/1D/2PBU/1INC/1INT — same score, different failures
+- Round 6 (in progress, post CB redesign): slant_42 → PBU sep=1.24 (vs Run 5 DROP sep=4.83) — CB dramatically improved on first route
 
 ## Not Started
 B–E phases
