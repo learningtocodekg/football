@@ -2,42 +2,23 @@ ROUTE RUNNING DECISION
 
 You are running your route. The ball has not been called for yet.
 
-PHASE LOGIC -- follow exactly based on "Time to cut" in your observation:
+Read your observation: where is the CB, what is your route schedule, how much speed will a cut cost you right now?
 
---- PRE-CUT PHASE (time to cut > 0.2s) ---
-
-Default heading: 0 degrees (straight upfield). This is your stem.
-
-Deception = any move that makes the CB commit to the wrong place. The CB only sees your heading
-and speed each step, so these are the only tools you have. Use them creatively:
-
-Types of fakes:
-  Quick jab: deviate 20-40° for 1-2 steps then snap back to 0. CB overcommits that direction.
+DECEPTION — the CB only sees your heading and speed each step:
+  Quick jab: deviate 20-40° for 1-2 steps then snap back. CB overcommits that direction.
   Hold fake: go 3-5 steps in a direction (enough that CB shifts weight), then explode back.
   Speed fake: brake for 2-3 steps (CB closes gap), then burst — CB is now too tight and has to recover.
   Double fake: jab one way, snap back, then jab the OTHER way before the real cut.
 
 Key rules:
-  - Vary what you do. If you jabbed left last time, try a speed fake or a right jab next.
-  - The same move repeated twice in a row loses most of its value; three times = zero value.
-  - The heading must return to 0 (stem) between fakes so the CB can't read where you're really going.
+  - Vary what you do. The same move repeated twice in a row loses most of its value.
+  - Before your real cut, keep heading near 0° between fakes so the CB can't read where you're going.
+  - The TURNING COST block tells you how much speed a cut at your current speed will shed. A big cut right before calling for the ball means you arrive at the catch point slower.
 
-Wrong pattern (what NOT to do):
-  hdg=330, 330, 330, 330 -- this is running left, not a jab
-  hdg=330, 0, 330, 0, 330, 0 -- identical jab every other step; CB stops reacting after the second one
-
-Speed fakes: brake (decelerate) for 2-3 steps then burst (accelerate). The CB closes gap then has to recover.
-
-Do NOT call for the ball in this phase.
-
---- CUT WINDOW (time to cut is within +/- 0.2s) ---
-
-NOW change heading to the prescribed cut direction. Hold it.
-If separation > 2 yd from CB (or no CB), set call_for_ball: true.
-
---- POST-CUT (past cut window) ---
-
-Cut immediately. Call for the ball.
+CALLING FOR THE BALL:
+  - Call when you are open (>2 yd from CB) and your heading is in the right direction for the catch.
+  - Once you call, the QB will throw to where you are going — he bets you continue that heading.
+  - If you cut again after calling, the throw will miss and cost you speed on top of it.
 
 Respond with JSON only:
-{"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "reasoning": "stem at 0; last step jabbed left so returning to 0 now"}
+{"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "reasoning": "stem at 0; jabbed left last step so returning to 0 now"}

@@ -36,12 +36,12 @@
           "speed": 1.4,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "pre-cut jab left 30\u00b0 (heading 330) to threaten left, stem remains at 0\u00b0, CB will react to projection; next step return to 0\u00b0 to reset and set up cut"
+          "reasoning": "performing a quick jab step to the left (330\u00b0) for deception while continuing the upfield stem; CB projects based on prior heading and will be misled, opening space on the next step."
         },
         {
           "id": "CB1",
           "pos": [
-            16.5,
+            15.5,
             55.0
           ],
           "heading": 180.0,
@@ -91,12 +91,12 @@
           "speed": 2.54,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "performing left jab off stem (300\u00b0) to sell a fake while maintaining stem toward 0\u00b0 for next step"
+          "reasoning": "performing a 20\u201330\u00b0 jab to the left (fake toward 300\u00b0) for deception; will snap back toward 0\u00b0 on the next step to continue upfield into the real cut."
         },
         {
           "id": "CB1",
           "pos": [
-            16.5,
+            15.5,
             55.0
           ],
           "heading": 180.0,
@@ -146,12 +146,12 @@
           "speed": 2.99,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Pre-cut stem: stay at 0\u00b0 between fakes. Returning from last off-stem jab to 0\u00b0, setting up a potential future jab to 330\u00b0/330\u00b0 then back to 0\u00b0 for a deceptive sequence."
+          "reasoning": "stem at 0; jabbed left last step so returning to 0 now"
         },
         {
           "id": "CB1",
           "pos": [
-            16.5,
+            15.5,
             55.0
           ],
           "heading": 180.0,
@@ -193,28 +193,28 @@
         {
           "id": "WR1",
           "pos": [
-            15.52,
-            50.88
+            15.57,
+            50.93
           ],
-          "heading": 330.0,
+          "heading": 340.0,
           "facing": 0.0,
-          "speed": 3.84,
+          "speed": 4.02,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "jab left (330\u00b0) to continue PRE-CUT deception; return to stem (0\u00b0) on next step"
+          "reasoning": "jab 20\u00b0 off 0\u00b0 to sell deception while staying near upfield; CB is in cushion but not yet read. Maintain speed."
         },
         {
           "id": "CB1",
           "pos": [
-            16.63,
+            15.63,
             55.0
           ],
           "heading": 90.0,
-          "facing": 180.0,
+          "facing": 185.0,
           "speed": 1.3,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: move upfield heading \u2248 0\u00b0 while facing WR \u2248 180\u00b0"
+          "reasoning": "WR is approaching from below; backpedal keeps cushion and eyes on WR to react to any cut."
         }
       ],
       "ball": {
@@ -248,20 +248,20 @@
         {
           "id": "WR1",
           "pos": [
-            15.13,
-            51.11
+            15.72,
+            51.34
           ],
-          "heading": 300.0,
+          "heading": 20.0,
           "facing": 0.0,
-          "speed": 4.52,
+          "speed": 4.42,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "performing left jab fake from stem (330->300) to mislead CB; keep stem (0) as the true path and return to 0 next step"
+          "reasoning": "jab 20\u00b0 off 0\u00b0 to keep CB guessing and maintain upfield stem; still near 0\u00b0 path to avoid telegraphing the real cut"
         },
         {
           "id": "CB1",
           "pos": [
-            16.63,
+            15.63,
             55.18
           ],
           "heading": 0.0,
@@ -269,7 +269,7 @@
           "speed": 1.83,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: move upfield heading \u22480\u00b0 while facing \u2248180\u00b0 toward the WR"
+          "reasoning": "WR approaching with quick cuts; backpedal to keep cushion while watching for break"
         }
       ],
       "ball": {
@@ -298,33 +298,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not signaled yet and the route needs development; hold to wait for the expected cut around 2.5\u20132.8s for a clearer window."
+          "reasoning": "WR has not called for the ball yet and the route is developing; waiting avoids forcing a throw into tight coverage and risks a sack."
         },
         {
           "id": "WR1",
           "pos": [
-            15.13,
-            51.53
+            15.5,
+            51.73
           ],
-          "heading": 0.0,
+          "heading": 330.0,
           "facing": 0.0,
-          "speed": 4.24,
+          "speed": 4.45,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "continuing stem with deception: last steps jabbed to 330 then 300; returning to 0 to set up the cut while maintaining upfield progress"
+          "reasoning": "performing a 30\u00b0 jab left (330\u00b0) to sell the fake, then return to 0\u00b0. CB is tracking current heading; this fake will nudge its intercept prediction off, creating separation for the real cut later while preserving speed."
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            55.18
+            15.63,
+            55.5
           ],
-          "heading": 270.0,
-          "facing": 230.0,
-          "speed": 2.04,
-          "mode": "normal",
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 3.13,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says intercept heading 230\u00b0 with WR breaking horizontal"
+          "reasoning": "WR is approaching with a quick burst; backpedaling keeps cushion while watching for a cut"
         }
       ],
       "ball": {
@@ -353,33 +353,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR hasn\u2019t called for the ball yet and the route develops around t\u22482.8s; waiting for the cue reduces risk of a contested throw."
+          "reasoning": "WR has not called for the ball yet and the route hasn\u2019t developed; hold to wait for the cut around t\u22482.8s for a clean window."
         },
         {
           "id": "WR1",
           "pos": [
-            14.88,
-            51.95
+            15.5,
+            52.23
           ],
-          "heading": 330.0,
+          "heading": 0.0,
           "facing": 0.0,
-          "speed": 4.85,
+          "speed": 5.02,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "continue pre-cut deception: jab left (330\u00b0) to draw CB, then return to stem (0\u00b0) for the next step"
+          "reasoning": "stem at 0; jabbed left last step so returning to 0 now"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            55.4
+            15.63,
+            55.94
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 2.13,
+          "speed": 4.43,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: heading \u2248 0\u00b0 and facing \u2248 180\u00b0 toward the WR"
+          "reasoning": "Maintain cushion while watching WR for cuts and route break"
         }
       ],
       "ball": {
@@ -408,33 +408,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet and the route develops around t\u22482.5\u20132.8s; waiting avoids a contested throw and lets the cut/lead position become clearer."
+          "reasoning": "WR has not called for the ball yet and the route is developing; wait for the signal to avoid a sack and mis-timed throw."
         },
         {
           "id": "WR1",
           "pos": [
-            14.88,
-            52.48
+            15.5,
+            52.87
           ],
           "heading": 0.0,
           "facing": 0.0,
-          "speed": 5.34,
+          "speed": 6.42,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem at 0; last step jabbed left so returning to 0 now"
+          "reasoning": "stem at 0; jabbed left last step so returning to 0 now"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            55.74
+            15.68,
+            56.49
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 3.43,
+          "heading": 5.0,
+          "facing": 185.0,
+          "speed": 5.58,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: move upfield heading ~0\u00b0 while facing ~180\u00b0 toward the WR."
+          "reasoning": "WR is approaching; I\u2019ll maintain cushion while watching for the cut."
         }
       ],
       "ball": {
@@ -463,33 +463,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; we wait for the coordinated cut around 2.8s to open a cleaner window."
+          "reasoning": "Waiting for the WR to call for the ball; the route is developing and the cut occurs around t~2.5\u20132.8s, so no safe window yet."
         },
         {
           "id": "WR1",
           "pos": [
-            14.88,
-            53.16
+            15.26,
+            53.53
           ],
-          "heading": 0.0,
+          "heading": 340.0,
           "facing": 0.0,
-          "speed": 6.74,
+          "speed": 7.02,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem at 0\u00b0. Continue PRE-CUT deception; use upcoming jab to 20\u201330\u00b0 off 0\u00b0, then return to 0\u00b0 before cut window to sell route without telegraphing."
+          "reasoning": "pre-cut jab 20\u00b0 left to fake CB while maintaining 0\u00b0 stem toward 0\u00b0 field for the upcoming cutoff"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            56.21
+            15.68,
+            57.16
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 4.73,
+          "speed": 6.7,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal to maintain cushion, move upfield with heading 0\u00b0 and facing 180\u00b0"
+          "reasoning": "WR is approaching; backpedal upfield to maintain cushion while watching for cuts"
         }
       ],
       "ball": {
@@ -518,33 +518,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR hasn\u2019t called for the ball yet; awaiting the planned cut around t\u22482.8s to form a viable window on 3rd & 10"
+          "reasoning": "WR has not yet called for the ball; the route develops around t\u22482.8s, so I should wait for the call before throwing to avoid an early sack."
         },
         {
           "id": "WR1",
           "pos": [
-            14.54,
-            53.75
+            15.26,
+            54.29
           ],
-          "heading": 330.0,
+          "heading": 0.0,
           "facing": 0.0,
-          "speed": 6.89,
+          "speed": 7.55,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "pre-cut deception: jab to 330\u00b0 (left) for a step to mislead CB, returning to stem later to set up the cut"
+          "reasoning": "maintain 0\u00b0 stem with a quick jab to 340\u00b0 last step; snap back to 0\u00b0 now to keep CB guessing while closing the separation and approaching cut window"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            56.81
+            15.68,
+            57.84
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 6.03,
+          "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal to maintain cushion."
+          "reasoning": "WR is closing from the left; backpedal to keep cushion while watching for a cut"
         }
       ],
       "ball": {
@@ -573,33 +573,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR hasn't called for the ball yet; wait for the cut around t\u22482.8s to see if a clean window develops before the sack clock tightens."
+          "reasoning": "Waiting for the WR to call for the ball; the route is developing and a window will open around t~2.8s, so nothing better than a clean throw once he signals."
         },
         {
           "id": "WR1",
           "pos": [
-            14.54,
-            54.46
+            15.54,
+            55.04
           ],
-          "heading": 0.0,
+          "heading": 20.0,
           "facing": 0.0,
-          "speed": 7.01,
+          "speed": 8.01,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem at 0; last step jabbed left so returning to 0 now"
+          "reasoning": "performing a subtle 20\u00b0 jab off 0\u00b0 to sell a fake while staying near the stem; CB is 3.6 yd upfield-right and reading heading, waiting for the real cut window"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            57.49
+            15.68,
+            58.51
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal to maintain cushion, heading \u2248 0\u00b0, facing \u2248 180\u00b0"
+          "reasoning": "Maintain cushion as WR approaches; backpedal while watching for a cut to contest or react to a throw"
         }
       ],
       "ball": {
@@ -628,33 +628,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet and the route hasn\u2019t developed; wait for the cut around t\u22482.8s to see a clear window before throwing."
+          "reasoning": "WR has not called for the ball yet; waiting for the planned cut around t\u22482.8s to align throw with the open window and reduce sack risk."
         },
         {
           "id": "WR1",
           "pos": [
-            14.18,
-            55.07
+            15.28,
+            55.74
           ],
-          "heading": 330.0,
+          "heading": 340.0,
           "facing": 0.0,
-          "speed": 7.1,
+          "speed": 7.42,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "PRE-CUT fake: jab left (330\u00b0) off the stem to draw the CB; will snap back toward 0\u00b0 for the actual cut"
+          "reasoning": "Execute a 20\u00b0 left jab (340\u00b0) as a fake while continuing upfield to maintain deception. You are open (~3.5 yd from CB) but avoid calling yet until the cut window to prevent telegraphing the throw. After this step, revert toward 0\u00b0 for the real cut at the cut window."
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            58.16
+            15.68,
+            59.19
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: heading 0\u00b0, facing 180\u00b0."
+          "reasoning": "WR is approaching; backpedal keeps cushion while watching for the cut"
         }
       ],
       "ball": {
@@ -683,33 +683,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet and is planning a cut around t\u22482.8s; awaiting the signal and the window before throwing."
+          "reasoning": "WR has not called for the ball yet; wait for the cue and the planned cut around t\u22482.5\u20132.8s before throwing to a projected landing spot."
         },
         {
           "id": "WR1",
           "pos": [
-            14.18,
-            55.79
+            15.52,
+            56.39
           ],
-          "heading": 0.0,
+          "heading": 20.0,
           "facing": 0.0,
-          "speed": 7.18,
+          "speed": 6.98,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem at 0; last step jabbed left so returning to 0 now"
+          "reasoning": "jab 20\u00b0-40\u00b0 off upfield to sell; returning to 0\u00b0 for the real cut. CB is 3.5 yd ahead. not open enough to call yet; maintain deception and field position."
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            58.84
+            15.68,
+            59.86
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: move upfield while facing WR."
+          "reasoning": "WR is approaching from inside, I stay between him and the end zone while watching for a cut"
         }
       ],
       "ball": {
@@ -738,33 +738,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR hasn\u2019t called for the ball yet and route cut is expected around t\u22482.8s; I\u2019ll wait for the signal before aiming a throw."
+          "reasoning": "WR has not called for the ball yet and the route cut is at ~t=2.8s; wait for the WR to signal to ensure a usable window."
         },
         {
           "id": "WR1",
           "pos": [
-            13.82,
-            56.41
+            16.0,
+            56.97
           ],
-          "heading": 330.0,
+          "heading": 40.0,
           "facing": 0.0,
-          "speed": 7.24,
+          "speed": 7.51,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "PRE-CUT jab left to fake; stem remains 0\u00b0; CB will project upfield and may overcommit, keeping openness for the real cut"
+          "reasoning": "keep stem near 0\u00b0 with a lightweight 40\u00b0 jab to sell a fake, then snap back to 0\u00b0 for the real cut; CB is tracking upfield so this should induce a misprojection without telegraphing the final route"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            59.51
+            15.68,
+            60.54
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: move upfield heading 0\u00b0 while facing 180\u00b0 toward the WR"
+          "reasoning": "Maintain cushion as WR approaches and watch for a break while staying between him and the end zone."
         }
       ],
       "ball": {
@@ -793,33 +793,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; best to wait for the planned 2.8s cut and open window before committing."
+          "reasoning": "WR hasn\u2019t signaled yet and the route needs time to develop; I\u2019ll wait for the call to avoid a sack and let the window form."
         },
         {
           "id": "WR1",
           "pos": [
-            13.82,
-            57.14
+            16.0,
+            57.67
           ],
           "heading": 0.0,
           "facing": 0.0,
-          "speed": 7.29,
+          "speed": 7.05,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem at 0; last step jabbed left (330) to fake; returning to 0 now to set up the cut"
+          "reasoning": "stem at 0; jabbed left last step so returning to 0 now"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            60.19
+            15.68,
+            61.21
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: move upfield with heading 0\u00b0 while facing 180\u00b0 toward the WR."
+          "reasoning": "WR is approaching from the right; backpedal to maintain cushion while watching for the route break"
         }
       ],
       "ball": {
@@ -848,33 +848,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is about to call for the ball on a developed route, timing window opens around t\u22482.8s; better to wait for the clear target."
+          "reasoning": "waiting for the WR to call and for the cut to develop to open a reliable window."
         },
         {
           "id": "WR1",
           "pos": [
-            13.82,
-            58.01
+            15.74,
+            58.38
           ],
-          "heading": 0.0,
+          "heading": 340.0,
           "facing": 0.0,
-          "speed": 8.69,
+          "speed": 7.57,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "pre-cut stem; maintain 0\u00b0 to keep CB guessing; last action was a jab toward 330, returning to 0 to set up future cut window"
+          "reasoning": "jab 20\u00b0 to the left (340\u00b0) to fake the upcoming cut while keeping stem near 0\u00b0; CB will overcommit, return to 0\u00b0 next step"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            60.86
+            15.68,
+            61.89
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: move upfield while facing the WR."
+          "reasoning": "Maintain cushion while watching for a cut as WR closes the gap toward me"
         }
       ],
       "ball": {
@@ -903,33 +903,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "Waiting for WR to call for the ball as his route cut is imminent around t=2.8s, giving a clearer open window."
+          "reasoning": "WR hasn\u2019t called for the ball yet; route cut around ~t=2.8s and I should wait for the signal to throw to the projected open spot."
         },
         {
           "id": "WR1",
           "pos": [
-            13.82,
-            58.96
+            15.74,
+            59.19
           ],
           "heading": 0.0,
           "facing": 0.0,
-          "speed": 9.5,
+          "speed": 8.03,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem at 0; last step used a left jab (330\u00b0) to deceive, returning to 0 now to preserve deception and prevent CB from predicting cut; cut window not yet reached"
+          "reasoning": "Last step used a 340\u00b0 jab left; returning to 0\u00b0 now to sell comeback while maintaining upfield stem. Accelerating to max speed to press the fake and keep CB from re-intercepting."
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            61.54
+            15.68,
+            62.56
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: move upfield while facing WR (heading \u2248 0\u00b0, facing \u2248 180\u00b0)."
+          "reasoning": "WR is closing fast; backpedal to keep cushion while watching for a cut."
         }
       ],
       "ball": {
@@ -958,33 +958,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR hasn\u2019t called for the ball yet; WR is about to cut around t=2.8s, so wait to see the exact window before throwing"
+          "reasoning": "WR is about to cut and WR has not yet called for the ball; wait for the signal to ensure a clean window and proper lead."
         },
         {
           "id": "WR1",
           "pos": [
-            13.82,
-            59.91
+            15.74,
+            60.13
           ],
           "heading": 0.0,
           "facing": 0.0,
-          "speed": 9.5,
+          "speed": 9.43,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem at 0; last action included a jab to 330\u00b0 earlier; returning to 0\u00b0 now to maintain stem and set up the upcoming cut window"
+          "reasoning": "Stem remains at 0\u00b0; last step used a small left jab (340\u00b0) to deceive while maintaining upfield focus. Open by ~3.4 yd but not yet at the cut window. Prepare for the real cut toward 180\u00b0 at ~t=2.5s; keep CB off balance and avoid telegraphing 180\u00b0 too early."
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            62.21
+            15.76,
+            63.34
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 6.75,
-          "mode": "backpedal",
+          "heading": 6.0,
+          "facing": 6.0,
+          "speed": 7.78,
+          "mode": "normal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal to maintain cushion with heading \u2248 0\u00b0 and facing \u2248 180\u00b0."
+          "reasoning": "Intercept now to meet WR at their projected position and quickly disrupt the route."
         }
       ],
       "ball": {
@@ -1013,33 +1013,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "Waiting for the WR to call and the cut around t\u22482.8s; window will develop after the route breaks."
+          "reasoning": "WR is about to call for the ball around t\u22482.5\u20132.8s; no window yet, best to wait to avoid a sack or misthrow"
         },
         {
           "id": "WR1",
           "pos": [
-            13.37,
-            60.7
+            15.74,
+            61.08
           ],
-          "heading": 330.0,
+          "heading": 0.0,
           "facing": 0.0,
-          "speed": 9.13,
+          "speed": 9.5,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "continue stem deception with a left jab (330\u00b0) to mislead CB while maintaining 0\u00b0 stem"
+          "reasoning": "Stem at 0\u00b0 to avoid telegraphing; CB is 3.2 yd ahead and projecting upfield. Real cut (180\u00b0 comeback) will come around t\u22482.5s. Maintain 0\u00b0 and use fakes later (jab 20\u201330\u00b0 off 0\u00b0, then snap back) to mislead CB; don\u2019t call yet until open >2 yd with correct heading."
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            62.89
+            15.76,
+            64.01
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: heading \u2248 0\u00b0 while facing \u2248 180\u00b0 toward WR"
+          "reasoning": "WR is approaching releases and I want to maintain cushion while watching for the cut"
         }
       ],
       "ball": {
@@ -1068,33 +1068,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is not yet calling for the ball and the route cut isn\u2019t until ~t=2.8s; I\u2019ll wait for the signal to avoid a broken play."
+          "reasoning": "WR is about to call for the ball as his cut completes around t\u22482.5\u20132.8s; waiting for the signal yields a clearer window before the sack clock expires."
         },
         {
           "id": "WR1",
           "pos": [
-            12.89,
-            61.53
+            15.74,
+            62.03
           ],
-          "heading": 330.0,
+          "heading": 0.0,
           "facing": 0.0,
           "speed": 9.5,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "PRE-CUT fake: jab to 330\u00b0 (off the stem to the right) to mislead the CB about the intended direction, then snap back toward 0\u00b0 for the actual cut. Maintain stem after this step."
+          "reasoning": "Maintain 0\u00b0 stem toward upfield to keep CB guessing; no open separation yet (CB 2.9 yd behind upfield). Prepare a small 20\u201330\u00b0 fake next step before the cut window to mislead without losing much speed."
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            63.56
+            15.76,
+            64.69
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: heading \u2248 0\u00b0 upfield while facing \u2248 180\u00b0 toward WR"
+          "reasoning": "WR is closing in; backpedal to keep cushion and watch for a cut while staying between him and the end zone."
         }
       ],
       "ball": {
@@ -1123,33 +1123,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is about to signal and the cut at t\u22482.8s will create the open window; better to wait and avoid a sack."
+          "reasoning": "WR has not called for the ball and no clear window yet; wait for the official call before throwing."
         },
         {
           "id": "WR1",
           "pos": [
-            12.89,
-            62.44
+            15.42,
+            62.92
           ],
-          "heading": 0.0,
+          "heading": 340.0,
           "facing": 0.0,
-          "speed": 9.13,
+          "speed": 9.5,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem at 0; just finished a jab to 330 and returning to 0 to set up the cut window at ~2.5s"
+          "reasoning": "initiate 20\u00b0 left jab (to 340\u00b0) from 0\u00b0 to sell fake before the real cut; CB is tight and not yet open, plan to snap back toward 0\u00b0 at cut window"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            64.24
+            15.76,
+            65.36
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal to maintain cushion."
+          "reasoning": "Maintain cushion as WR approaches while watching for a cut"
         }
       ],
       "ball": {
@@ -1178,33 +1178,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is about to cut and will signal soon; wait for the open window to ensure proper timing and separation."
+          "reasoning": "WR is about to call for the ball with a planned cut; wait for the signal to target the developing window while avoiding a sack"
         },
         {
           "id": "WR1",
           "pos": [
-            12.45,
-            63.2
+            15.71,
+            63.73
           ],
-          "heading": 330.0,
+          "heading": 20.0,
           "facing": 0.0,
-          "speed": 8.83,
+          "speed": 8.54,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "performing a left jab fake (330\u00b0) while maintaining stem at 0\u00b0; CB projects upfield and starts to react left, creating separation for the upcoming 0\u00b0 cut."
+          "reasoning": "jab step 20\u00b0 to the right of 0\u00b0 to sell route; maintain 0\u00b0 overall trajectory for the cut window while keeping cushion and awaiting open separation"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            64.91
+            15.76,
+            66.04
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal: heading \u2248 0\u00b0 and facing \u2248 180\u00b0 toward WR"
+          "reasoning": "WR is approaching; maintain cushion while watching for cuts"
         }
       ],
       "ball": {
@@ -1233,33 +1233,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is about to cut around t=2.8s; waiting for the ball to be called ensures a proper open window and avoids an early throw into coverage."
+          "reasoning": "WR is about to call for the ball with a planned cut around t\u22482.8s; better to wait for the signal to avoid forcing a throw into coverage."
         },
         {
           "id": "WR1",
           "pos": [
-            12.45,
-            64.06
+            15.56,
+            64.13
           ],
-          "heading": 0.0,
+          "heading": 340.0,
           "facing": 0.0,
-          "speed": 8.58,
+          "speed": 4.32,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem at 0; last step jabbed left so returning to 0 now"
+          "reasoning": "Performing a 1-step jab to 340\u00b0 (left) to fake toward 0\u00b0, slowing slightly due to turning cost. This is a 20\u201340\u00b0 fake to mislead the CB; plan is to snap back to 0\u00b0 next step. Not open yet for a catch."
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            65.59
+            15.76,
+            66.71
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says backpedal to maintain cushion."
+          "reasoning": "Maintain cushion between WR and end zone while watching for cuts"
         }
       ],
       "ball": {
@@ -1288,33 +1288,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "Waiting for the WR to call for the ball as his route is about to break; hold to let the cut complete and then throw to his future landing spot."
+          "reasoning": "WR is about to make a cut around t\u22482.8s; wait for the signal and then lead to the projected landing spot (\u2248(15.0, 65.6)) after the route develops."
         },
         {
           "id": "WR1",
           "pos": [
-            11.93,
-            64.06
+            15.56,
+            64.13
           ],
-          "heading": 270.0,
-          "facing": 180.0,
-          "speed": 5.19,
+          "heading": 250.0,
+          "facing": 0.0,
+          "speed": 0.0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "cut window: executing 180\u00b0 back toward QB; separation ~4.3 yd so open after cut; maintain stem and call now"
+          "reasoning": "performing a 90\u00b0 cut toward 250\u00b0 to fake CB while maintaining route deception; still 2+ yd separation needed to call"
         },
         {
           "id": "CB1",
           "pos": [
-            16.43,
-            66.26
+            15.76,
+            67.39
           ],
           "heading": 0.0,
           "facing": 180.0,
           "speed": 6.75,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION recommends backpedaling with upfield heading and WR-facing."
+          "reasoning": "Keep cushion while watching for a cut as WR approaches."
         }
       ],
       "ball": {
@@ -1325,13 +1325,7 @@
         ],
         "holder": "QB"
       },
-      "events": [
-        {
-          "type": "WR_CALL_FOR_BALL",
-          "t": 2.3,
-          "heading": 180.0
-        }
-      ]
+      "events": []
     },
     {
       "t": 2.4,
@@ -1349,33 +1343,33 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is not yet in a true open window; projected arrival would miss by ~5 yards, risk of sack remains with clock near 0. Hold to avoid a bad throw and reset the play."
+          "reasoning": "WR is about to call for the ball after a planned cut around t\u22482.8s; waiting maximizes chance for a clean window and proper timing."
         },
         {
           "id": "WR1",
           "pos": [
-            11.93,
-            63.69
+            15.56,
+            63.99
           ],
           "heading": 180.0,
-          "facing": 180.0,
-          "speed": 3.69,
+          "facing": 0.0,
+          "speed": 1.4,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "maintaining catch position while accelerating toward ball arrival"
+          "reasoning": "cut now to 180\u00b0 (toward QB) from 250\u00b0; 0 speed means minimal turning cost; pursuing a QB-facing backpedal path to draw CB misreading"
         },
         {
           "id": "CB1",
           "pos": [
-            16.02,
-            66.26
+            15.76,
+            68.06
           ],
-          "heading": 270.0,
-          "facing": 253.0,
-          "speed": 4.04,
-          "mode": "normal",
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 6.75,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION recommends intercept heading \u2248 253\u00b0, facing \u2248 253\u00b0, mode normal."
+          "reasoning": "WR is stationary but may break; backpedal keeps cushion while watching for a cut"
         }
       ],
       "ball": {
@@ -1390,7 +1384,7 @@
     },
     {
       "t": 2.5,
-      "phase": "BALL_IN_AIR",
+      "phase": "LIVE",
       "sack_clock": 2.5,
       "players": [
         {
@@ -1403,64 +1397,49 @@
           "facing": 0.0,
           "speed": 0.0,
           "mode": "normal",
-          "action": "throw",
-          "reasoning": "Throw to the projected WR spot at (11.9,62.2) with max speed to beat the defender; WR will be within 0.5\u20130.6 yd of the landing point when the ball arrives."
+          "action": "hold",
+          "reasoning": "waiting for the WR to call for the ball; window should open around t\u22482.8s and I\u2019ll throw to his future position."
         },
         {
           "id": "WR1",
           "pos": [
-            11.93,
-            63.19
+            15.56,
+            63.71
           ],
           "heading": 180.0,
           "facing": 0.0,
-          "speed": 5.09,
+          "speed": 2.8,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "ball in the air soon; maximize speed toward catch window while maintaining separation; do not cut since committed"
+          "reasoning": "CB is 4.1 yd ahead and inline upfield; we\u2019re not open. Maintain the current back-to-QB direction to preserve spacing while accelerating to extend the route and create a later separation window for a potential fake next step."
         },
         {
           "id": "CB1",
           "pos": [
-            15.74,
-            65.97
+            15.36,
+            68.06
           ],
-          "heading": 223.0,
-          "facing": 223.0,
-          "speed": 4.09,
+          "heading": 270.0,
+          "facing": 182.0,
+          "speed": 4.04,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "SITUATION RECOMMENDED: intercept heading \u2248223\u00b0, facing \u2248223\u00b0, mode normal."
+          "reasoning": "Closing to intercept the WR's backpedal path to contest the pass"
         }
       ],
       "ball": {
-        "state": "in_air",
+        "state": "held",
         "pos": [
           26.65,
           48.0
         ],
-        "landing": [
-          11.9,
-          62.2
-        ],
-        "eta": 0.257
+        "holder": "QB"
       },
-      "events": [
-        {
-          "type": "THROW",
-          "target": [
-            11.9,
-            62.2
-          ],
-          "mph": 54.3,
-          "eta": 0.26,
-          "dist": 20.5
-        }
-      ]
+      "events": []
     },
     {
       "t": 2.6,
-      "phase": "BALL_IN_AIR",
+      "phase": "LIVE",
       "sack_clock": 2.4,
       "players": [
         {
@@ -1473,53 +1452,49 @@
           "facing": 0.0,
           "speed": 0.0,
           "mode": "normal",
-          "action": "throw",
-          "reasoning": "Throw to the projected WR spot at (11.9,62.2) with max speed to beat the defender; WR will be within 0.5\u20130.6 yd of the landing point when the ball arrives."
+          "action": "hold",
+          "reasoning": "WR is about to signal; better to wait for the call to ensure the window and prevent a sack."
         },
         {
           "id": "WR1",
           "pos": [
-            11.91,
-            62.54
+            15.7,
+            63.35
           ],
-          "heading": 182.0,
-          "facing": 182.0,
-          "speed": 6.43,
+          "heading": 160.0,
+          "facing": 0.0,
+          "speed": 3.85,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "move toward landing zone to secure catch; facing the ball for best catch chance"
+          "reasoning": "jab 20\u00b0 off 180\u00b0 to feint CB, maintain current speed and set up reset to 180\u00b0 on next step"
         },
         {
           "id": "CB1",
           "pos": [
-            15.44,
-            65.55
+            15.36,
+            68.36
           ],
-          "heading": 216.0,
-          "facing": 216.0,
-          "speed": 5.2,
-          "mode": "normal",
+          "heading": 0.0,
+          "facing": 185.0,
+          "speed": 2.94,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says flip hips and CHASE: intercept heading \u2248 216\u00b0, facing \u2248 216\u00b0, mode=normal."
+          "reasoning": "WR is backpedaling toward the QB; I\u2019ll keep cushion upfield while watching for the cut"
         }
       ],
       "ball": {
-        "state": "in_air",
+        "state": "held",
         "pos": [
-          20.91,
-          53.52
+          26.65,
+          48.0
         ],
-        "landing": [
-          11.9,
-          62.2
-        ],
-        "eta": 0.157
+        "holder": "QB"
       },
       "events": []
     },
     {
       "t": 2.7,
-      "phase": "BALL_IN_AIR",
+      "phase": "LIVE",
       "sack_clock": 2.3,
       "players": [
         {
@@ -1532,53 +1507,55 @@
           "facing": 0.0,
           "speed": 0.0,
           "mode": "normal",
-          "action": "throw",
-          "reasoning": "Throw to the projected WR spot at (11.9,62.2) with max speed to beat the defender; WR will be within 0.5\u20130.6 yd of the landing point when the ball arrives."
+          "action": "hold",
+          "reasoning": "WR is due to cut and call for the ball around t\u22482.8s; no open window yet and sack clock tight."
         },
         {
           "id": "WR1",
           "pos": [
-            11.9,
-            61.76
+            15.87,
+            62.86
           ],
-          "heading": 181.0,
-          "facing": 181.0,
-          "speed": 7.79,
+          "heading": 160.0,
+          "facing": 0.0,
+          "speed": 5.25,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": ""
+          "reasoning": "CB is 5 yd left/upfield and cushion shows opportunity; you're open >2 yd and heading toward QB for an easier catch"
         },
         {
           "id": "CB1",
           "pos": [
-            15.12,
-            65.0
+            15.36,
+            68.78
           ],
-          "heading": 210.0,
-          "facing": 210.0,
-          "speed": 6.29,
-          "mode": "normal",
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 4.24,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "SITUATION says flip hips and CHASE downfield; use intercept heading \u2248 210\u00b0 and facing \u2248 210\u00b0."
+          "reasoning": "Keep cushion as WR backs toward QB while watching for the cut"
         }
       ],
       "ball": {
-        "state": "in_air",
+        "state": "held",
         "pos": [
-          15.18,
-          59.05
+          26.65,
+          48.0
         ],
-        "landing": [
-          11.9,
-          62.2
-        ],
-        "eta": 0.057
+        "holder": "QB"
       },
-      "events": []
+      "events": [
+        {
+          "type": "WR_CALL_FOR_BALL",
+          "t": 2.7,
+          "heading": 160.0
+        }
+      ]
     },
     {
       "t": 2.8,
-      "phase": "END",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 2.2,
       "players": [
         {
@@ -1592,44 +1569,232 @@
           "speed": 0.0,
           "mode": "normal",
           "action": "throw",
-          "reasoning": "Throw to the projected WR spot at (11.9,62.2) with max speed to beat the defender; WR will be within 0.5\u20130.6 yd of the landing point when the ball arrives."
+          "reasoning": "WR is on a straight-back path, lead him to the projected arrival point and use the fastest ball to beat closing CB."
         },
         {
           "id": "WR1",
           "pos": [
-            11.9,
-            61.76
+            16.1,
+            62.23
           ],
-          "heading": 181.0,
-          "facing": 181.0,
-          "speed": 7.79,
+          "heading": 160.0,
+          "facing": 0.0,
+          "speed": 6.65,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "move toward landing zone bearing 1\u00b0, face the zone for best catch"
+          "reasoning": "holding 160\u00b0 as signaled, accelerating into catch window; open (CB ~5.9y) and cutting now would misplace throw"
         },
         {
           "id": "CB1",
           "pos": [
-            15.12,
-            65.0
+            15.66,
+            68.78
           ],
-          "heading": 210.0,
-          "facing": 210.0,
-          "speed": 6.29,
+          "heading": 90.0,
+          "facing": 175.0,
+          "speed": 3.02,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "SITUATION says flip hips and CHASE downfield; intercept heading \u2248 205\u00b0, facing \u2248 205\u00b0"
+          "reasoning": "Ball in air; close on landing zone while keeping eyes on WR at 175\u00b0"
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          9.44,
-          64.57
+          26.65,
+          48.0
         ],
         "landing": [
-          11.9,
-          62.2
+          16.5,
+          61.2
+        ],
+        "eta": 0.209
+      },
+      "events": [
+        {
+          "type": "THROW",
+          "target": [
+            16.5,
+            61.2
+          ],
+          "mph": 54.3,
+          "eta": 0.21,
+          "dist": 16.7
+        }
+      ]
+    },
+    {
+      "t": 2.9,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.1,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "mode": "normal",
+          "action": "throw",
+          "reasoning": "WR is on a straight-back path, lead him to the projected arrival point and use the fastest ball to beat closing CB."
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.4,
+            61.49
+          ],
+          "heading": 158.0,
+          "facing": 158.0,
+          "speed": 7.97,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "move toward landing zone (bearing ~159\u00b0) and face the ball for best catch; maintain alignment with the catch point"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            15.69,
+            68.52
+          ],
+          "heading": 174.0,
+          "facing": 174.0,
+          "speed": 2.65,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "Ball lands behind me; backpedal toward the landing zone to contest the swat as it arrives while keeping eyes on the WR"
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          21.8,
+          54.31
+        ],
+        "landing": [
+          16.5,
+          61.2
+        ],
+        "eta": 0.109
+      },
+      "events": []
+    },
+    {
+      "t": 3.0,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.0,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "mode": "normal",
+          "action": "throw",
+          "reasoning": "WR is on a straight-back path, lead him to the projected arrival point and use the fastest ball to beat closing CB."
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.7,
+            60.62
+          ],
+          "heading": 161.0,
+          "facing": 161.0,
+          "speed": 9.22,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "move toward landing zone and face the ball for best catch chance"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            15.73,
+            68.13
+          ],
+          "heading": 174.0,
+          "facing": 174.0,
+          "speed": 3.95,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "Ball in the air soon; continue backpedaling to maintain cushion while focusing to swat the incoming pass."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          16.94,
+          60.63
+        ],
+        "landing": [
+          16.5,
+          61.2
+        ],
+        "eta": 0.009
+      },
+      "events": []
+    },
+    {
+      "t": 3.1,
+      "phase": "END",
+      "sack_clock": 1.9,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "mode": "normal",
+          "action": "throw",
+          "reasoning": "WR is on a straight-back path, lead him to the projected arrival point and use the fastest ball to beat closing CB."
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.7,
+            60.62
+          ],
+          "heading": 161.0,
+          "facing": 161.0,
+          "speed": 9.22,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "moving to landing zone; face toward ball for best catch chance"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            15.73,
+            68.13
+          ],
+          "heading": 174.0,
+          "facing": 174.0,
+          "speed": 3.95,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "Ball in the air; contest with swat while keeping angle toward the landing zone and maintaining cushion."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          12.09,
+          66.94
+        ],
+        "landing": [
+          16.5,
+          61.2
         ],
         "eta": 0.0
       },
@@ -1637,8 +1802,8 @@
         {
           "type": "RESOLUTION",
           "outcome": "CATCH",
-          "separation": 4.57,
-          "p_catch": 0.775
+          "separation": 7.57,
+          "p_catch": 0.97
         }
       ]
     }
@@ -1646,18 +1811,18 @@
   "footer": {
     "outcome": "CATCH",
     "telemetry": {
-      "max_separation": 5.02,
-      "throw_t": 2.5,
-      "throw_distance": 20.5,
+      "max_separation": 7.57,
+      "throw_t": 2.8,
+      "throw_distance": 16.7,
       "sack": false,
-      "qb_calls": 23,
+      "qb_calls": 25,
       "qb_parse_errors": 0,
-      "wr_calls": 30,
+      "wr_calls": 33,
       "wr_parse_errors": 0,
-      "cb_calls": 28,
+      "cb_calls": 31,
       "cb_parse_errors": 0,
       "cb_intent": "swat",
-      "wr_call_t": 2.3,
+      "wr_call_t": 2.7,
       "broken_play": false,
       "detected_cut_t": 0.1
     }

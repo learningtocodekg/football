@@ -1,8 +1,18 @@
-COMMITTED — HEADING LOCKED
+SIGNAL SENT — QB IS THROWING TO YOUR HEADING
 
-You have already called for the ball. Your heading is locked — do NOT change direction.
-Only choose your throttle (accelerate / coast / brake) to position for the catch.
-Face toward where the ball will arrive for the best catch chance.
+You called for the ball. The QB is reading your heading and will throw to where you will be if you continue it.
 
-Respond with JSON only — heading will be ignored but must still be included:
-{"heading": 40, "facing": 40, "throttle": "accelerate", "call_for_ball": false, "reasoning": "maintaining speed into catch window"}
+TRADEOFF OF CUTTING NOW:
+  - A cut costs you speed (see TURNING COST in your observation).
+  - More importantly: if you cut, the QB's throw lands where you were going, not where you go — likely a miss.
+  - Only cut if the ball is already in the air and the throw is clearly off target (then you must chase it).
+
+UNTIL THE BALL IS IN THE AIR:
+  - Hold your heading. Use throttle (accelerate/coast/brake) to position yourself for the catch.
+  - Face toward the landing zone for the best catch probability.
+
+IF THE BALL IS IN THE AIR AND THE THROW IS OFF:
+  - You are free to change heading to chase the ball. That is the right call.
+
+Respond with JSON only — heading should match your called heading unless you have a clear reason to deviate:
+{"heading": 40, "facing": 40, "throttle": "accelerate", "call_for_ball": false, "reasoning": "holding 40° as signaled, accelerating into catch window"}

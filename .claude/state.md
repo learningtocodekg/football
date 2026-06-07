@@ -63,15 +63,20 @@ Current phase: A4 in progress (all three agents live; CB freed from prescription
 - CB: `mode={cb.mode}` added to WR's current CB snapshot line
 
 ## Known Issues
-- **N2/O7**: WR jab is cookie-cutter 330°/30° on all routes. Self-action history (N7) and MOVE LOG (A5) haven't broken the template yet. Live angle blacklist is the next thing to try.
-- **O1/N5**: Ball-in-air heading abandonment — WR changes heading during flight, misses landing zone (curl, zig, drag all DROP). Explicit heading-lock instruction in ball-in-air prompt is the proposed fix.
-- **O2**: Corner WR abandons real break and returns to stem after executing it. Observation needs to mark the real break as terminal once held 2+ steps.
-- **O3**: Go route — QB threw behind CB → INTERCEPTION. QB needs CB position check before throwing on go routes.
-- **O8/N6**: QB lead direction wrong for lateral-heading WR (drag). Fundamental QB throw-speed/lead question.
-- **O4**: Slant WR cut to 40° instead of ~315°. Route heading still misread occasionally.
-- detected_cut_t fires on first jab (any 30°+ heading change), not the real route break.
+- **P-NEW (HIGH)**: WR calls for ball before executing route cut — heading still 0° when call fires. Affects slant, corner, in, curl. Need to audit call_tolerance gate in runner.py (does ±45° check vs cut_heading actually reject pre-cut calls?).
+- **N2/O7 (HIGH)**: WR jab is cookie-cutter 330°/30° on all routes. MOVE LOG didn't break it. Live angle blacklist still untried.
+- **O1 (MEDIUM)**: Ball-in-air heading abandonment still present — drag and zig both showed heading reversals mid-flight. Not causing failures yet due to CB distance.
+- **O4 (MEDIUM)**: Slant WR never cuts across field. Compounded by P-NEW (calls before cut).
+- **N6/O3 (MEDIUM)**: Go route QB still threw lob/medium speed. Need bullet default on go.
+- detected_cut_t fires on first heading hold, not necessarily the real route break.
 - CB pre-snap alignment not varying by route type.
-- CB intent is almost always "swat."
+- CB intent almost always "swat" (correctly chose go_for_pick on in route → INT).
+
+## Run History
+- Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT
+- Round 2 (Ollama qwen3:8b, post-fix): 2C/5D/1INC/1INT
+- Round 3 (OpenAI gpt-5-nano): 2C/6D/1PBU/1INT
+- Round 4 (OpenAI gpt-5-nano): **4C/2D/3PBU/1INT** ← current best
 
 ## Not Started
 B–E phases

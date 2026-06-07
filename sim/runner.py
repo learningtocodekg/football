@@ -15,7 +15,7 @@ from replay.recorder import Recorder
 from agents.qb_agent import QBAgent
 from agents.cb_agent import CBAgent
 from agents.wr_agent import WRAgent
-from agents.scripted import ScriptedWR, ScriptedQB, ROUTES, ROUTE_META
+from agents.scripted import ScriptedWR, ScriptedQB, ROUTES
 from agents.observation import (
     build_qb_observation,
     build_cb_pre_snap_observation,
@@ -171,8 +171,6 @@ def run_play(
         cut_heading = route_phases[0][1]
     upfield_yards = cut_time * 5.0 if cut_time < 9.0 else 10.0
 
-    route_meta = ROUTE_META.get(route_name, {})
-    call_tolerance = route_meta.get("call_tolerance", 45.0)
     multi_phase = len(route_phases) >= 3
 
     if llm_wr:
@@ -182,7 +180,7 @@ def run_play(
         wr_agent = WRAgent(
             model=wr_model, reasoning_effort=wr_r_effort, provider=wr_provider,
             route=route_name, cut_time=cut_time, cut_heading=cut_heading,
-            upfield_yards=upfield_yards, call_tolerance=call_tolerance,
+            upfield_yards=upfield_yards,
         )
     else:
         wr_agent = ScriptedWR(route=route_name)
@@ -325,6 +323,7 @@ def run_play(
                     wr_history=move_history, ball_total_eta=ball_total_eta,
                     detected_cut_t=detected_cut_t,
                     route_phases=route_phases if multi_phase else None,
+                    call_heading=wr_agent.call_heading,
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=False, t=t)
                 r = wr_decision.get("reasoning", "").encode("ascii", "replace").decode("ascii")
@@ -446,6 +445,7 @@ def run_play(
                     wr_history=move_history, ball_total_eta=ball_total_eta,
                     detected_cut_t=detected_cut_t,
                     route_phases=route_phases if multi_phase else None,
+                    call_heading=wr_agent.call_heading,
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=True, t=t)
                 r = wr_decision.get("reasoning", "").encode("ascii", "replace").decode("ascii")

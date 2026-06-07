@@ -14,9 +14,6 @@ _BALL_IN_AIR_PROMPT = (Path(__file__).parent / "prompts" / "wr_ball_in_air.txt")
 # How many degrees of heading change in one step counts as a detected cut
 CUT_DETECT_THRESHOLD = 30.0
 
-# ±45° tolerance: WR may only call for ball if heading is within this of prescribed cut heading
-CALL_HEADING_TOLERANCE = 45.0
-
 
 class WRAgent:
     def __init__(
@@ -28,7 +25,6 @@ class WRAgent:
         cut_time: float = 2.0,
         cut_heading: float = 40.0,
         upfield_yards: float = 5.0,
-        call_tolerance: float = 45.0,
     ):
         self.model = model
         self.reasoning_effort = reasoning_effort
@@ -37,7 +33,6 @@ class WRAgent:
         self.cut_time = cut_time
         self.cut_heading = cut_heading
         self.upfield_yards = upfield_yards
-        self.call_tolerance = call_tolerance
 
         self.call_count = 0
         self.parse_errors = 0
@@ -93,27 +88,15 @@ class WRAgent:
                 "reasoning": "parse_error",
             }
 
-        # Validate and apply call_for_ball
+        # Apply call_for_ball
         if result["call_for_ball"] and not self.called_for_ball:
-            if self._can_call(result["heading"]):
-                self.called_for_ball = True
-                self.call_heading = result["heading"]
-                self.locked_heading = result["heading"]
-                self.call_t = t
-            else:
-                result["call_for_ball"] = False
+            self.called_for_ball = True
+            self.call_heading = result["heading"]
+            self.locked_heading = result["heading"]
+            self.call_t = t
 
         self.last_action = result
         return result
-
-    def _can_call(self, heading: float) -> bool:
-        """Call is valid if heading is within tolerance of prescribed cut heading, or broken play."""
-        if self.broken_play:
-            return True
-        if self.cut_time >= 9.0:  # go route — no prescribed cut, any heading is valid
-            return True
-        diff = abs((heading - self.cut_heading + 180.0) % 360.0 - 180.0)
-        return diff <= self.call_tolerance
 
     def record_heading(self, t: float, heading: float) -> None:
         """Call each step to detect cuts from heading history."""
@@ -131,11 +114,7 @@ class WRAgent:
         dt: float = 0.1,
         ball_in_air: bool = False,
     ) -> PlayerState:
-        """Convert WR decision to new PlayerState. If committed (not ball_in_air), lock heading."""
-        if self.called_for_ball and not ball_in_air and self.locked_heading is not None:
-            target_heading = self.locked_heading
-        else:
-            target_heading = float(decision.get("heading", state.heading))
+        target_heading = float(decision.get("heading", state.heading))
 
         target_facing = float(decision.get("facing", target_heading))
         throttle = decision.get("throttle", "accelerate")

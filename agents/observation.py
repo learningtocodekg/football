@@ -98,6 +98,12 @@ def build_qb_observation(
             "WR is committed to this path (heading locked). Speed may vary. Lead him where he will be when ball arrives.",
             "If coverage is too tight, hold — WR stays on this path.",
         ]
+        # Go-route hint: CB plays cushion ahead of WR, inform QB of CB's position
+        if cb is not None and expected_open_t is not None and expected_open_t >= 9.0:
+            cb_y = cb.y
+            lines += [
+                f"GO ROUTE — CB is at y={cb_y:.1f} (playing cushion upfield of WR). Consider whether your target clears the CB's current position.",
+            ]
     else:
         if expected_open_t is not None and expected_open_t < 9.0:
             lines.append(
@@ -554,6 +560,7 @@ def build_wr_observation(
     ball_total_eta: float | None = None,
     detected_cut_t: float | None = None,
     route_phases: list[tuple[float, float]] | None = None,
+    call_heading: float | None = None,
 ) -> str:
     time_to_cut = cut_time - t
 
@@ -594,6 +601,18 @@ def build_wr_observation(
             f"   If your heading takes you out of bounds, cut back in-bounds, call for the ball, and commit to that path.",
         ]
 
+    # Turn cost info — computed from actual physics formula
+    agility_factor = wr_attrs.agility / 50.0
+    turn_cost_30 = wr.speed * (30.0 / 90.0) * 0.95 / agility_factor
+    turn_cost_90 = wr.speed * 0.95 / agility_factor
+    lines += [
+        "",
+        f"TURNING COST (at current speed {wr.speed:.1f} yd/s, agility={wr_attrs.agility:.0f}/99):",
+        f"  30° cut → lose ~{turn_cost_30:.1f} yd/s  |  90° cut → lose ~{turn_cost_90:.1f} yd/s",
+        "  Sharper cuts shed more speed. Max 90° turn per step enforced by physics.",
+        "  A big cut mid-route costs speed and can delay your arrival at the catch point.",
+    ]
+
     # Play state
     lines += [""]
     if broken_play:
@@ -604,15 +623,15 @@ def build_wr_observation(
         ]
     elif wr_called_for_ball:
         lines += [
-            f"COMMITTED: you called for the ball at t={call_t:.1f}s." if call_t is not None else "COMMITTED: you called for the ball.",
-            "Your heading is LOCKED — do not cut. Choose your throttle (accelerate/coast/brake) to position for the catch.",
-            "If the throw is bad once ball is in air, you may adjust heading to chase it.",
+            f"SIGNAL SENT: you called for the ball at t={call_t:.1f}s heading {call_heading:.0f}° ({_heading_label(call_heading)})." if call_t is not None and call_heading is not None else "SIGNAL SENT: you called for the ball.",
+            "QB is expecting you to continue at that heading. If you cut now, QB's throw will miss — he aimed at where you were going.",
+            "You CAN still cut if you decide it's worth it (e.g., ball in air and throw is off), but know the tradeoff: a cut costs you speed AND likely causes an incompletion.",
         ]
     elif cut_time >= 9.0:
         # Go route — no cut, straight vertical
         lines += [
-            f"PHASE: STRAIGHT ROUTE ({route}) -- NO CUT. Run straight upfield the entire play.",
-            "There is no prescribed cut. Call for the ball whenever you judge you are open — use your own read of the coverage.",
+            f"Route: {route} — no prescribed cut. Run upfield.",
+            "Call for the ball whenever you judge you are open — use your own read of the coverage.",
         ]
     elif route_phases and len(route_phases) >= 3:
         # Multi-phase route — determine current phase and show full schedule
@@ -643,20 +662,20 @@ def build_wr_observation(
         if cur_phase_idx == len(route_phases) - 1:
             # On final (real break) phase
             lines += [
-                f"REAL BREAK PHASE — you are past all fakes. Run {cut_heading:.0f}° ({_heading_label(cut_heading)}).",
+                f"Real break: run {cut_heading:.0f}° ({_heading_label(cut_heading)}).",
                 "Call for the ball if you are open (2+ yards from CB).",
             ]
         elif cur_phase_idx == 0:
             # Still in stem phase
             lines += [
-                f"STEM PHASE — run upfield (0°). {time_to_next:.1f}s until first cut.",
+                f"Stem phase — run upfield (0°). First cut at t={route_phases[1][0]:.1f}s.",
                 "Deception: change jab angle each time (e.g., left then right, not same direction twice); go 2-3 steps in a direction before snapping back to sell the fake; mix speed changes (brake then burst) with heading fakes. Do NOT call for ball yet.",
             ]
         else:
             # In an intermediate phase (fake move)
             next_heading = cut_heading
             lines += [
-                f"INTERMEDIATE MOVE — hold {route_phases[cur_phase_idx][1]:.0f}° for {time_to_next:.1f}s until the real break.",
+                f"Intermediate fake — hold {route_phases[cur_phase_idx][1]:.0f}° until t={route_phases[cur_phase_idx][0]:.1f}s ({time_to_next:.1f}s left).",
                 f"HOLD this heading for the FULL phase duration — do NOT return to 0° or oscillate. The CB must commit to this fake.",
                 f"After the fake, cut hard to {next_heading:.0f}° ({_heading_label(next_heading)}) — that is your REAL break.",
                 "Do NOT call for ball in this fake phase.",
@@ -664,20 +683,20 @@ def build_wr_observation(
     else:
         if time_to_cut > 0.3:
             lines += [
-                f"PHASE: PRE-CUT  |  Route: {route}  |  Cut heading: ~{cut_heading:.0f}° ({_heading_label(cut_heading)}) at t≈{cut_time:.1f}s  |  Time to cut: {time_to_cut:.1f}s",
+                f"Route: {route}  |  Real cut: ~{cut_heading:.0f}° ({_heading_label(cut_heading)}) at t≈{cut_time:.1f}s",
                 f"KEEP HEADING NEAR 0° (straight upfield). Do NOT move to {cut_heading:.0f}° yet — that telegraphs the route to the CB.",
                 "Deception: vary your fakes — change the jab angle each time (not always the same direction), go 2-3 steps in a direction to sell it before snapping back, mix in speed changes (brake then burst). A predictable pattern has no deception value.",
             ]
         elif time_to_cut >= -0.2:
             lines += [
-                f"CUT WINDOW — execute your break NOW (t={t:.1f}s, cut guideline t={cut_time:.1f}s).",
-                f"Cut toward ~{cut_heading:.0f}° ({_heading_label(cut_heading)}). If you are open after the cut, call for the ball.",
+                f"Cut now — break to ~{cut_heading:.0f}° ({_heading_label(cut_heading)}).",
+                "If you are open after the cut, call for the ball.",
             ]
             if route == "curl":
                 lines.append("!! CURL TIMING: Call for ball as you BEGIN the turn (heading ~270°, one step before full 180°). This gives the ball time to arrive as you face up. QB throws immediately on your signal.")
         else:
             lines += [
-                f"PAST CUT TIME (cut was at t≈{cut_time:.1f}s, now t={t:.1f}s).",
+                f"Past cut time (t≈{cut_time:.1f}s was the guideline).",
                 "If you have not called for the ball yet, do so if you are open. QB is looking for you.",
             ]
 

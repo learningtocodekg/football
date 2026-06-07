@@ -2,74 +2,63 @@
 Date: 2026-06-06
 
 ## What We Worked On
-Three rounds of A4 analysis across two LLM providers (Ollama qwen3:8b, OpenAI gpt-5-nano). Applied N1/N3/N7 fixes, freed the CB from prescriptive SITUATION block, gave the WR a side-by-side MOVE LOG, and ran problems through three rounds of replay analysis.
+Run 4: all 10 A4 routes with seed=42 (OpenAI gpt-5-nano), full analysis of which problems from problems2.md and problems3.md are still present vs fixed.
 
 ## What Got Done
 
-### A4 Round 1 — Initial fixes (P1–P10)
-- P1: `_can_call()` returns True for go routes (cut_time >= 9.0). No hardcoded "YOU ARE OPEN."
-- P3: Deception coaching rewritten with richer taxonomy (jab, hold fake, speed fake, double fake; no same move twice). Removed "AT MOST ONE jab" limit.
-- P5: corner cut_heading 315° → 290°.
-- P6: REVERTED — WR abandoning routes is valid AI behavior, not a bug.
-- P7: CB SITUATION block detects `wr_going_lateral` and emits lateral intercept context.
-- P10: drag stem 0.3 → 0.7s; curl call_tolerance 90° → 135°.
-- run_all_routes.py: `--ollama` / `--model` flags.
+### Run 4 results (seed=42, gpt-5-nano)
+| Route | Result |
+|-------|--------|
+| slant | PBU |
+| comeback | CATCH ✓ |
+| go | DROP |
+| double_move | CATCH ✓ |
+| curl | DROP |
+| zig | CATCH ✓ |
+| drag | CATCH ✓ |
+| corner | PBU |
+| post_corner | PBU |
+| in | INTERCEPTION |
 
-### A4 Round 2 — N1/N3/N7 fixes (from Ollama qwen3:8b run)
-**N1 — 2-step cut persistence (sim/runner.py):**
-- Jabs at exactly t=0.5 were being detected as cuts.
-- New: heading change ≥30° creates a candidate. Next step: snaps back within 20° → discard (jab). Holds → confirm as cut.
-- Variables: `cut_candidate_t`, `cut_candidate_from_hdg`.
+**Score: 4 CATCH, 2 DROP, 3 PBU, 1 INT** (up from Round 3: 2C/6D/1PBU/1INT — improvement)
 
-**N3 — LEAD HINT y-direction labels (agents/observation.py):**
-- QB was throwing upfield on comebacks because heading 180° was ambiguous.
-- LEAD HINT now explicitly labels y as DECREASING/INCREASING with current and projected values.
+### Problem audit against problems2.md + problems3.md
 
-**N7 — Self-action history for both agents (agents/observation.py):**
-- CB gets "YOUR RECENT ACTIONS" showing own heading + mode per step.
-- WR history table updated with throttle column.
+**FIXED:**
+- N3 (comeback QB lead inverted) — CATCH two runs in a row.
+- N4 (double_move early fake exit) — WR held 90° correctly through t=2.0+. CATCH.
+- O5 (double_move WR runs east during fake) — clean this run.
+- O6 (post_corner 0.7s call delay) — reduced to 0.1s delay.
+- O8 (drag QB lead lateral) — CATCH, QB led correctly.
 
-### A5 — CB freed, WR gets MOVE LOG
-**CB freed from prescriptive SITUATION block:**
-- Root cause: `_cb_situation()` always emitted `RECOMMENDED: backpedal` when `dy < -0.5` AND WR heading outside 45–135°/225–315° (WR jabs at 330°/30° fall in this gap). `cb_pass1.txt` then said "copy the heading numbers EXACTLY."
-- `_cb_situation()` now shows `YOUR OPTIONS:` (backpedal/intercept/mirror) with tradeoffs — no RECOMMENDED.
-- `cb_pass1.txt`: removed "copy heading numbers EXACTLY." CB decides.
-- `cb_system.txt`: removed hardcoded PHASE TRANSITIONS. One paragraph: use SITUATION BLOCK as context.
+**STILL BROKEN:**
 
-**WR side-by-side MOVE LOG (agents/observation.py, sim/runner.py):**
-- Replaced WR-only history table with MOVE LOG: WR hdg/spd + CB hdg/mode/Δhdg per step.
-- WR can now see whether its jabs actually changed what the CB did.
-- `runner.py` move_history now includes `cb_mode`.
-- WR current CB snapshot includes `mode={cb.mode}`.
+**P-NEW (HIGH) — WR calls for ball before executing the route cut.**
+Dominant failure this run. Slant (PBU), corner (PBU), in (INT), curl (DROP) all failed because the WR called `call_for_ball=true` while still running 0° upfield, before the cut was executed. The `call_tolerance` validation in runner.py requires heading within ±45° of `cut_heading`, but this only fires AFTER the decision — need to investigate whether this gate is actually enforced.
+- slant: called t=1.0 @ hdg=0° (cut window ~2.0s, cut hdg ~315°)
+- corner: called t=0.5 @ hdg=0° (cut window ~2.5s, cut hdg ~290°)
+- in: called t=0.8 @ hdg=0° (cut window ~1.8s, cut hdg ~270°)
+- curl: called t=0.9 @ hdg=0° (cut window ~1.8s, cut hdg ~180°)
 
-### A4 Round 3 — OpenAI gpt-5-nano run (problems3.md)
-Results: 2 CATCH (comeback ✓, in ✓), 1 PBU (double_move), 1 INT (go), 6 DROP
+**O7/N2 (HIGH) — Cookie-cutter 330°/30° jabs still on all routes.** Every route: 10-20 tiny alternating jabs off 0°. CB ΔHdg ≈ 0 on every fake. Deception produces zero separation. MOVE LOG didn't break the habit.
 
-New problems O1–O8 documented in problems3.md:
-- **O1 (HIGH)**: Ball-in-air heading abandonment — WR changes body heading during flight (curl, zig, drag all DROP).
-- **O2 (MEDIUM)**: Corner WR abandons real break, returns to stem after executing it.
-- **O3 (MEDIUM)**: Go — QB threw behind CB → INTERCEPTION (CB position not checked).
-- **O4 (MEDIUM)**: Slant WR cut to 40° instead of ~315°.
-- **O5 (MEDIUM)**: Double move WR ran east physically during fake phase → CB followed → PBU not CATCH.
-- **O6 (MEDIUM)**: Post_corner 0.7s call delay after real break → CB recovered → swat.
-- **O7 (HIGH)**: N2 cookie-cutter 330°/30° jabs STILL on all 10 routes. MOVE LOG and self-history haven't broken it.
-- **O8 (MEDIUM)**: QB lead direction wrong for lateral-heading WR (drag).
+**O1 (MEDIUM) — Ball-in-air heading abandonment still present.** Drag: hdg reversed to 276° mid-flight. Zig: hdg drifted to 196°/202° during flight. Both still resulted in CATCH due to CB distance, but the bug is live.
+
+**O4 (MEDIUM) — Slant WR never crosses field.** Compounded by P-NEW (called before executing any slant direction). WR treats slant as a go route with a prematurely called ball.
+
+**N6/O3 (MEDIUM) — Go route QB threw lob again.** QB used lob/medium speed to (14.2, 57.5) on a deep route. WR overran. Need bullet default for go.
 
 ## What's Open / Known Issues
-- **O1/N5** — most impactful: explicit heading-lock instruction in ball-in-air prompt. Affects 3 routes.
-- **O7/N2** — widespread: live angle blacklist per step ("do NOT use 330° or 30° again this play").
-- **O2** — corner: mark real break as terminal once held 2+ steps.
-- **O3** — go route QB: check CB y-position before throwing, target must clear CB.
-- **O8/N6** — QB lead: route-type-aware throw speed/direction.
-- detected_cut_t fires on first jab, not real break.
-- CB pre-snap alignment not varying by route type.
-- CB intent is almost always "swat."
+- P-NEW: pre-cut calling is now the #1 failure. Affects 4 routes directly.
+- O7/N2: jab template unchanged across all 10 routes.
+- O1: ball-in-air heading change still present (latent failure).
+- O4: slant cut direction still misread.
+- N6/O3: go route QB still throws too slow.
+- detected_cut_t fires on first heading hold, not real route break.
+- CB intent is always "swat" (except in route where it correctly chose go_for_pick and got the INT).
 
 ## NEXT STEP
-Priority order:
-1. **O1** — heading-lock in ball-in-air prompt. Clear fix, 3 routes affected, no ambiguity.
-2. **O7/N2** — live angle blacklist: per-step "do NOT reuse these jab angles: [list seen so far]."
-3. **O2** — post-corner/corner: terminal cut marker once WR has held real break heading 2+ steps.
-4. **O3** — go route: QB observation should include CB y-position check before committing throw.
 
-Re-run all 10 routes after O1 fix to check improvement. Compare vs run_log_42.txt baseline.
+**Diagnose P-NEW first**: check runner.py `call_tolerance` enforcement — does the ±45° heading gate actually reject pre-cut calls? Read [sim/runner.py] to find where `wr_called_for_ball` is set and whether call_heading validation blocks premature calls. If the gate isn't working, fix it. If it IS working, then these calls (slant @ hdg=0°, in @ hdg=0°) are somehow passing the ±45° check — which means cut_heading is 0° or the gate logic is wrong.
+
+Then fix O7/N2 with the explicit angle blacklist (ideas in problems3.md: "JABS USED THIS PLAY: 330° (×4). DO NOT use 330° again. Pick a different angle.").
