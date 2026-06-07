@@ -63,14 +63,15 @@ Current phase: A4 in progress (all three agents live; CB freed from prescription
 - CB: `mode={cb.mode}` added to WR's current CB snapshot line
 
 ## Known Issues
-- **P-NEW (HIGH)**: WR calls for ball before executing route cut — heading still 0° when call fires. Affects slant, corner, in, curl. Need to audit call_tolerance gate in runner.py (does ±45° check vs cut_heading actually reject pre-cut calls?).
-- **N2/O7 (HIGH)**: WR jab is cookie-cutter 330°/30° on all routes. MOVE LOG didn't break it. Live angle blacklist still untried.
-- **O1 (MEDIUM)**: Ball-in-air heading abandonment still present — drag and zig both showed heading reversals mid-flight. Not causing failures yet due to CB distance.
-- **O4 (MEDIUM)**: Slant WR never cuts across field. Compounded by P-NEW (calls before cut).
-- **N6/O3 (MEDIUM)**: Go route QB still threw lob/medium speed. Need bullet default on go.
+- **P-NEW (FIXED in code, untested)**: Hard heading gate added to wr_agent.py decide() — call_for_ball suppressed if heading >45° from cut_heading. WR prompts updated to anticipate future separation. Run 5 will validate.
+- **N2/O7 (PARTIALLY FIXED in code, untested)**: Live angle blacklist now emitted in WR observation — heading buckets used 3+ times with zero CB ΔHdg are listed as prohibited. Run 5 will show if model respects it.
+- **O1 (FIXED in code, untested)**: wr_ball_in_air.txt rewritten to lock heading; observation block reinforces "DO NOT CHANGE HEADING." Run 5 will validate.
+- **O4 (DEPENDENT on P-NEW fix)**: If slant WR now has to execute the cut before calling, it may still cut to wrong angle (40° instead of ~315°). Watch Run 5.
+- **O3/N6 (PARTIALLY FIXED)**: QB go-route hint expanded — throw must clear CB's current y. QB "own judgment" block added post-call.
+- **O2 (OPEN)**: Corner WR still abandons break and returns to stem. No concept of "terminal cut."
 - detected_cut_t fires on first heading hold, not necessarily the real route break.
 - CB pre-snap alignment not varying by route type.
-- CB intent almost always "swat" (correctly chose go_for_pick on in route → INT).
+- CB intent almost always "swat".
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT

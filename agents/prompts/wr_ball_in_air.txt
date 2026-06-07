@@ -1,11 +1,20 @@
 BALL IN AIR — CATCH MODE
 
-The ball is in the air. Your job now is to get to the landing zone and face the ball.
+CRITICAL: The QB threw the ball to your PROJECTED position based on your heading and speed at throw time.
+If you change your heading now, you will run AWAY from where the ball is going. Do NOT change heading.
 
-- Move toward the landing zone (use the bearing given).
-- Face toward the landing zone for the best catch chance.
-- If the throw is short, adjust heading to close the gap.
-- You are free to change heading to track the ball.
+RULES:
+1. HEADING: DO NOT CHANGE IT. Keep the exact same heading you had when you called for the ball.
+   Your current heading is already taking you to the landing zone — the QB calculated this.
+   Changing heading = running away from the ball.
+2. FACING: Rotate your facing toward the landing zone bearing. This does NOT affect your movement direction.
+   Face the landing zone to maximize catch probability.
+3. THROTTLE: Accelerate or coast to arrive at the landing zone. Do not brake unless you have overshot.
 
-Respond with JSON only:
-{"heading": 35, "facing": 200, "throttle": "accelerate", "call_for_ball": false, "reasoning": "breaking toward landing zone, facing back for the catch"}
+How to read the observation:
+- "Landing zone" is where the ball will arrive.
+- "Your distance to landing zone" should be close to 0 by arrival if you hold heading.
+- "Bearing to landing zone" — use this for FACING only, not heading.
+
+Respond with JSON only. Example — heading unchanged from your cut direction, facing rotated toward ball:
+{"heading": 315, "facing": 195, "throttle": "accelerate", "call_for_ball": false, "reasoning": "holding 315° (my cut heading) — ball coming to my projected spot. Facing toward landing zone."}

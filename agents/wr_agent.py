@@ -88,12 +88,19 @@ class WRAgent:
                 "reasoning": "parse_error",
             }
 
-        # Apply call_for_ball
+        # Apply call_for_ball — only valid if heading is within ±45° of cut_heading
         if result["call_for_ball"] and not self.called_for_ball:
-            self.called_for_ball = True
-            self.call_heading = result["heading"]
-            self.locked_heading = result["heading"]
-            self.call_t = t
+            hdg = result["heading"]
+            diff = abs((hdg - self.cut_heading + 180.0) % 360.0 - 180.0)
+            heading_ok = (diff <= 45.0) or (self.cut_time >= 9.0)  # go routes have no cut
+            if heading_ok:
+                self.called_for_ball = True
+                self.call_heading = hdg
+                self.locked_heading = hdg
+                self.call_t = t
+            else:
+                print(f"  [WR] call_for_ball SUPPRESSED at t={t:.1f} — heading={hdg:.0f}° is {diff:.0f}° away from cut_heading={self.cut_heading:.0f}° (need ≤45°)")
+                result["call_for_ball"] = False
 
         self.last_action = result
         return result

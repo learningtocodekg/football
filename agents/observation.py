@@ -98,12 +98,22 @@ def build_qb_observation(
             "WR is committed to this path (heading locked). Speed may vary. Lead him where he will be when ball arrives.",
             "If coverage is too tight, hold — WR stays on this path.",
         ]
-        # Go-route hint: CB plays cushion ahead of WR, inform QB of CB's position
+        # Go-route hint: CB plays cushion ahead of WR, throw must clear CB
         if cb is not None and expected_open_t is not None and expected_open_t >= 9.0:
             cb_y = cb.y
             lines += [
-                f"GO ROUTE — CB is at y={cb_y:.1f} (playing cushion upfield of WR). Consider whether your target clears the CB's current position.",
+                f"GO ROUTE — CB plays CUSHION (ahead of WR at y={cb_y:.1f}). Your throw target MUST be further upfield than y={cb_y:.1f}.",
+                f"  If you throw to WR's current projected y and the CB is at y={cb_y:.1f}, the CB is already between the ball and the WR.",
+                f"  Throw PAST the CB: target y > {cb_y:.1f}. On a go route, use a lob and aim deep enough that the WR runs under it.",
             ]
+        lines += [
+            "",
+            "WR CALLED FOR BALL — use your own judgment:",
+            "  A WR calling for the ball means he believes he will be open soon. It does NOT mean you must throw immediately.",
+            "  Check: is coverage actually open right now? Is the CB still closing? Is the WR in the right position?",
+            "  If coverage looks tight, hold — the WR will maintain his heading.",
+            "  If coverage is open, throw now. Every step you wait gives the CB more time to close.",
+        ]
     else:
         if expected_open_t is not None and expected_open_t < 9.0:
             lines.append(
@@ -716,9 +726,10 @@ def build_wr_observation(
             f"BALL IN AIR — ETA: {ball.eta:.2f}s",
             f"  Landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  ±{fuzz:.1f} yd",
             f"  Your distance to landing zone: {dist_to_land:.1f} yd",
-            f"  Bearing to landing zone: {bearing_to_ball:.0f}°",
+            f"  Bearing to landing zone: {bearing_to_ball:.0f}° — use this for FACING only, NOT heading",
             f"  Your facing: {wr.facing:.0f}° — {facing_label}",
-            "  Adjust your heading to get under the ball. Face toward the landing zone for best catch chance.",
+            f"  YOUR HEADING: {wr.heading:.0f}° — DO NOT CHANGE THIS. QB threw to your projected spot at this heading.",
+            "  HEADING = locked. FACING = rotate toward landing zone. Changing heading runs you away from the ball.",
         ]
 
     # Side-by-side WR move + CB reaction log
@@ -745,6 +756,37 @@ def build_wr_observation(
             )
             if cb_hdg is not None:
                 prev_cb_hdg = cb_hdg
+
+    # Jab angle blacklist — computed from full history, shown only when wr_history is present
+    if wr_history and not wr_called_for_ball and cb is not None:
+        # Bucket headings into 10° buckets and count uses + CB reaction per bucket
+        from collections import defaultdict
+        bucket_counts: dict[int, int] = defaultdict(int)
+        bucket_reactions: dict[int, int] = defaultdict(int)  # steps where CB Δhdg > 5°
+        prev_cb_hdg2: float | None = None
+        for h in wr_history:
+            hdg_bucket = int(round(h["wr_hdg"] / 10.0) * 10) % 360
+            bucket_counts[hdg_bucket] += 1
+            cb_h = h.get("cb_hdg")
+            if cb_h is not None and prev_cb_hdg2 is not None:
+                delta = abs((cb_h - prev_cb_hdg2 + 180.0) % 360.0 - 180.0)
+                if delta >= 5.0:
+                    bucket_reactions[hdg_bucket] += 1
+            if cb_h is not None:
+                prev_cb_hdg2 = cb_h
+        # Buckets used 3+ times with zero CB reaction are blacklisted
+        blacklisted = sorted(
+            b for b, cnt in bucket_counts.items()
+            if cnt >= 3 and bucket_reactions.get(b, 0) == 0
+        )
+        if blacklisted:
+            bl_str = ", ".join(f"~{b}°" for b in blacklisted)
+            lines += [
+                "",
+                f"JABS USED THIS PLAY (CB did NOT react): {bl_str}",
+                "  DO NOT use these angles again — the CB has seen them and is ignoring them.",
+                "  Try: a larger deviation (60°–120° off stem), a held direction (3+ steps), or a speed change (brake then burst).",
+            ]
 
     lines += [
         "",

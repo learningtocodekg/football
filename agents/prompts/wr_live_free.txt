@@ -10,15 +10,27 @@ DECEPTION — the CB only sees your heading and speed each step:
   Speed fake: brake for 2-3 steps (CB closes gap), then burst — CB is now too tight and has to recover.
   Double fake: jab one way, snap back, then jab the OTHER way before the real cut.
 
+READING CB REACTIONS — fakes only work if the CB reacts:
+  - After each jab, look at the MOVE LOG. Did CB change heading? If CB Δhdg ≈ 0°, the CB IGNORED your fake.
+  - A fake that the CB ignores has zero value. Do NOT repeat it.
+  - One-step micro-jabs (20–30°) almost never make a CB commit. The CB needs to see you hold a direction for 2–3 steps before it reacts.
+  - If your last 3 jabs all had CB Δhdg ≈ 0°, you are wasting time — switch to a bigger move or a speed change.
+  - "Biting" does not mean a full sprint. Even a CB turning (10–20° heading shift) is a win — it costs the CB speed to recover.
+
 Key rules:
   - Vary what you do. The same move repeated twice in a row loses most of its value.
   - Before your real cut, keep heading near 0° between fakes so the CB can't read where you're going.
   - The TURNING COST block tells you how much speed a cut at your current speed will shed. A big cut right before calling for the ball means you arrive at the catch point slower.
 
-CALLING FOR THE BALL:
-  - Call when you are open (>2 yd from CB) and your heading is in the right direction for the catch.
-  - Once you call, the QB will throw to where you are going — he bets you continue that heading.
-  - If you cut again after calling, the throw will miss and cost you speed on top of it.
+CALLING FOR THE BALL — ANTICIPATE, DON'T REACT:
+  - Do NOT call based on current separation alone. The CB is always moving — it will close whatever gap you have right now.
+  - Think ahead: where will YOU be in 1–2 seconds based on your route? Where will the CB be based on its current heading and speed?
+    If your route takes you away from the CB's trajectory, separation is GROWING — good time to call.
+    If the CB is tracking your direction, separation will SHRINK — wait for the cut first.
+  - Call AFTER you have executed your route cut (heading near cut_heading). Only then are you actually open.
+  - Call_for_ball=true is only valid if your current heading is within 45° of your cut direction.
+    If you call before making the cut, the system will reject it.
+  - Once you call, the QB throws to where you are going — he bets you continue that heading.
 
 Respond with JSON only:
 {"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "reasoning": "stem at 0; jabbed left last step so returning to 0 now"}

@@ -2,63 +2,40 @@
 Date: 2026-06-06
 
 ## What We Worked On
-Run 4: all 10 A4 routes with seed=42 (OpenAI gpt-5-nano), full analysis of which problems from problems2.md and problems3.md are still present vs fixed.
+Prompt and scaffolding fixes based on Run 4 (seed=42, gpt-5-nano) analysis and kg_notes.md.
+No new run executed — all changes are code/prompt only, ready for Run 5.
 
 ## What Got Done
 
-### Run 4 results (seed=42, gpt-5-nano)
-| Route | Result |
-|-------|--------|
-| slant | PBU |
-| comeback | CATCH ✓ |
-| go | DROP |
-| double_move | CATCH ✓ |
-| curl | DROP |
-| zig | CATCH ✓ |
-| drag | CATCH ✓ |
-| corner | PBU |
-| post_corner | PBU |
-| in | INTERCEPTION |
+### P-NEW fix (pre-cut ball call) — two layers
+1. **`agents/wr_agent.py`**: Hard enforcement gate added to `decide()`. If `call_for_ball=true` but heading is >45° away from `cut_heading`, the call is suppressed with a printed warning. Go routes (cut_time >= 9.0) are exempt.
+2. **`agents/prompts/wr_live_free.txt`** + **`wr_system.txt`**: Replaced "call when you have separation" with "anticipate future separation" — WR must project its own future trajectory and the CB's trajectory forward 1–2 steps. Also added "call_for_ball=true is only valid if heading within 45° of cut direction — system will reject it otherwise."
 
-**Score: 4 CATCH, 2 DROP, 3 PBU, 1 INT** (up from Round 3: 2C/6D/1PBU/1INT — improvement)
+### O7/N2 fix (cookie-cutter jabs) — live angle blacklist
+**`agents/observation.py`**: After the MOVE LOG, a new block scans full play history. Any heading bucket used 3+ times with zero CB reaction (ΔHdg < 5°) is listed under "JABS USED THIS PLAY — CB did NOT react: DO NOT use these angles again." Per-step, live, structural constraint — not a suggestion.
 
-### Problem audit against problems2.md + problems3.md
+### O1 fix (ball-in-air heading abandonment)
+1. **`agents/prompts/wr_ball_in_air.txt`**: Completely rewritten. HEADING is locked ("DO NOT CHANGE IT — QB threw to your projected spot at this heading"). FACING is the only thing that changes to track the ball. Explains the mechanism.
+2. **`agents/observation.py`**: Ball-in-air block now shows "YOUR HEADING: X° — DO NOT CHANGE THIS" and "HEADING = locked. FACING = rotate toward landing zone."
 
-**FIXED:**
-- N3 (comeback QB lead inverted) — CATCH two runs in a row.
-- N4 (double_move early fake exit) — WR held 90° correctly through t=2.0+. CATCH.
-- O5 (double_move WR runs east during fake) — clean this run.
-- O6 (post_corner 0.7s call delay) — reduced to 0.1s delay.
-- O8 (drag QB lead lateral) — CATCH, QB led correctly.
+### O3/N6 fix (go route QB throw target)
+**`agents/observation.py`**: Go-route hint in QB WR-signal block expanded — throw target must be past the CB's current y, not just at the WR's projected y. Explicit: "throw PAST the CB: target y > {cb_y}."
 
-**STILL BROKEN:**
-
-**P-NEW (HIGH) — WR calls for ball before executing the route cut.**
-Dominant failure this run. Slant (PBU), corner (PBU), in (INT), curl (DROP) all failed because the WR called `call_for_ball=true` while still running 0° upfield, before the cut was executed. The `call_tolerance` validation in runner.py requires heading within ±45° of `cut_heading`, but this only fires AFTER the decision — need to investigate whether this gate is actually enforced.
-- slant: called t=1.0 @ hdg=0° (cut window ~2.0s, cut hdg ~315°)
-- corner: called t=0.5 @ hdg=0° (cut window ~2.5s, cut hdg ~290°)
-- in: called t=0.8 @ hdg=0° (cut window ~1.8s, cut hdg ~270°)
-- curl: called t=0.9 @ hdg=0° (cut window ~1.8s, cut hdg ~180°)
-
-**O7/N2 (HIGH) — Cookie-cutter 330°/30° jabs still on all routes.** Every route: 10-20 tiny alternating jabs off 0°. CB ΔHdg ≈ 0 on every fake. Deception produces zero separation. MOVE LOG didn't break the habit.
-
-**O1 (MEDIUM) — Ball-in-air heading abandonment still present.** Drag: hdg reversed to 276° mid-flight. Zig: hdg drifted to 196°/202° during flight. Both still resulted in CATCH due to CB distance, but the bug is live.
-
-**O4 (MEDIUM) — Slant WR never crosses field.** Compounded by P-NEW (called before executing any slant direction). WR treats slant as a go route with a prematurely called ball.
-
-**N6/O3 (MEDIUM) — Go route QB threw lob again.** QB used lob/medium speed to (14.2, 57.5) on a deep route. WR overran. Need bullet default for go.
+### QB post-call judgment
+**`agents/observation.py`**: Added "WR CALLED FOR BALL — use your own judgment" block in the WR-called branch. WR calling ≠ mandatory throw. QB checks coverage and decides.
 
 ## What's Open / Known Issues
-- P-NEW: pre-cut calling is now the #1 failure. Affects 4 routes directly.
-- O7/N2: jab template unchanged across all 10 routes.
-- O1: ball-in-air heading change still present (latent failure).
-- O4: slant cut direction still misread.
-- N6/O3: go route QB still throws too slow.
-- detected_cut_t fires on first heading hold, not real route break.
-- CB intent is always "swat" (except in route where it correctly chose go_for_pick and got the INT).
+- **O4 (slant cut direction)** — was diagnosed as a downstream effect of P-NEW. If the heading gate fixes premature calls on slant, the WR will now have to execute the actual cut. Not separately addressed; watch Run 5.
+- **O2 (corner: WR abandons break and returns to stem)** — not addressed. WR still has no concept of "terminal cut" vs "jab."
+- **detected_cut_t** still fires on first heading hold, not guaranteed to be the real route break.
+- **CB pre-snap alignment** not varying by route type.
+- **CB intent almost always "swat"** — never changed.
 
 ## NEXT STEP
+**Run 5: run all 10 A4 routes with seed=42 (gpt-5-nano) and compare to Run 4 (4C/2D/3PBU/1INT).**
+- Primary watch: does P-NEW enforcement eliminate the pre-cut calls on slant/corner/in/curl?
+- Secondary watch: does the angle blacklist produce any non-330°/30° jabs?
+- Tertiary watch: do ball-in-air headings stay locked now?
+- Log new problems if any emerge.
 
-**Diagnose P-NEW first**: check runner.py `call_tolerance` enforcement — does the ±45° heading gate actually reject pre-cut calls? Read [sim/runner.py] to find where `wr_called_for_ball` is set and whether call_heading validation blocks premature calls. If the gate isn't working, fix it. If it IS working, then these calls (slant @ hdg=0°, in @ hdg=0°) are somehow passing the ±45° check — which means cut_heading is 0° or the gate logic is wrong.
-
-Then fix O7/N2 with the explicit angle blacklist (ideas in problems3.md: "JABS USED THIS PLAY: 330° (×4). DO NOT use 330° again. Pick a different angle.").
+Run command: `.venv\Scripts\python.exe run_all_routes.py`
