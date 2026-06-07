@@ -63,15 +63,15 @@ Current phase: A4 in progress (all three agents live; CB freed from prescription
 - CB: `mode={cb.mode}` added to WR's current CB snapshot line
 
 ## Known Issues
-- **P-NEW (prompt fix only, untested)**: WR prompts updated to anticipate future separation and call only after executing the cut. No mechanical gate — agent must reason its way to the correct behavior. Run 5 will validate.
-- **N2/O7 (PARTIALLY FIXED in code, untested)**: Live angle blacklist now emitted in WR observation — heading buckets used 3+ times with zero CB ΔHdg are listed as prohibited. Run 5 will show if model respects it.
-- **O1 (FIXED in code, untested)**: wr_ball_in_air.txt rewritten to lock heading; observation block reinforces "DO NOT CHANGE HEADING." Run 5 will validate.
-- **O4 (DEPENDENT on P-NEW fix)**: If slant WR now has to execute the cut before calling, it may still cut to wrong angle (40° instead of ~315°). Watch Run 5.
-- **O3/N6 (PARTIALLY FIXED)**: QB go-route hint expanded — throw must clear CB's current y. QB "own judgment" block added post-call.
+- **WR note hallucination**: WR writes "fake completed" in its scratchpad after 1 step instead of 2-4. Told to verify against move log but still overclaims. May need the observation to inject actual step count per heading ("you have been on 270° for N steps") so it doesn't have to count from its own note.
+- **QB throws too quickly post-call**: Once WR calls, QB throws to a target ~10-17yd away. Ball arrives before real separation is established. CB swats.
+- **Ball-in-air facing**: Fixed — observation now shows QB bearing and prompts explain ball comes FROM QB. WR now faces ~147-150° on slant (correct).
+- **WR calls with insufficient separation**: Improved with dual-condition check (heading + separation), but WR still sometimes calls early.
+- **CB intent almost always "swat"** — never varied this session.
 - **O2 (OPEN)**: Corner WR still abandons break and returns to stem. No concept of "terminal cut."
 - detected_cut_t fires on first heading hold, not necessarily the real route break.
 - CB pre-snap alignment not varying by route type.
-- CB intent almost always "swat".
+- Jab blacklist removed this session — replaced by freedom philosophy (no enforced constraints).
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT

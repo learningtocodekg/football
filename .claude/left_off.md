@@ -1,40 +1,48 @@
 # Left Off
-Date: 2026-06-06
+Date: 2026-06-07
 
 ## What We Worked On
-Prompt and scaffolding fixes based on Run 4 (seed=42, gpt-5-nano) analysis and kg_notes.md.
-No new run executed — all changes are code/prompt only, ready for Run 5.
+WR agent freedom redesign — moved from prescriptive phase-by-phase instructions to a context-only model. Then iterated on several bugs surfaced by live runs (seed=42, gpt-5-nano, A4 slant).
 
 ## What Got Done
 
-### P-NEW fix (pre-cut ball call) — prompt only
-**`agents/prompts/wr_live_free.txt`** + **`wr_system.txt`**: Replaced "call when you have separation" with "anticipate future separation" — WR must project its own future trajectory and the CB's trajectory forward 1–2 steps. Told to call AFTER executing the cut, with reasoning about why (calling upfield = QB throws upfield, not to the break point). No mechanical gate — prompt guidance only.
+### WR freedom redesign (previous session, carried in)
+- Removed jab angle blacklist, pre-computed turn cost, oppressive phase instructions from observation
+- Route schedule kept as shared QB/WR language but no longer enforced timing
+- `wr_system.txt` rewritten: deception section now explains CB tracking mechanic and why multi-step commitment is required
+- `wr_live_free.txt` simplified to context + deception reminder
 
-### O7/N2 fix (cookie-cutter jabs) — live angle blacklist
-**`agents/observation.py`**: After the MOVE LOG, a new block scans full play history. Any heading bucket used 3+ times with zero CB reaction (ΔHdg < 5°) is listed under "JABS USED THIS PLAY — CB did NOT react: DO NOT use these angles again." Per-step, live, structural constraint — not a suggestion.
+### Persistent WR scratchpad (`wr_note`)
+- WR now outputs a `wr_note` field each step — one line, ~120 chars
+- `WRAgent.wr_note` stores it; passed back into next step's observation as "YOUR NOTE (from last step)"
+- `parse_wr_live` in schema.py returns it; all prompt templates updated to include `wr_note` in JSON schema
+- The note is a living plan — WR is told to overwrite it, not accumulate it, and to verify it against the move log (not treat it as ground truth)
+- No hard truncation in code — WR owns the discipline
 
-### O1 fix (ball-in-air heading abandonment)
-1. **`agents/prompts/wr_ball_in_air.txt`**: Completely rewritten. HEADING is locked ("DO NOT CHANGE IT — QB threw to your projected spot at this heading"). FACING is the only thing that changes to track the ball. Explains the mechanism.
-2. **`agents/observation.py`**: Ball-in-air block now shows "YOUR HEADING: X° — DO NOT CHANGE THIS" and "HEADING = locked. FACING = rotate toward landing zone."
+### Encoding fix
+- Reasoning strings were `.encode("ascii","replace").decode("ascii")` in runner.py — all non-ASCII (°, →, ') became `?`
+- Stripped all 9 instances; now passes through as UTF-8
 
-### O3/N6 fix (go route QB throw target)
-**`agents/observation.py`**: Go-route hint in QB WR-signal block expanded — throw target must be past the CB's current y, not just at the WR's projected y. Explicit: "throw PAST the CB: target y > {cb_y}."
+### Calling-too-early fix
+- WR was calling for ball with heading correct but CB still right next to it
+- Added to `wr_system.txt` and `wr_live_free.txt`: call only when BOTH heading is near break AND separation is actually real and growing
 
-### QB post-call judgment
-**`agents/observation.py`**: Added "WR CALLED FOR BALL — use your own judgment" block in the WR-called branch. WR calling ≠ mandatory throw. QB checks coverage and decides.
+### Ball-in-air facing fix
+- Resolution scores facing toward QB (ball comes FROM QB), but observation was telling WR to face the landing zone (upfield) — opposite directions on a slant
+- Fixed observation to show "QB is at bearing X° from you — ball is coming from that direction"
+- Fixed `wr_ball_in_air.txt` to say: the ball is coming from the QB, face that direction to see it
+- Added facing compass anchors (0°=upfield, 90°=right, 180°=toward QB, 270°=left) to both `wr_system.txt` and `wr_ball_in_air.txt`
+
+### Note hallucination fix
+- WR was writing "2-step fake completed" after only 1 step
+- Added to `wr_live_free.txt`: "Your note is a plan — not ground truth. Always verify against the move log before acting on it."
 
 ## What's Open / Known Issues
-- **O4 (slant cut direction)** — was diagnosed as a downstream effect of P-NEW. If the heading gate fixes premature calls on slant, the WR will now have to execute the actual cut. Not separately addressed; watch Run 5.
-- **O2 (corner: WR abandons break and returns to stem)** — not addressed. WR still has no concept of "terminal cut" vs "jab."
-- **detected_cut_t** still fires on first heading hold, not guaranteed to be the real route break.
-- **CB pre-snap alignment** not varying by route type.
-- **CB intent almost always "swat"** — never changed.
+- **WR still calls too early sometimes** — calls at t=1.5 with 1 step of fake, says "deception completed"
+- **QB throws too fast after WR call** — throw_distance consistently 10–17yd on slant, ball arrives before WR has real separation
+- **CB swats almost every play** — intent almost always swat, rarely play_man or INT
+- **All plays ending PBU or DROP** — no CATCH yet this session on seed=42 slant
+- **max_separation=5.02 every run** — same seed, same WR behavior, separation profile unchanged
 
 ## NEXT STEP
-**Run 5: run all 10 A4 routes with seed=42 (gpt-5-nano) and compare to Run 4 (4C/2D/3PBU/1INT).**
-- Primary watch: does P-NEW enforcement eliminate the pre-cut calls on slant/corner/in/curl?
-- Secondary watch: does the angle blacklist produce any non-330°/30° jabs?
-- Tertiary watch: do ball-in-air headings stay locked now?
-- Log new problems if any emerge.
-
-Run command: `.venv\Scripts\python.exe run_all_routes.py`
+**Diagnose why WR note hallucination persists even after fix** — run seed=42 slant again and check if WR note now tracks steps correctly vs the move log. If WR is still overclaiming fake completion, the note mechanism isn't grounding it. May need to inject actual step count into the observation ("you have been on heading X° for N steps") rather than relying on the WR to count from its own note.

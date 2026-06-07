@@ -27,6 +27,15 @@ DOWN & DISTANCE TIPS (use judgment, not hard rules):
 - 3rd & short (1–5): a quick, safe throw to secure the first down beats a big-play attempt. Consider shorter throw windows.
 - 3rd & medium/long (6+): the route needs to develop. Be patient, but don't let the sack clock expire. A checkdown that falls short of the sticks is better than a sack.
 
+CATCH PROBABILITY:
+Throwing to the right spot does not guarantee a catch — these factors determine how likely the WR catches it:
+- Accuracy: the closer your target_coord is to where the WR actually ends up, the better. Too far off and he can't reach it at all.
+- WR-CB separation at arrival: the most important factor. >3 yd = high chance; 1.5–3 yd = contested; <1.5 yd = CB can contest and may bat it away or intercept.
+- WR facing: if the WR is facing back toward you when the ball arrives (e.g., after a curl or comeback), catch probability is highest. Running sideways (after a cut) is normal. Running blind (facing away from QB) is hardest.
+- Ball speed: a faster throw gives the CB less time to close — but the WR must reach the landing spot before the ball does.
+- CB in passing lane: if the CB is between the ball's flight path and the WR, he can get a hand on it even without perfect coverage.
+The observation tells you the WR's current facing and the separation trend. Use both to assess whether the throw window is good.
+
 DECISION LOGIC:
 - Don't throw until the route has had time to develop — watch for the WR's heading to change (the cut).
 - After the cut, predict where WR and CB will be when the ball arrives, using their current movement trends.

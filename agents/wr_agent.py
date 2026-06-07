@@ -47,6 +47,7 @@ class WRAgent:
         self._prev_heading: float | None = None
         self._pre_snap_plan: str = ""
         self.last_action: dict = {}
+        self.wr_note: str = ""  # persistent scratchpad, updated each step
 
     def pre_snap(self, observation: str) -> dict:
         self.call_count += 1
@@ -95,6 +96,7 @@ class WRAgent:
             self.locked_heading = result["heading"]
             self.call_t = t
 
+        self.wr_note = result.get("wr_note", "") or self.wr_note
         self.last_action = result
         return result
 

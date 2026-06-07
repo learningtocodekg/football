@@ -215,7 +215,7 @@ def run_play(
     if cb_agent is not None and "CB1" in states:
         pre_snap_obs = build_cb_pre_snap_observation(states["CB1"], attrs["CB1"], states["WR1"])
         pre_snap_result = cb_agent.pre_snap(pre_snap_obs)
-        r = pre_snap_result.get("reasoning", "").encode("ascii", "replace").decode("ascii")
+        r = pre_snap_result.get("reasoning", "")
         print(f"  CB pre-snap -> offset={pre_snap_result['offset_yards']:.1f}yd  side={pre_snap_result['side']}  | {r}")
         states["CB1"] = _apply_cb_pre_snap(states["CB1"], states["WR1"], pre_snap_result)
 
@@ -228,8 +228,8 @@ def run_play(
             route_phases=route_phases if multi_phase else None,
         )
         wr_pre_result = wr_agent.pre_snap(wr_pre_obs)
-        r = wr_pre_result.get("reasoning", "").encode("ascii", "replace").decode("ascii")
-        plan = wr_pre_result['plan'][:80].encode("ascii", "replace").decode("ascii")
+        r = wr_pre_result.get("reasoning", "")
+        plan = wr_pre_result['plan'][:80]
         print(f"  WR pre-snap plan: {plan}  | {r}")
 
     recorder = Recorder(header={"seed": seed, "scenario": scenario_path, "roster": roster_path,
@@ -324,9 +324,10 @@ def run_play(
                     detected_cut_t=detected_cut_t,
                     route_phases=route_phases if multi_phase else None,
                     call_heading=wr_agent.call_heading,
+                    wr_note=wr_agent.wr_note,
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=False, t=t)
-                r = wr_decision.get("reasoning", "").encode("ascii", "replace").decode("ascii")
+                r = wr_decision.get("reasoning", "")
                 call_flag = " [CALL FOR BALL]" if wr_decision.get("call_for_ball") else ""
                 print(f"  t={t:.1f}  WR move   -> hdg={wr_decision['heading']:.0f}° "
                       f"facing={wr_decision['facing']:.0f}° throttle={wr_decision['throttle']}"
@@ -381,9 +382,9 @@ def run_play(
                 actions["QB"] = qb_action
                 p1 = qb_action.get("pass1")
                 if p1 and p1["action"] == "thinking":
-                    r = p1["reasoning"].encode("ascii", "replace").decode("ascii")
+                    r = p1["reasoning"]
                     print(f"  t={t:.1f}  QB pass1  -> thinking target={p1['target_area']} | {r}")
-                r = qb_action["reasoning"].encode("ascii", "replace").decode("ascii")
+                r = qb_action["reasoning"]
                 print(f"  t={t:.1f}  QB pass2  -> {qb_action['action']!r:8}  | {r}")
 
                 if qb_action["action"] == "throw":
@@ -407,7 +408,7 @@ def run_play(
                     wr_history=move_history, ball_total_eta=ball_total_eta,
                 )
                 cb_move = cb_agent.decide_movement(cb_obs)
-                r = cb_move.get("reasoning", "").encode("ascii", "replace").decode("ascii")
+                r = cb_move.get("reasoning", "")
                 print(f"  t={t:.1f}  CB move   -> hdg={cb_move['heading']:.0f}° facing={cb_move['facing']:.0f}° mode={cb_move['mode']}  | {r}")
                 actions["CB1"] = {**cb_move, "action": "cover"}
 
@@ -431,7 +432,7 @@ def run_play(
                     cb_intent=cb_intent,
                 )
                 cb_move = cb_agent.decide_movement(cb_obs)
-                r = cb_move.get("reasoning", "").encode("ascii", "replace").decode("ascii")
+                r = cb_move.get("reasoning", "")
                 print(f"  t={t:.1f}  CB move   -> hdg={cb_move['heading']:.0f}° facing={cb_move['facing']:.0f}° mode={cb_move['mode']}  | {r}")
                 actions["CB1"] = {**cb_move, "action": "cover"}
 
@@ -446,9 +447,10 @@ def run_play(
                     detected_cut_t=detected_cut_t,
                     route_phases=route_phases if multi_phase else None,
                     call_heading=wr_agent.call_heading,
+                    wr_note=wr_agent.wr_note,
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=True, t=t)
-                r = wr_decision.get("reasoning", "").encode("ascii", "replace").decode("ascii")
+                r = wr_decision.get("reasoning", "")
                 print(f"  t={t:.1f}  WR (air)  -> hdg={wr_decision['heading']:.0f}° facing={wr_decision['facing']:.0f}° throttle={wr_decision['throttle']}  | {r}")
                 actions["WR1"] = {**wr_decision, "action": "run_route"}
 

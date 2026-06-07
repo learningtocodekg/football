@@ -115,6 +115,7 @@ def parse_wr_live(raw: str) -> dict | None:
             "throttle": throttle,
             "call_for_ball": call_for_ball,
             "reasoning": str(obj.get("reasoning", "")),
+            "wr_note": str(obj.get("wr_note", "")),
         }
     except (KeyError, TypeError, ValueError):
         return None

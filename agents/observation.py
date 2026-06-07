@@ -183,7 +183,6 @@ def build_qb_observation(
         "",
         f"Your throw_power allows ball speeds {MIN_BALL_SPEED_MPH:.0f}–{max_mph:.0f} mph.",
         "Ball travels straight-line to target_coord. Lead the WR — throw to where he will be, not where he is.",
-        "WR must be within ~1.3 yd of target_coord when ball arrives.",
         "CRITICAL: Do NOT throw until WR has called for the ball (unless broken play).",
         "",
         "ACTIONS:",
@@ -238,61 +237,24 @@ def _intercept_heading(cb: PlayerState, wr: PlayerState, cb_speed: float) -> flo
 
 
 def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> list[str]:
-    """Pre-computed situational context lines so the CB doesn't have to do trig."""
-    dx = wr.x - cb.x   # positive = WR is to CB's right
-    dy = wr.y - cb.y   # positive = WR is upfield of CB (further from QB)
+    """Raw relational geometry — no option labels or tradeoff descriptions."""
+    dx = wr.x - cb.x
+    dy = wr.y - cb.y
     sep = math.hypot(dx, dy)
     bearing_to_wr = math.degrees(math.atan2(dx, dy)) % 360.0
     intercept_hdg = _intercept_heading(cb, wr, cb_attrs.max_speed)
 
-    if dx > 0.3:
-        x_rel = f"WR is {dx:.1f} yd to your RIGHT"
-    elif dx < -0.3:
-        x_rel = f"WR is {-dx:.1f} yd to your LEFT"
-    else:
-        x_rel = "You are directly in line with WR horizontally"
+    LOOK_AHEAD = 0.5
+    wr_hdg_rad = math.radians(wr.heading)
+    proj_x = wr.x + math.sin(wr_hdg_rad) * wr.speed * LOOK_AHEAD
+    proj_y = wr.y + math.cos(wr_hdg_rad) * wr.speed * LOOK_AHEAD
 
-    wr_hdg_norm = wr.heading % 360.0
-    wr_coming_back = 135.0 <= wr_hdg_norm <= 225.0
-    wr_going_lateral = (45.0 <= wr_hdg_norm <= 135.0) or (225.0 <= wr_hdg_norm <= 315.0)
-
-    if dy < -0.5:
-        y_rel = f"You are {-dy:.1f} yd UPFIELD of WR — you are between WR and end zone"
-        if wr_coming_back:
-            wr_motion = (
-                f"WR is running BACK toward QB at {wr.speed:.1f} yd/s (heading {wr.heading:.0f}°). "
-                f"Backpedaling widens the gap — you would move further from the WR."
-            )
-        elif wr_going_lateral:
-            wr_motion = (
-                f"WR is running LATERALLY at {wr.speed:.1f} yd/s (heading {wr.heading:.0f}°). "
-                f"Backpedaling does not close lateral separation."
-            )
-        else:
-            wr_motion = f"WR is running toward you at {wr.speed:.1f} yd/s (heading {wr.heading:.0f}°)."
-    elif dy > 2.0:
-        y_rel = f"WR is {dy:.1f} yd UPFIELD of you — WR has gotten past you"
-        wr_motion = f"WR is running away from you at {wr.speed:.1f} yd/s."
-    elif dy > 0:
-        y_rel = f"WR is {dy:.1f} yd UPFIELD of you — WR just got past you"
-        wr_motion = f"WR is running away from you at {wr.speed:.1f} yd/s."
-    else:
-        y_rel = "You and WR are at roughly the same depth"
-        wr_motion = f"WR speed: {wr.speed:.1f} yd/s  heading: {wr.heading:.0f}°"
-
-    bp_speed = cb_attrs.max_speed * BACKPEDAL_SPEED_FRACTION
-    lines = [
-        "SITUATION:",
-        f"  {y_rel}",
-        f"  {x_rel}",
-        f"  {wr_motion}",
-        f"  Separation: {sep:.1f} yd  |  Bearing to WR: {bearing_to_wr:.0f}°  |  Intercept heading (leads WR 0.5s): {intercept_hdg:.0f}°",
-        "  YOUR OPTIONS:",
-        f"    backpedal  — move upfield (heading≈0°) while watching WR (facing≈180°). Max speed: {bp_speed:.1f} yd/s. Maintains cushion; you stay between WR and end zone.",
-        f"    intercept  — sprint toward WR's projected position at heading≈{intercept_hdg:.0f}°, mode=normal, full speed. Closes gap fastest; commits you in that direction.",
-        f"    mirror     — match WR's lateral drift, heading≈{bearing_to_wr:.0f}°, mode=normal. Stays in phase horizontally; neither closes nor opens the gap.",
+    return [
+        "GEOMETRY:",
+        f"  Separation: {sep:.1f} yd  |  Bearing from you to WR: {bearing_to_wr:.0f}°",
+        f"  WR projected pos in 0.5s: ({proj_x:.1f}, {proj_y:.1f})",
+        f"  Bearing to reach WR's projected position: {intercept_hdg:.0f}°",
     ]
-    return lines
 
 
 def build_cb_observation(
@@ -494,7 +456,6 @@ def build_wr_pre_snap_observation(
         f"  Route: {route}",
     ]
     if route_phases and len(route_phases) >= 3:
-        # Multi-phase route: show full schedule
         lines.append("  FULL ROUTE SCHEDULE:")
         for i, (threshold, heading) in enumerate(route_phases):
             prev_t = route_phases[i-1][0] if i > 0 else 0.0
@@ -503,35 +464,19 @@ def build_wr_pre_snap_observation(
             else:
                 label = f"  Phase {i+1} ({prev_t:.1f}–{threshold:.1f}s): run {heading:.0f}° ({_heading_label(heading)})"
             if i == len(route_phases) - 1:
-                label += "  ← REAL BREAK — call for ball here"
-            elif i > 0:
-                label += "  ← intermediate move"
+                label += "  ← final break"
             lines.append(label)
-        lines.append(f"  QB expects you open around t={cut_time:.1f}s — time your cuts precisely.")
+        lines.append(f"  QB expects you open around t={cut_time:.1f}s — timing is yours to feel, stay roughly on schedule.")
     elif cut_time >= 9.0:
         lines += [
-            "  Route type: STRAIGHT -- no cut. Full-speed vertical route.",
-            "  Run upfield the entire play.",
-            "  Call for ball when you have clear separation (2+ yards) from the CB.",
+            "  Route type: STRAIGHT — no cut, full-speed vertical.",
+            "  Call for ball when you have separation.",
         ]
     else:
         lines += [
-            f"  Guideline: run roughly {upfield_yards:.0f} yards upfield, then cut to ~{cut_heading:.0f}° ({_heading_label(cut_heading)})",
-            f"  Cut timing: QB expects the cut around t={cut_time:.1f}s — stay within ±0.2s of this",
-            f"  The exact distance upfield is flexible, but the cut direction must be roughly correct (±45°).",
+            f"  Break to ~{cut_heading:.0f}° ({_heading_label(cut_heading)}) around t≈{cut_time:.1f}s.",
+            f"  QB is expecting you to be open around that time — stay roughly on schedule.",
         ]
-    if route == "curl":
-        lines += [
-            "",
-            "!! CURL TIMING: Call for ball as you BEGIN the turn (heading ~270°), one step BEFORE the full 180°.",
-            "  The ball arrives as you complete the turn to face the QB. QB throws immediately on your signal.",
-            "  Do not wait until you are fully at 180° — ball will arrive before you finish turning.",
-        ]
-    lines += [
-        "",
-        "YOUR GOAL: get open. Use deception — vary your speed, take a false step, use your body.",
-        "The CB does not know your route. You do. Use that advantage.",
-    ]
     if cb is not None:
         sep = math.hypot(wr.x - cb.x, wr.y - cb.y)
         dx = cb.x - wr.x
@@ -543,12 +488,10 @@ def build_wr_pre_snap_observation(
             "CB ALIGNMENT:",
             f"  CB pos: ({cb.x:.1f}, {cb.y:.1f})  separation: {sep:.1f} yd",
             f"  CB is {cb_side}, {cb_depth}",
-            "  Use this to decide your release plan — if CB is playing inside, attack outside. If press, use a push-off step.",
         ]
     lines += [
         "",
-        "Decide your pre-snap plan: what deception technique will you use, and at what moment?",
-        "You will re-evaluate every step based on what the CB actually does.",
+        "Decide your pre-snap plan.",
     ]
     return "\n".join(lines)
 
@@ -571,11 +514,14 @@ def build_wr_observation(
     detected_cut_t: float | None = None,
     route_phases: list[tuple[float, float]] | None = None,
     call_heading: float | None = None,
+    wr_note: str = "",
 ) -> str:
     time_to_cut = cut_time - t
 
     lines = [
         f"=== WR OBSERVATION  t={t:.1f}s ===",
+        "",
+        f"YOUR NOTE (from last step): {wr_note if wr_note else '(none yet)'}",
         "",
         f"YOU (WR): pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
     ]
@@ -611,48 +557,24 @@ def build_wr_observation(
             f"   If your heading takes you out of bounds, cut back in-bounds, call for the ball, and commit to that path.",
         ]
 
-    # Turn cost info — computed from actual physics formula
-    agility_factor = wr_attrs.agility / 50.0
-    turn_cost_30 = wr.speed * (30.0 / 90.0) * 0.95 / agility_factor
-    turn_cost_90 = wr.speed * 0.95 / agility_factor
-    lines += [
-        "",
-        f"TURNING COST (at current speed {wr.speed:.1f} yd/s, agility={wr_attrs.agility:.0f}/99):",
-        f"  30° cut → lose ~{turn_cost_30:.1f} yd/s  |  90° cut → lose ~{turn_cost_90:.1f} yd/s",
-        "  Sharper cuts shed more speed. Max 90° turn per step enforced by physics.",
-        "  A big cut mid-route costs speed and can delay your arrival at the catch point.",
-    ]
-
     # Play state
     lines += [""]
     if broken_play:
         lines += [
             "BROKEN PLAY — original gameplan is void.",
             "Find open space, avoid going out of bounds. Call for the ball when you are open.",
-            "You are free to choose any heading and throttle.",
         ]
     elif wr_called_for_ball:
         lines += [
             f"SIGNAL SENT: you called for the ball at t={call_t:.1f}s heading {call_heading:.0f}° ({_heading_label(call_heading)})." if call_t is not None and call_heading is not None else "SIGNAL SENT: you called for the ball.",
-            "QB is expecting you to continue at that heading. If you cut now, QB's throw will miss — he aimed at where you were going.",
-            "You CAN still cut if you decide it's worth it (e.g., ball in air and throw is off), but know the tradeoff: a cut costs you speed AND likely causes an incompletion.",
+            "QB threw to where you were going — he bet you hold this heading. Cutting now will likely cause a miss.",
         ]
     elif cut_time >= 9.0:
-        # Go route — no cut, straight vertical
         lines += [
-            f"Route: {route} — no prescribed cut. Run upfield.",
-            "Call for the ball whenever you judge you are open — use your own read of the coverage.",
+            f"Route: {route} — straight vertical, no prescribed cut.",
+            "Call for the ball when you judge you have separation.",
         ]
     elif route_phases and len(route_phases) >= 3:
-        # Multi-phase route — determine current phase and show full schedule
-        cur_phase_idx = 0
-        for i, (threshold, _) in enumerate(route_phases):
-            if t < threshold:
-                cur_phase_idx = i
-                break
-        else:
-            cur_phase_idx = len(route_phases) - 1
-
         lines.append(f"ROUTE SCHEDULE ({route}):")
         for i, (threshold, heading) in enumerate(route_phases):
             prev_t = route_phases[i-1][0] if i > 0 else 0.0
@@ -661,54 +583,16 @@ def build_wr_observation(
             else:
                 entry = f"  Phase {i+1} ({prev_t:.1f}–{threshold:.1f}s): run {heading:.0f}° ({_heading_label(heading)})"
             if i == len(route_phases) - 1:
-                entry += " <- REAL BREAK"
-            if i == cur_phase_idx:
-                entry += "  << CURRENT"
+                entry += "  ← final break (call for ball when open)"
             lines.append(entry)
-
-        # Show current phase instruction
-        cur_threshold = route_phases[cur_phase_idx][0]
-        time_to_next = cur_threshold - t
-        if cur_phase_idx == len(route_phases) - 1:
-            # On final (real break) phase
-            lines += [
-                f"Real break: run {cut_heading:.0f}° ({_heading_label(cut_heading)}).",
-                "Call for the ball if you are open (2+ yards from CB).",
-            ]
-        elif cur_phase_idx == 0:
-            # Still in stem phase
-            lines += [
-                f"Stem phase — run upfield (0°). First cut at t={route_phases[1][0]:.1f}s.",
-                "Deception: change jab angle each time (e.g., left then right, not same direction twice); go 2-3 steps in a direction before snapping back to sell the fake; mix speed changes (brake then burst) with heading fakes. Do NOT call for ball yet.",
-            ]
-        else:
-            # In an intermediate phase (fake move)
-            next_heading = cut_heading
-            lines += [
-                f"Intermediate fake — hold {route_phases[cur_phase_idx][1]:.0f}° until t={route_phases[cur_phase_idx][0]:.1f}s ({time_to_next:.1f}s left).",
-                f"HOLD this heading for the FULL phase duration — do NOT return to 0° or oscillate. The CB must commit to this fake.",
-                f"After the fake, cut hard to {next_heading:.0f}° ({_heading_label(next_heading)}) — that is your REAL break.",
-                "Do NOT call for ball in this fake phase.",
-            ]
+        lines.append(f"Current time: t={t:.1f}s. The schedule is a guideline — timing is yours to feel.")
+        lines.append(f"IMPORTANT: only call for the ball when your heading is near the final break direction ({cut_heading:.0f}°). The QB throws to your heading at call-time — calling while going a different direction means the ball goes the wrong way.")
     else:
-        if time_to_cut > 0.3:
-            lines += [
-                f"Route: {route}  |  Real cut: ~{cut_heading:.0f}° ({_heading_label(cut_heading)}) at t≈{cut_time:.1f}s",
-                f"KEEP HEADING NEAR 0° (straight upfield). Do NOT move to {cut_heading:.0f}° yet — that telegraphs the route to the CB.",
-                "Deception: vary your fakes — change the jab angle each time (not always the same direction), go 2-3 steps in a direction to sell it before snapping back, mix in speed changes (brake then burst). A predictable pattern has no deception value.",
-            ]
-        elif time_to_cut >= -0.2:
-            lines += [
-                f"Cut now — break to ~{cut_heading:.0f}° ({_heading_label(cut_heading)}).",
-                "If you are open after the cut, call for the ball.",
-            ]
-            if route == "curl":
-                lines.append("!! CURL TIMING: Call for ball as you BEGIN the turn (heading ~270°, one step before full 180°). This gives the ball time to arrive as you face up. QB throws immediately on your signal.")
-        else:
-            lines += [
-                f"Past cut time (t≈{cut_time:.1f}s was the guideline).",
-                "If you have not called for the ball yet, do so if you are open. QB is looking for you.",
-            ]
+        lines += [
+            f"Route: {route}  |  Break: ~{cut_heading:.0f}° ({_heading_label(cut_heading)}) around t≈{cut_time:.1f}s",
+            f"Current time: t={t:.1f}s. Timing is yours — read the coverage and execute when it feels right.",
+            f"IMPORTANT: only call for the ball when your heading is near {cut_heading:.0f}°. The QB throws to your heading at call-time.",
+        ]
 
     # Ball state
     if ball.state == "in_air":
@@ -720,16 +604,18 @@ def build_wr_observation(
         bearing_to_ball = math.degrees(math.atan2(
             ball.landing_x - wr.x, ball.landing_y - wr.y
         )) % 360.0
+        bearing_to_qb = math.degrees(math.atan2(
+            qb.x - wr.x, qb.y - wr.y
+        )) % 360.0
         facing_label, _ = _wr_facing_modifier(wr, qb)
         lines += [
             "",
             f"BALL IN AIR — ETA: {ball.eta:.2f}s",
             f"  Landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  ±{fuzz:.1f} yd",
             f"  Your distance to landing zone: {dist_to_land:.1f} yd",
-            f"  Bearing to landing zone: {bearing_to_ball:.0f}° — use this for FACING only, NOT heading",
-            f"  Your facing: {wr.facing:.0f}° — {facing_label}",
-            f"  YOUR HEADING: {wr.heading:.0f}° — DO NOT CHANGE THIS. QB threw to your projected spot at this heading.",
-            "  HEADING = locked. FACING = rotate toward landing zone. Changing heading runs you away from the ball.",
+            f"  QB is at bearing {bearing_to_qb:.0f}° from you — the ball is coming from that direction.",
+            f"  Your current facing: {wr.facing:.0f}° — {facing_label}",
+            f"  YOUR HEADING: {wr.heading:.0f}° — do not change this.",
         ]
 
     # Side-by-side WR move + CB reaction log
@@ -756,37 +642,6 @@ def build_wr_observation(
             )
             if cb_hdg is not None:
                 prev_cb_hdg = cb_hdg
-
-    # Jab angle blacklist — computed from full history, shown only when wr_history is present
-    if wr_history and not wr_called_for_ball and cb is not None:
-        # Bucket headings into 10° buckets and count uses + CB reaction per bucket
-        from collections import defaultdict
-        bucket_counts: dict[int, int] = defaultdict(int)
-        bucket_reactions: dict[int, int] = defaultdict(int)  # steps where CB Δhdg > 5°
-        prev_cb_hdg2: float | None = None
-        for h in wr_history:
-            hdg_bucket = int(round(h["wr_hdg"] / 10.0) * 10) % 360
-            bucket_counts[hdg_bucket] += 1
-            cb_h = h.get("cb_hdg")
-            if cb_h is not None and prev_cb_hdg2 is not None:
-                delta = abs((cb_h - prev_cb_hdg2 + 180.0) % 360.0 - 180.0)
-                if delta >= 5.0:
-                    bucket_reactions[hdg_bucket] += 1
-            if cb_h is not None:
-                prev_cb_hdg2 = cb_h
-        # Buckets used 3+ times with zero CB reaction are blacklisted
-        blacklisted = sorted(
-            b for b, cnt in bucket_counts.items()
-            if cnt >= 3 and bucket_reactions.get(b, 0) == 0
-        )
-        if blacklisted:
-            bl_str = ", ".join(f"~{b}°" for b in blacklisted)
-            lines += [
-                "",
-                f"JABS USED THIS PLAY (CB did NOT react): {bl_str}",
-                "  DO NOT use these angles again — the CB has seen them and is ignoring them.",
-                "  Try: a larger deviation (60°–120° off stem), a held direction (3+ steps), or a speed change (brake then burst).",
-            ]
 
     lines += [
         "",

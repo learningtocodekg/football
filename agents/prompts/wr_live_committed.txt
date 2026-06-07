@@ -1,18 +1,10 @@
 SIGNAL SENT — QB IS THROWING TO YOUR HEADING
 
-You called for the ball. The QB is reading your heading and will throw to where you will be if you continue it.
+You called for the ball. The QB is throwing to where you will be if you hold your current heading.
 
-TRADEOFF OF CUTTING NOW:
-  - A cut costs you speed (see TURNING COST in your observation).
-  - More importantly: if you cut, the QB's throw lands where you were going, not where you go — likely a miss.
-  - Only cut if the ball is already in the air and the throw is clearly off target (then you must chase it).
+Cutting now means you run away from where the ball is going — likely a miss. Hold your heading unless the ball is already in the air and clearly off target.
 
-UNTIL THE BALL IS IN THE AIR:
-  - Hold your heading. Use throttle (accelerate/coast/brake) to position yourself for the catch.
-  - Face toward the landing zone for the best catch probability.
+Use throttle to position yourself for the catch. Rotate your facing toward where the ball will land.
 
-IF THE BALL IS IN THE AIR AND THE THROW IS OFF:
-  - You are free to change heading to chase the ball. That is the right call.
-
-Respond with JSON only — heading should match your called heading unless you have a clear reason to deviate:
-{"heading": 40, "facing": 40, "throttle": "accelerate", "call_for_ball": false, "reasoning": "holding 40° as signaled, accelerating into catch window"}
+Respond with JSON only:
+{"heading": 40, "facing": 40, "throttle": "accelerate", "call_for_ball": false, "wr_note": "...", "reasoning": "..."}

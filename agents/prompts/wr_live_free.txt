@@ -1,34 +1,29 @@
 ROUTE RUNNING DECISION
 
-You are running your route. The ball has not been called for yet.
+Read your observation. You have:
+- Your note from last step (your own scratchpad)
+- Your route schedule, current position, speed, heading
+- The CB's position, heading, speed
+- The move log showing how the CB has reacted to your moves
 
-Read your observation: where is the CB, what is your route schedule, how much speed will a cut cost you right now?
+DECEPTION TAKES MULTIPLE STEPS — not one. If you change heading every step, the CB sees each blip and ignores it.
+To actually move the CB: pick a direction, hold it for 2-4 steps so the CB starts moving that way, then snap to your real break.
+Check the move log — did the CB's heading change after your last move? If not, you didn't sell it long enough.
 
-DECEPTION — the CB only sees your heading and speed each step:
-  Quick jab: deviate 20-40° for 1-2 steps then snap back. CB overcommits that direction.
-  Hold fake: go 3-5 steps in a direction (enough that CB shifts weight), then explode back.
-  Speed fake: brake for 2-3 steps (CB closes gap), then burst — CB is now too tight and has to recover.
-  Double fake: jab one way, snap back, then jab the OTHER way before the real cut.
+YOUR NOTE — one line, keep it under ~120 chars, overwrite every step:
+This is your working memory. It should say: what you're doing NOW, and what you plan NEXT.
+It is not a history log. Override your previous note whenever your read of the situation changes.
+Your note is a plan — not ground truth. Always verify it against the move log before acting on it.
+If your note says "fake done" but the move log shows you only held that direction for 1 step, your note is wrong — trust the move log.
 
-READING CB REACTIONS — fakes only work if the CB reacts:
-  - After each jab, look at the MOVE LOG. Did CB change heading? If CB Δhdg ≈ 0°, the CB IGNORED your fake.
-  - A fake that the CB ignores has zero value. Do NOT repeat it.
-  - One-step micro-jabs (20–30°) almost never make a CB commit. The CB needs to see you hold a direction for 2–3 steps before it reacts.
-  - If your last 3 jabs all had CB Δhdg ≈ 0°, you are wasting time — switch to a bigger move or a speed change.
-  - "Biting" does not mean a full sprint. Even a CB turning (10–20° heading shift) is a win — it costs the CB speed to recover.
+Good note examples:
+  "fake left [2/3 steps done, move log confirms CB turning] — hold one more then snap to 40°"
+  "CB not reacting to fake after 3 steps, trying speed fake instead"
+  "on break 40°, sep=3.2yd and growing — calling"
 
-Key rules:
-  - Vary what you do. The same move repeated twice in a row loses most of its value.
-  - Before your real cut, keep heading near 0° between fakes so the CB can't read where you're going.
-  - The TURNING COST block tells you how much speed a cut at your current speed will shed. A big cut right before calling for the ball means you arrive at the catch point slower.
+Always think ahead: what will you do NEXT step, not just what you're doing now.
 
-CALLING FOR THE BALL — ANTICIPATE, DON'T REACT:
-  - Do NOT call based on current separation alone. The CB is always moving — it will close whatever gap you have right now.
-  - Think ahead: where will YOU be in 1–2 seconds based on your route? Where will the CB be based on its current heading and speed?
-    If your route takes you away from the CB's trajectory, separation is GROWING — good time to call.
-    If the CB is tracking your direction, separation will SHRINK — wait for the cut first.
-  - Call AFTER you have executed your route cut (heading near cut_heading). Only then are you actually open.
-  - Once you call, the QB throws to where you are going — he bets you continue that heading.
+Call for the ball only when BOTH are true: you are on your real break heading AND the CB is behind you or the gap is clearly growing. Being on the right heading with the CB still right next to you is not open — wait for the separation to actually exist.
 
 Respond with JSON only:
-{"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "reasoning": "stem at 0; jabbed left last step so returning to 0 now"}
+{"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "wr_note": "...", "reasoning": "..."}

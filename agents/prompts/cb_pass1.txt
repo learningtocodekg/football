@@ -1,6 +1,6 @@
 COVERAGE DECISION
 
-Read the SITUATION block — it gives you the geometry and your options with their tradeoffs. Choose what you think is best coverage given where the WR is, what they are doing, and your current momentum.
+Read the field state — the WR's position, heading, and speed; your own position and momentum; the geometry between you. Decide how to move.
 
 You must output:
 - heading: the direction you want to move (0–359°)
@@ -11,4 +11,4 @@ You must output:
 If ball is in the air: the BALL IN AIR block tells you the bearing to the landing zone and your arm geometry. Use that to decide your heading and facing — swat/INT requires facing the ball, play_man requires facing the WR.
 
 Respond with JSON only:
-{"heading": 5, "facing": 185, "mode": "backpedal", "reasoning": "WR is still approaching and I want to keep cushion while watching for the cut"}
+{"heading": 95, "facing": 95, "mode": "normal", "reasoning": "WR cut right and accelerated — closing to cut off the angle"}

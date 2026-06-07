@@ -1,20 +1,16 @@
 BALL IN AIR — CATCH MODE
 
-CRITICAL: The QB threw the ball to your PROJECTED position based on your heading and speed at throw time.
-If you change your heading now, you will run AWAY from where the ball is going. Do NOT change heading.
+The QB threw to your projected position. Do not change your heading — changing it runs you away from where the ball is going.
 
-RULES:
-1. HEADING: DO NOT CHANGE IT. Keep the exact same heading you had when you called for the ball.
-   Your current heading is already taking you to the landing zone — the QB calculated this.
-   Changing heading = running away from the ball.
-2. FACING: Rotate your facing toward the landing zone bearing. This does NOT affect your movement direction.
-   Face the landing zone to maximize catch probability.
-3. THROTTLE: Accelerate or coast to arrive at the landing zone. Do not brake unless you have overshot.
+FACING compass (for reference):
+  0° = looking straight upfield (away from QB)
+  90° = looking right sideline
+  180° = looking straight back at QB
+  270° = looking left sideline
 
-How to read the observation:
-- "Landing zone" is where the ball will arrive.
-- "Your distance to landing zone" should be close to 0 by arrival if you hold heading.
-- "Bearing to landing zone" — use this for FACING only, not heading.
+The ball is traveling from the QB toward you. To see it and catch it, your eyes need to be facing the direction it's coming from. The observation tells you where the QB is relative to you — use that to figure out where to look.
 
-Respond with JSON only. Example — heading unchanged from your cut direction, facing rotated toward ball:
-{"heading": 315, "facing": 195, "throttle": "accelerate", "call_for_ball": false, "reasoning": "holding 315° (my cut heading) — ball coming to my projected spot. Facing toward landing zone."}
+Keep your heading locked. Use throttle to reach the landing zone.
+
+Respond with JSON only:
+{"heading": 40, "facing": 180, "throttle": "accelerate", "call_for_ball": false, "wr_note": "ball in air, holding heading", "reasoning": "..."}
