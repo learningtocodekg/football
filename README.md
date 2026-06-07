@@ -34,7 +34,17 @@ python -m render.renderer_pygame replays/demo_7.json
 ```
 **Controls:** `SPACE` play/pause · `← →` step frame · `R` toggle reasoning overlay · `+/-` speed · `Q/Esc` quit
 
-### 5. Run a live LLM play (requires OpenAI API key)
+### 5. Open the debug viewer
+```
+python -m viewer.debug_viewer              # loads all replays from replays/
+python -m viewer.debug_viewer replays/     # explicit directory
+python -m viewer.debug_viewer replays/play_42.json   # single file
+```
+**Controls:** `SPACE` play/pause · `← →` step frame · `↑ ↓` scroll decision log · `Tab` switch player tab (QB / WR1 / CB1) · `+/-` playback speed · `R` reload replay list · `Q/Esc` quit
+
+Click the replay name in the header to open a dropdown and switch between replays.
+
+### 6. Run a live LLM play (requires OpenAI API key)
 ```
 set OPENAI_API_KEY=sk-...
 python main.py --seed 42
@@ -63,8 +73,31 @@ Watch any of them with:
 python -m render.renderer_pygame replays/play_42.json
 ```
 
-python main.py --scenario sim/scenarios/a3_wr_slant.yaml
-### 6. Run with a local model via Ollama (no API key needed)
+**A3 scenarios** — LLM WR + LLM QB, no CB:
+```
+python main.py --scenario sim/scenarios/a3_wr_slant.yaml    --seed 42   # Slant
+python main.py --scenario sim/scenarios/a3_wr_comeback.yaml --seed 42   # Comeback
+```
+
+**A4 scenarios** — all three agents live (LLM WR + LLM QB + LLM CB):
+```
+python main.py --scenario sim/scenarios/a4_wr_slant.yaml        --seed 42   # Slant
+python main.py --scenario sim/scenarios/a4_wr_comeback.yaml     --seed 42   # Comeback
+python main.py --scenario sim/scenarios/a4_wr_go.yaml           --seed 42   # Go
+python main.py --scenario sim/scenarios/a4_wr_curl.yaml         --seed 42   # Curl
+python main.py --scenario sim/scenarios/a4_wr_in.yaml           --seed 42   # In
+python main.py --scenario sim/scenarios/a4_wr_drag.yaml         --seed 42   # Drag
+python main.py --scenario sim/scenarios/a4_wr_corner.yaml       --seed 42   # Corner
+python main.py --scenario sim/scenarios/a4_wr_post_corner.yaml  --seed 42   # Post-corner
+python main.py --scenario sim/scenarios/a4_wr_zig.yaml          --seed 42   # Zig
+python main.py --scenario sim/scenarios/a4_wr_double_move.yaml  --seed 42   # Double move
+```
+Watch any of them with the debug viewer:
+```
+python -m viewer.debug_viewer replays/play_42.json
+```
+
+### 7. Run with a local model via Ollama (no API key needed)
 
 Install [Ollama](https://ollama.com), then pull a model and run it:
 ```
