@@ -7,9 +7,8 @@ No new run executed — all changes are code/prompt only, ready for Run 5.
 
 ## What Got Done
 
-### P-NEW fix (pre-cut ball call) — two layers
-1. **`agents/wr_agent.py`**: Hard enforcement gate added to `decide()`. If `call_for_ball=true` but heading is >45° away from `cut_heading`, the call is suppressed with a printed warning. Go routes (cut_time >= 9.0) are exempt.
-2. **`agents/prompts/wr_live_free.txt`** + **`wr_system.txt`**: Replaced "call when you have separation" with "anticipate future separation" — WR must project its own future trajectory and the CB's trajectory forward 1–2 steps. Also added "call_for_ball=true is only valid if heading within 45° of cut direction — system will reject it otherwise."
+### P-NEW fix (pre-cut ball call) — prompt only
+**`agents/prompts/wr_live_free.txt`** + **`wr_system.txt`**: Replaced "call when you have separation" with "anticipate future separation" — WR must project its own future trajectory and the CB's trajectory forward 1–2 steps. Told to call AFTER executing the cut, with reasoning about why (calling upfield = QB throws upfield, not to the break point). No mechanical gate — prompt guidance only.
 
 ### O7/N2 fix (cookie-cutter jabs) — live angle blacklist
 **`agents/observation.py`**: After the MOVE LOG, a new block scans full play history. Any heading bucket used 3+ times with zero CB reaction (ΔHdg < 5°) is listed under "JABS USED THIS PLAY — CB did NOT react: DO NOT use these angles again." Per-step, live, structural constraint — not a suggestion.

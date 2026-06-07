@@ -63,7 +63,7 @@ Current phase: A4 in progress (all three agents live; CB freed from prescription
 - CB: `mode={cb.mode}` added to WR's current CB snapshot line
 
 ## Known Issues
-- **P-NEW (FIXED in code, untested)**: Hard heading gate added to wr_agent.py decide() — call_for_ball suppressed if heading >45° from cut_heading. WR prompts updated to anticipate future separation. Run 5 will validate.
+- **P-NEW (prompt fix only, untested)**: WR prompts updated to anticipate future separation and call only after executing the cut. No mechanical gate — agent must reason its way to the correct behavior. Run 5 will validate.
 - **N2/O7 (PARTIALLY FIXED in code, untested)**: Live angle blacklist now emitted in WR observation — heading buckets used 3+ times with zero CB ΔHdg are listed as prohibited. Run 5 will show if model respects it.
 - **O1 (FIXED in code, untested)**: wr_ball_in_air.txt rewritten to lock heading; observation block reinforces "DO NOT CHANGE HEADING." Run 5 will validate.
 - **O4 (DEPENDENT on P-NEW fix)**: If slant WR now has to execute the cut before calling, it may still cut to wrong angle (40° instead of ~315°). Watch Run 5.
