@@ -1,5 +1,5 @@
 # Build State
-Current phase: A4 in progress (all 3 LLM agents live; 10 routes run and analyzed twice)
+Current phase: A4 in progress (all three agents live; CB freed from prescriptions; WR gets CB reaction MOVE LOG; 10 routes run 3x — Ollama + OpenAI)
 
 ## Built
 - engine/physics.py — PlayerState, apply_action (backpedal mode, new_facing/new_mode params), BACKPEDAL_SPEED_FRACTION=0.75
@@ -10,11 +10,11 @@ Current phase: A4 in progress (all 3 LLM agents live; 10 routes run and analyzed
 - agents/cb_agent.py (three-pass: pre_snap / decide_movement / decide_intent)
 - agents/wr_agent.py (three-pass: pre_snap / decide / ball_in_air; call-for-ball state machine; locked heading; broken play)
 - agents/scripted.py — ScriptedWR (4 routes), ScriptedCB (legacy), ScriptedQB (route-aware lead throw)
-- agents/observation.py — build_qb_observation (CB optional, WR call one-step delay, WR facing modifier, sideline distances), build_cb_observation (fuzzy zone, situation block, intercept heading, intent-aware facing), build_wr_observation (phase-gated: pre-cut/cut-window/post-cut, CB exact info, sideline warning), build_wr_pre_snap_observation, _wr_facing_modifier
+- agents/observation.py — build_qb_observation (CB optional, WR call one-step delay, WR facing modifier, sideline distances), build_cb_observation (fuzzy zone, situation block, intercept heading, intent-aware facing, CB self-action history), build_wr_observation (phase-gated: pre-cut/cut-window/post-cut, CB exact info, sideline warning, side-by-side MOVE LOG), build_wr_pre_snap_observation, _wr_facing_modifier
 - agents/schema.py — QB parsers + CB parsers + WR parsers (parse_wr_pre_snap, parse_wr_live)
 - agents/llm_client.py (OpenAI + Ollama)
 - agents/prompts/ — qb_*, cb_*, wr_system, wr_pre_snap, wr_live_free, wr_live_committed, wr_live_broken, wr_ball_in_air
-- sim/runner.py — A2 + A3 modes; WR pre-snap; per-step WR decide; call-for-ball one-step delay; OOB broken play trigger; heading lock; ScriptedQB isinstance dispatch
+- sim/runner.py — A2 + A3 modes; WR pre-snap; per-step WR decide; call-for-ball one-step delay; OOB broken play trigger; heading lock; ScriptedQB isinstance dispatch; cb_mode in move_history
 - sim/seeds.py, rosters/default.yaml
 - sim/scenarios/ — a1_*, a2_cb_slant, a3_wr_slant, a3_wr_comeback, a4_wr_{slant,comeback,curl,go,zig,drag,corner,in,double_move,post_corner}
 - run_all_routes.py — runs all 10 A4 scenarios; --ollama / --model flags for Ollama provider
@@ -43,34 +43,35 @@ Current phase: A4 in progress (all 3 LLM agents live; 10 routes run and analyzed
   - Heading locked mechanically by runner post-call while ball held
 - BALL_IN_AIR: free to chase bad throws
 
-**CB observation SITUATION block — 4 states:**
-1. CB upfield, WR approaching → backpedal (heading ~0°, facing ~180°)
-2. CB upfield, WR running BACK toward QB → flip hips, CHASE downfield (comeback fix)
-3. WR just passed CB (0–2 yd ahead) → close gap immediately
-4. WR >2 yd ahead → CHASE (intercept heading, not just current bearing)
+**CB observation SITUATION block — contextual, not prescriptive:**
+- Shows positional geometry (separation, bearing, WR motion) and three movement options (backpedal / intercept / mirror) with tradeoffs and heading numbers for each.
+- No RECOMMENDED action is emitted — CB decides based on context.
+- Comeback/lateral states still described via `wr_coming_back` / `wr_going_lateral` flags as plain context.
 
 **Deception mechanics (WR):**
 - CB intercept calculation projects WR forward 0.5s along current heading/speed
 - WR jabs (1-step heading deviation) make that projection wrong → CB overcommits → separation on real cut
 - Jab pattern: 1 step off, snap back to 0°. Holding the jab heading = readable to CB.
 
-**CB SITUATION block — 5 states (updated):**
-5. WR going lateral (heading 45–135° or 225–315°) → DRIVE LATERALLY to intercept (not backpedal)
-
-**Observation additions (this session):**
-- WR observation: "YOUR RECENT ACTIONS" with heading + throttle per step
-- CB observation: "YOUR RECENT ACTIONS" with heading + mode per step
+**Observation additions (A4r2 session):**
 - QB LEAD HINT: y-direction labeled explicitly (DECREASING/INCREASING)
 - QB detected_cut_t: labels whether it matches expected cut time or is likely a jab
+- CB: "YOUR RECENT ACTIONS" showing own heading + mode history per step
+
+**Observation additions (A5 session):**
+- WR: side-by-side MOVE LOG (WR hdg/spd + CB hdg/mode/Δhdg per step) — WR can now see whether its jabs moved the CB
+- CB: `mode={cb.mode}` added to WR's current CB snapshot line
 
 ## Known Issues
-- **N2**: WR jab template is 330°/30° on every route regardless of coaching. Self-action history
-  may help; not yet verified. Approach TBD.
-- **N5**: Curl WR drifts sideways during ball-in-air free phase. Broader ball-in-air tracking
-  question — don't patch curl-specifically.
-- **N6**: QB throw speed selection — tends to lob horizontal routes. Fundamental QB question.
+- **N2/O7**: WR jab is cookie-cutter 330°/30° on all routes. Self-action history (N7) and MOVE LOG (A5) haven't broken the template yet. Live angle blacklist is the next thing to try.
+- **O1/N5**: Ball-in-air heading abandonment — WR changes heading during flight, misses landing zone (curl, zig, drag all DROP). Explicit heading-lock instruction in ball-in-air prompt is the proposed fix.
+- **O2**: Corner WR abandons real break and returns to stem after executing it. Observation needs to mark the real break as terminal once held 2+ steps.
+- **O3**: Go route — QB threw behind CB → INTERCEPTION. QB needs CB position check before throwing on go routes.
+- **O8/N6**: QB lead direction wrong for lateral-heading WR (drag). Fundamental QB throw-speed/lead question.
+- **O4**: Slant WR cut to 40° instead of ~315°. Route heading still misread occasionally.
+- detected_cut_t fires on first jab (any 30°+ heading change), not the real route break.
 - CB pre-snap alignment not varying by route type.
 - CB intent is almost always "swat."
 
 ## Not Started
-B–E
+B–E phases
