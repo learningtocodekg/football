@@ -1,29 +1,47 @@
-ROUTE RUNNING DECISION
+﻿ROUTE RUNNING DECISION
 
-Read your observation. You have:
-- Your note from last step (your own scratchpad)
-- Your route schedule, current position, speed, heading
-- The CB's position, heading, speed
-- The move log showing how the CB has reacted to your moves
+Read your observation carefully. You have:
+- Your note from last step (your scratchpad)
+- Your current position, speed, heading, and BURST status
+- The CB's position, speed, heading, and BURST status
+- The move log: both players' headings, speeds, and cut_recovery (rec) after each step
 
-DECEPTION TAKES MULTIPLE STEPS — not one. If you change heading every step, the CB sees each blip and ignores it.
-To actually move the CB: pick a direction, hold it for 2-4 steps so the CB starts moving that way, then snap to your real break.
-Check the move log — did the CB's heading change after your last move? If not, you didn't sell it long enough.
+=== YOUR DECISION FRAMEWORK ===
 
-YOUR NOTE — one line, keep it under ~120 chars, overwrite every step:
-This is your working memory. It should say: what you're doing NOW, and what you plan NEXT.
-It is not a history log. Override your previous note whenever your read of the situation changes.
-Your note is a plan — not ground truth. Always verify it against the move log before acting on it.
-If your note says "fake done" but the move log shows you only held that direction for 1 step, your note is wrong — trust the move log.
+STEP 1 — Read the burst status:
+  - "CB BURST: RECOVERING — X steps left" → The CB cannot accelerate freely RIGHT NOW. This is separation time. Explode on your break.
+  - "CB BURST: FULL burst available" → The CB is set and ready. Any route you run, they can match instantly. You need a fake first.
+  - "YOUR BURST: RECOVERING" → You just cut. Don't expect instant speed. Let it clear, then explode.
+
+STEP 2 — Read the move log rec column:
+  - CB rec > 0 last step: your previous move cost the CB their burst. Keep the pressure on.
+  - CB rec = 0 every step: CB has not been forced to cut. Your fakes are not landing. Change approach.
+  - YOUR rec > 0: you just cut and are paying the price. Coast or brake, let it clear before another cut.
+
+STEP 3 — Decide your action:
+  - SELLING THE FAKE: Hold your fake direction. The CB's rec only triggers if THEY turn to match you.
+    Check: did CB heading change this step? If yes, their rec will show next step. Hold one more step, then snap.
+  - SNAPPING THE BREAK: Only snap when you see CB heading committed your fake direction AND CB rec > 0.
+    Then burst hard on your real break direction — you have the window, use it.
+  - SPEED FAKE: Brake for 2-3 steps. CB closes. Then burst — no recovery penalty since you were slow.
+  - STUTTER STEP: Brake briefly before the cut to kill your own recovery penalty. Plant, then explode.
+
+DECEPTION TAKES MULTIPLE STEPS:
+- A one-step heading change is noise. The CB recalculates every step and ignores it.
+- Only when the CB's BODY is moving the wrong direction (CB heading committed, CB rec > 0) have you actually fooled them.
+- Check the move log: if CB rec shows 0 after your fake, the CB did not commit. Hold longer.
+
+YOUR NOTE — one line, under ~120 chars, overwrite every step:
+  What you are doing NOW and what you plan NEXT. Not a history.
+  Verify against the move log — if your note says "fake done" but CB rec was 0, the fake didn't work.
 
 Good note examples:
-  "fake left [2/3 steps done, move log confirms CB turning] — hold one more then snap to 40°"
-  "CB not reacting to fake after 3 steps, trying speed fake instead"
-  "on break 40°, sep=3.2yd and growing — calling"
+  "fake left 3steps CB hdg 270° rec0 — not committed yet, hold one more step"
+  "CB rec=3 after my cut — snapping right NOW, CB stuck for 0.3s"
+  "speed fake: braking 2/3 steps, CB closing — burst next step"
+  "on break 40°, sep=3.2yd CB rec=0 growing — calling"
 
-Always think ahead: what will you do NEXT step, not just what you're doing now.
-
-Call for the ball only when BOTH are true: you are on your real break heading AND the CB is behind you or the gap is clearly growing. Being on the right heading with the CB still right next to you is not open — wait for the separation to actually exist.
+Call for the ball only when BOTH are true: you are on your real break heading AND the CB is clearly behind you or the gap is growing. If CB rec > 2, that gap is about to grow — factor that in.
 
 Respond with JSON only:
 {"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "wr_note": "...", "reasoning": "..."}

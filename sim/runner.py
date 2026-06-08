@@ -514,9 +514,12 @@ def run_play(
             "wr_hdg": round(states["WR1"].heading, 1),
             "wr_spd": round(states["WR1"].speed, 1),
             "wr_throttle": actions.get("WR1", {}).get("throttle", ""),
+            "wr_cut_rec": states["WR1"].cut_recovery,
             "cb": [round(states["CB1"].x, 1), round(states["CB1"].y, 1)] if "CB1" in states else [0.0, 0.0],
             "cb_hdg": round(states["CB1"].heading, 1) if "CB1" in states else 0.0,
+            "cb_spd": round(states["CB1"].speed, 1) if "CB1" in states else 0.0,
             "cb_mode": states["CB1"].mode if "CB1" in states else "",
+            "cb_cut_rec": states["CB1"].cut_recovery if "CB1" in states else 0,
         })
 
         recorder.record_step(

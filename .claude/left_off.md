@@ -2,55 +2,53 @@
 Date: 2026-06-07
 
 ## What We Worked On
-- Analyzed all 10 replay JSONs from Run 5 (seed=42, gpt-5-nano, A4 prompts, post P-NEW + angle blacklist + ball-in-air-lock + QB judgment fixes)
-- Consolidated problems.md (merged from problems.md + problems2.md + problems3.md + new Run 5 findings), deleted problems2.md and problems3.md
-- Redesigned the CB observation to remove prescriptive option labels and give raw field geometry instead
+Fundamental physics overhaul: acceleration was flat/static, which made every move physically wrong. A WR at rest and a WR at 7 yd/s both gained the same speed each step. There was no consequence to making a hard cut — no speed shed, no recovery time. Separation mechanics were therefore completely fake.
 
 ## What Got Done
 
-### problems.md consolidated
-- Single problems.md now contains: Run 5 results table, 6-dimension analysis (WR deception, QB timing, WR anticipation, CB determinism, LLM freedom, overall quality), full problem tracking table with statuses from Rounds 1–3 (P/N/O series) + new Run 5 findings (A1–A4)
-- problems2.md and problems3.md deleted
+### 1. Physics engine rewrite (`engine/physics.py`)
+- `PlayerState` gets a new field: `cut_recovery: int = 0` (steps remaining in hip-turn recovery)
+- **Dynamic burst**: `accel = peak_accel * headroom`, where `headroom = (max_speed - current_speed) / max_speed`. Explosive from rest, tapers to near-zero at top speed.
+- **Cut recovery**: any turn >35° at speed >3 yd/s commits hips. Triggers `cut_recovery` steps of reduced burst, scaling with turn angle, speed, and agility. A 90° cut at 7 yd/s (agility=70) = 4 steps (~0.4s) of ~25% burst capacity.
+- **Speed shed retuned**: agility=50 loses ~80% speed on 90° cut (not the old 95% linear formula — the recovery mechanic does the real punishing).
+- Braking clears recovery instantly (you planted your feet).
+- `cut_recovery_steps()` exposed as a standalone helper.
+- All existing callsites (`ScriptedWR`, `runner.py` initial states) use keyword args, so the new default `cut_recovery=0` is backward-compatible.
 
-### CB observation redesign (the main work)
-Three files changed:
+### 2. `cut_recovery` in all observations (`agents/observation.py`)
+- New helper `_accel_status(cut_recovery)` → human-readable burst string ("FULL burst available" / "RECOVERING — 3 steps left, burst ~43%")
+- **WR observation**: shows `YOUR BURST` and `CB BURST` lines; explicit "!! CB HIP-TURNED — X steps left. THIS IS YOUR WINDOW" alert when CB.cut_recovery >= 2
+- **CB observation**: shows `YOUR BURST` and `WR BURST`; "!! WR HIP-TURNED — CLOSE NOW" alert when WR.cut_recovery >= 2
+- **QB observation**: shows `WR BURST` and `CB BURST`; alerts when CB is recovering ("sep likely to GROW") or WR is recovering ("sep may SHRINK")
+- **Move history** (all three agents) extended with `WR rec` and `CB rec` columns — agents can see the full recovery timeline per step
 
-**`agents/observation.py` — `_cb_situation()` rewritten (~55 → ~12 lines):**
-- Removed: all three labeled options ("backpedal / intercept / mirror"), tradeoff descriptions, `wr_motion` prose ("Backpedaling widens the gap"), `y_rel`/`x_rel` prescriptive prose, `wr_coming_back`/`wr_going_lateral` flags
-- New output: lean `GEOMETRY:` block — separation, bearing to WR, WR projected position in 0.5s, bearing to intercept that projection
-- Philosophy: raw geometry only, no pre-selected answer
+### 3. Runner (`sim/runner.py`)
+- `move_history` entries now track `wr_cut_rec` and `cb_cut_rec` and `cb_spd` per step
 
-**`agents/prompts/cb_system.txt`:**
-- Replaced `THE SITUATION BLOCK:` paragraph (which mentioned option labels/tradeoffs) with `YOUR OBSERVATION:` paragraph describing raw data, no option framing
+### 4. WR prompts rewritten
+- `wr_system.txt`: full physics section explaining burst, cut recovery, speed shed. Three deception patterns: THE SELL (hip commit fake), THE SPEED FAKE, THE STUTTER STEP. Each explained mechanically in terms of `rec` columns.
+- `wr_live_free.txt`: step-by-step framework: check burst status → check rec log → decide action (sell/snap/speed fake/stutter). Explicit: snap only when CB heading committed AND CB rec > 0.
 
-**`agents/prompts/cb_pass1.txt`:**
-- Instruction line no longer references "SITUATION block" or "options with tradeoffs"
-- Example JSON changed from `{"heading": 5, "facing": 185, "mode": "backpedal", "reasoning": "WR is still approaching and I want to keep cushion..."}` to `{"heading": 95, "facing": 95, "mode": "normal", "reasoning": "WR cut right and accelerated — closing to cut off the angle"}`
-- New example anchors the model on forward/lateral movement with observed-action reasoning, not cushion-maintenance
+### 5. CB prompts rewritten
+- `cb_system.txt`: full physics section. "Your job is to NOT get your hips turned." DO NOT OVER-COMMIT section, ZONE-OF-CONTROL approach, explicit "when beaten" recovery guide. Read the history rec column.
+- `cb_pass1.txt`: step-by-step framework: read burst status → read rec log → decide (mirror/close/hold). PATIENCE RULE: wait 2 steps before matching a WR heading change — one-step jabs are almost always fakes.
 
-### Run 6 slant_42 result (first test after CB redesign)
-- **Outcome: PBU, separation=1.24** (vs Run 5 DROP, separation=4.83)
-- CB heading varied across the entire play: 190°, 139°, 147°, 60°, 69°, 355°, 59°, 149°, 59°, 0°, 36°, 35°, 38°, 39°, 45°, 60°, 50°, 342° — genuinely tracking the WR
-- CB switched to `mode=normal` at t=1.1 and ran laterally at 36°–39° for 5 consecutive steps, matching the WR's 40° slant
-- CB intent=swat, closed to 1.24 yd at resolution — a legitimate PBU
-- Previous run: CB was pure backpedal heading=5° the entire play
+### 6. QB system prompt rewritten
+- `qb_system.txt`: full section on burst/recovery reading. Four concrete scenarios with math for estimating separation at catch time using recovery steps + ball ETA (Scenario A: CB recovering → throw; B: WR recovering → hold; C: both free, WR ahead → safe; D: CB recovering, 0 sep → throw into the expected gap).
 
 ## What's Open / Known Issues
-
-### CB issues (mostly improved)
-- CB still uses `mode=backpedal` on some steps while heading laterally (e.g., heading 60° mode=backpedal at t=0.6) — incoherent but minor; physics apply backpedal speed cap unnecessarily
-- Only one route tested so far — need full 10-route run to assess overall improvement
-
-### WR issues (unchanged from Run 5)
-- **A1 / P-NEW**: In-route WR still calls pre-cut at heading=0° → INTERCEPTION. The "anticipate future position" prompt fix didn't prevent it.
-- **A3 / Go route**: QB still freelances without WR call
-- **R5-3 / O1**: Curl WR still changes heading during ball flight (called mid-rotation at 270°, then drifted to 150°)
-- **R5-4 / O4**: Slant WR cuts to 40° (shallow right) not ~315° (true crossing slant)
-- **detected_cut_t**: Still misfires on jabs (fires at 0.1–0.8 on most routes)
+- No run done yet with new physics — everything passing smoke tests but untested end-to-end
+- Speed shed formula changed (80% vs old 95%): may need tuning based on how hard cuts look in replays
+- `CUT_RECOVERY_BASE_STEPS = 4` is a guess — could be too high or too low
+- CB backpedal + cut_recovery interaction untested: does the CB stutter unnecessarily in backpedal?
+- Prior open issues (WR pre-cut calls, WR note hallucination, detected_cut_t misfiring) unchanged
 
 ## NEXT STEP
-**Run all 10 routes with seed=42 (Run 6) after CB redesign** and compare to Run 5 (4C/2D/3PBU/1INT → 4 catches). Primary questions:
-1. Does CB now contest horizontal routes it was ignoring before (drag, in, zig)?
-2. Does CB's fake-reading improve on post_corner (which held a 5-step fake that had zero effect in Run 5)?
-3. Does PBU/INT rate increase meaningfully, or does the LLM regress to a different template?
-4. Run: `.venv\Scripts\python run_all_routes.py` then check all 10 replay JSONs
+**Run all 10 routes** and read replays to see if:
+1. Hard cuts now visibly cost speed in the replay (speed should drop on cut steps)
+2. `cut_recovery` in the move log shows when the window opened
+3. WR and CB agents actually reference the rec column in their reasoning
+4. Separation dynamics look more realistic — WR can gain real ground off a good fake
+
+Run: `.venv\Scripts\python run_all_routes.py`
+Then check: `replays/` — look at the move log in any replay JSON, confirm `wr_cut_rec`/`cb_cut_rec` non-zero after hard turns.

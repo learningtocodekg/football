@@ -1,5 +1,8 @@
 import math
-from engine.physics import PlayerState, PlayerAttrs, BACKPEDAL_SPEED_FRACTION
+from engine.physics import (
+    PlayerState, PlayerAttrs, BACKPEDAL_SPEED_FRACTION,
+    CUT_RECOVERY_BASE_STEPS, CUT_ANGLE_THRESHOLD,
+)
 from engine.ball import BallState
 from engine.resolution import CB_ARM_REACH, CB_HALF_REACH
 
@@ -21,6 +24,19 @@ ZONE_FUZZ_MIN = 0.25
 
 def _dist(a: PlayerState, b: PlayerState) -> float:
     return math.hypot(a.x - b.x, a.y - b.y)
+
+
+def _accel_status(cut_recovery: int) -> str:
+    """Human-readable burst acceleration status based on cut_recovery steps remaining."""
+    if cut_recovery == 0:
+        return "FULL burst available"
+    frac = cut_recovery / CUT_RECOVERY_BASE_STEPS
+    if frac >= 0.75:
+        return f"RECOVERING from cut — {cut_recovery} steps left, burst ~{int((1-frac*0.75)*100)}% (hips just turned)"
+    elif frac >= 0.5:
+        return f"RECOVERING from cut — {cut_recovery} steps left, burst ~{int((1-frac*0.75)*100)}% (hips mid-turn)"
+    else:
+        return f"RECOVERING from cut — {cut_recovery} steps left, burst ~{int((1-frac*0.75)*100)}% (almost set)"
 
 
 def build_qb_observation(
@@ -54,6 +70,7 @@ def build_qb_observation(
 
     facing_label, facing_mult = _wr_facing_modifier(wr, qb)
 
+    wr_accel_str = _accel_status(wr.cut_recovery)
     lines = [
         f"=== QB OBSERVATION  t={t:.1f}s  sack_clock={sack_clock:.1f}s  |  {_down_str(down, distance)} ===",
         "",
@@ -61,14 +78,27 @@ def build_qb_observation(
         f"WR1 NOW:   pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
         f"  WR dist to sidelines: left={wr.x:.1f}yd  right={FIELD_WIDTH - wr.x:.1f}yd",
         f"  WR facing: {facing_label}  (catch probability modifier: {'x{:.2f}'.format(facing_mult)})",
+        f"  WR BURST: {wr_accel_str}",
     ]
 
     if cb is not None and cb_attrs is not None:
         current_sep = _dist(wr, cb)
+        cb_accel_str = _accel_status(cb.cut_recovery)
         lines += [
             f"CB1 NOW:   pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°",
+            f"  CB BURST: {cb_accel_str}",
             f"Current WR-CB separation: {current_sep:.2f} yd  (>3 yd = open, 1.5–3 yd = contested, <1.5 yd = tight)",
         ]
+        if cb.cut_recovery >= 2:
+            lines.append(
+                f"  !! CB IN RECOVERY — hip-turned, {cb.cut_recovery} steps of reduced burst. "
+                f"Separation is likely to GROW even if it looks close right now."
+            )
+        elif wr.cut_recovery >= 2:
+            lines.append(
+                f"  NOTE: WR just cut — {wr.cut_recovery} steps of reduced burst. "
+                f"Separation may be about to SHRINK as CB closes."
+            )
     else:
         lines.append("CB1: no CB on field this play.")
 
@@ -85,28 +115,6 @@ def build_qb_observation(
         f"LEAD HINT: at regular speed WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
     ]
 
-    # After WR calls, show projected WR+CB positions and separation at each throw speed
-    if wr_called_for_ball and wr_call_heading is not None and cb is not None:
-        call_hdg_rad = math.radians(wr_call_heading)
-        cb_hdg_rad = math.radians(cb.heading)
-        speed_rows = [
-            ("bullet", max_mph),
-            ("regular", mid_mph),
-            ("lob", MIN_BALL_SPEED_MPH),
-        ]
-        lines += ["", "PROJECTED ARRIVAL (WR heading locked at call heading — CB still moving):"]
-        lines += [f"  {'speed':<8}  {'flight':>6}  {'WR arrives':>14}  {'CB arrives':>14}  {'sep at arrival':>14}  {'window'}"]
-        for label, mph in speed_rows:
-            flight_t = dist_to_wr / (mph * MPH_TO_YDS_S)
-            wx = wr.x + math.sin(call_hdg_rad) * wr.speed * flight_t
-            wy = wr.y + math.cos(call_hdg_rad) * wr.speed * flight_t
-            cx = cb.x + math.sin(cb_hdg_rad) * cb.speed * flight_t
-            cy = cb.y + math.cos(cb_hdg_rad) * cb.speed * flight_t
-            sep = math.hypot(wx - cx, wy - cy)
-            window = "open" if sep > 3.0 else ("contested" if sep > 1.5 else "tight")
-            lines.append(
-                f"  {label:<8}  {flight_t:>5.2f}s  ({wx:5.1f},{wy:5.1f})    ({cx:5.1f},{cy:5.1f})    {sep:>5.2f} yd       {window}"
-            )
 
     # WR signal block
     lines += [""]
@@ -179,27 +187,33 @@ def build_qb_observation(
         if cb is not None:
             lines += [
                 "",
-                "MOVEMENT HISTORY (most recent last):",
-                f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'CB pos':>14}  {'CB hdg':>7}  {'sep':>6}",
+                "MOVEMENT HISTORY (rec=cut_recovery — when rec>0, that player cannot burst freely):",
+                f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR rec':>7}  {'CB pos':>14}  {'CB hdg':>7}  {'CB rec':>7}  {'sep':>6}",
             ]
             for h in recent:
                 wx_h, wy_h = h["wr"]
                 cx_h, cy_h = h["cb"]
                 sep_h = math.hypot(wx_h - cx_h, wy_h - cy_h)
+                wr_cut = h.get("wr_cut_rec", 0)
+                cb_cut = h.get("cb_cut_rec", 0)
+                wr_rec_str = f"{wr_cut}rec" if wr_cut > 0 else "free"
+                cb_rec_str = f"{cb_cut}rec" if cb_cut > 0 else "free"
                 lines.append(
-                    f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°"
-                    f"  ({cx_h:5.1f},{cy_h:5.1f})  {h['cb_hdg']:>6.0f}°  {sep_h:>6.2f}"
+                    f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°  {wr_rec_str:>7}"
+                    f"  ({cx_h:5.1f},{cy_h:5.1f})  {h['cb_hdg']:>6.0f}°  {cb_rec_str:>7}  {sep_h:>6.2f}"
                 )
         else:
             lines += [
                 "",
                 "MOVEMENT HISTORY (most recent last):",
-                f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR spd':>7}",
+                f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR spd':>7}  {'WR rec':>7}",
             ]
             for h in recent:
                 wx_h, wy_h = h["wr"]
+                wr_cut = h.get("wr_cut_rec", 0)
+                rec_str = f"{wr_cut}rec" if wr_cut > 0 else "free"
                 lines.append(
-                    f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}"
+                    f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}  {rec_str:>7}"
                 )
 
     lines += [
@@ -298,17 +312,26 @@ def build_cb_observation(
     dy_wr = wr.y - cb.y
     bearing_to_wr = math.degrees(math.atan2(dx_wr, dy_wr)) % 360.0
 
+    cb_accel_str = _accel_status(cb.cut_recovery)
+    wr_accel_str = _accel_status(wr.cut_recovery)
     lines = [
         f"=== CB OBSERVATION  t={t:.1f}s ===",
         "",
         f"YOU (CB):  pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°  facing={cb.facing:.0f}°  mode={cb.mode}",
+        f"  YOUR BURST: {cb_accel_str}",
         f"WR:        pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
+        f"  WR BURST:  {wr_accel_str}",
         "",
     ]
+    if wr.cut_recovery >= 2:
+        lines += [
+            f"  !! WR HIP-TURNED — {wr.cut_recovery} recovery steps left. WR cannot explode. Close hard now.",
+            "",
+        ]
     lines += _cb_situation(cb, wr, cb_attrs)
     lines += [
         "",
-        f"YOUR SPEEDS:  forward max={cb_attrs.max_speed:.1f}yd/s  backpedal max={backpedal_speed:.1f}yd/s  accel={cb_attrs.acceleration:.1f}yd/s²",
+        f"YOUR SPEEDS:  forward max={cb_attrs.max_speed:.1f}yd/s  backpedal max={backpedal_speed:.1f}yd/s  peak_accel={cb_attrs.acceleration:.1f}yd/s² (tapers near top speed)",
         f"ARM REACH: PBU (swat)={CB_ARM_REACH:.1f}yd  INT (pick)={CB_HALF_REACH:.1f}yd",
     ]
 
@@ -358,18 +381,20 @@ def build_cb_observation(
             f"  FACING: {facing_instruction}",
         ]
 
-    # WR movement history
+    # WR movement history with cut_recovery
     if wr_history:
         recent = wr_history[-CB_HISTORY_WINDOW:]
         lines += [
             "",
-            "WR RECENT MOVES (recent last):",
-            f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR spd':>7}",
+            "WR RECENT MOVES (rec = cut_recovery steps after that move — when WR rec>0, they can't burst):",
+            f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR spd':>7}  {'WR rec':>7}",
         ]
         for h in recent:
             wx, wy = h["wr"]
+            wr_cut = h.get("wr_cut_rec", 0)
+            rec_str = f"{wr_cut}rec" if wr_cut > 0 else "free"
             lines.append(
-                f"  {h['t']:>5.1f}  ({wx:5.1f},{wy:5.1f})  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}"
+                f"  {h['t']:>5.1f}  ({wx:5.1f},{wy:5.1f})  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}  {rec_str:>7}"
             )
 
     # CB self-action history
@@ -379,11 +404,15 @@ def build_cb_observation(
         if cb_entries:
             lines += [
                 "",
-                "YOUR RECENT ACTIONS (what you actually did — check your own pattern):",
-                f"  {'t':>5}  {'hdg':>6}  {'mode':<10}",
+                "YOUR RECENT ACTIONS (rec = cut_recovery steps — when YOUR rec>0, you cannot burst freely):",
+                f"  {'t':>5}  {'hdg':>6}  {'spd':>6}  {'rec':>6}  {'mode':<10}",
             ]
             for h in cb_entries:
-                lines.append(f"  {h['t']:>5.1f}  {h['cb_hdg']:>5.0f}°  {h.get('cb_mode', ''):<10}")
+                cb_cut = h.get("cb_cut_rec", 0)
+                rec_str = f"{cb_cut}rec" if cb_cut > 0 else "free"
+                lines.append(
+                    f"  {h['t']:>5.1f}  {h['cb_hdg']:>5.0f}°  {h.get('cb_spd', 0.0):>5.1f}  {rec_str:>6}  {h.get('cb_mode', ''):<10}"
+                )
 
     return "\n".join(lines)
 
@@ -541,12 +570,14 @@ def build_wr_observation(
 ) -> str:
     time_to_cut = cut_time - t
 
+    wr_accel_str = _accel_status(wr.cut_recovery)
     lines = [
         f"=== WR OBSERVATION  t={t:.1f}s ===",
         "",
         f"YOUR NOTE (from last step): {wr_note if wr_note else '(none yet)'}",
         "",
         f"YOU (WR): pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
+        f"  YOUR BURST: {wr_accel_str}",
     ]
 
     if cb is not None:
@@ -555,10 +586,17 @@ def build_wr_observation(
         dy = cb.y - wr.y
         cb_side = "RIGHT" if dx > 0.3 else ("LEFT" if dx < -0.3 else "inline")
         cb_rel = "UPFIELD of you" if dy > 0.5 else ("BEHIND you" if dy < -0.5 else "at same depth")
+        cb_accel_str = _accel_status(cb.cut_recovery)
         lines += [
             f"CB:     pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°  facing={cb.facing:.0f}°  mode={cb.mode}",
             f"  CB is {sep:.1f} yd away — {cb_side}, {cb_rel}",
+            f"  CB BURST: {cb_accel_str}",
         ]
+        if cb.cut_recovery >= 2:
+            lines.append(
+                f"  !! CB HIP-TURNED — {cb.cut_recovery} recovery steps left. "
+                f"CB cannot accelerate freely. THIS IS YOUR WINDOW — explode now."
+            )
         if sep > 4.0:
             lines.append("  CB is giving you a big cushion — consider cutting early to exploit it.")
         elif sep < 1.5:
@@ -646,29 +684,34 @@ def build_wr_observation(
         recent = wr_history[-WR_HISTORY_WINDOW:]
         lines += [
             "",
-            "MOVE LOG — your moves vs CB reaction (did your moves change what the CB did?):",
-            f"  {'t':>5}  {'WR hdg':>7}  {'WR spd':>7}  {'CB hdg':>7}  {'CB mode':<10}  {'CB Δhdg':>8}",
+            "MOVE LOG — your moves vs CB reaction (key: rec=cut_recovery steps remaining after that move):",
+            f"  {'t':>5}  {'WR hdg':>7}  {'WR spd':>7}  {'WR rec':>7}  {'CB hdg':>7}  {'CB spd':>7}  {'CB rec':>7}  {'CB Δhdg':>8}",
         ]
         prev_cb_hdg: float | None = None
         for h in recent:
             cb_hdg = h.get("cb_hdg")
             cb_mode = h.get("cb_mode", "")
+            cb_spd = h.get("cb_spd", 0.0)
+            cb_cut = h.get("cb_cut_rec", 0)
+            wr_cut = h.get("wr_cut_rec", 0)
             if cb_hdg is not None and prev_cb_hdg is not None:
                 delta = abs((cb_hdg - prev_cb_hdg + 180.0) % 360.0 - 180.0)
                 delta_str = f"{delta:+.0f}°" if delta >= 1.0 else "   0°"
             else:
                 delta_str = "   --"
             cb_hdg_str = f"{cb_hdg:.0f}°" if cb_hdg is not None else "  --"
+            wr_rec_str = f"{wr_cut}rec" if wr_cut > 0 else "free"
+            cb_rec_str = f"{cb_cut}rec" if cb_cut > 0 else "free"
             lines.append(
-                f"  {h['t']:>5.1f}  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}  "
-                f"{cb_hdg_str:>7}  {cb_mode:<10}  {delta_str:>8}"
+                f"  {h['t']:>5.1f}  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}  {wr_rec_str:>7}"
+                f"  {cb_hdg_str:>7}  {cb_spd:>6.1f}  {cb_rec_str:>7}  {delta_str:>8}"
             )
             if cb_hdg is not None:
                 prev_cb_hdg = cb_hdg
 
     lines += [
         "",
-        f"YOUR MAX SPEED: {wr_attrs.max_speed:.1f} yd/s  accel={wr_attrs.acceleration:.1f} yd/s²",
+        f"YOUR MAX SPEED: {wr_attrs.max_speed:.1f} yd/s  peak_accel={wr_attrs.acceleration:.1f} yd/s² (tapers as you near top speed)",
     ]
     return "\n".join(lines)
 

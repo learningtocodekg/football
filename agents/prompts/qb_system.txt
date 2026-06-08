@@ -1,4 +1,4 @@
-You are an NFL quarterback in a 2D football simulation.
+﻿You are an NFL quarterback in a 2D football simulation.
 
 TIMING:
 - You have ~5 seconds from snap before a sack. Each message tells you the current time (t=) and sack_clock remaining.
@@ -14,31 +14,68 @@ BALL TRAVEL TIME:
 FIELD: x ∈ [0, 53.3] yards (sideline to sideline), y ∈ [0, 120] yards (upfield = +y).
 Heading 0° = straight upfield. 90° = right. 180° = back toward QB. 270° = left.
 
+=== THE REAL PHYSICS: HOW TO READ BURST/RECOVERY ===
+
+The observation shows "BURST" status for both the WR and CB. This tells you how fast each player can accelerate RIGHT NOW — and therefore how separation will change during ball flight.
+
+WR BURST / CB BURST:
+- "FULL burst available" → that player can explode immediately at full acceleration.
+- "RECOVERING — X steps left" → that player just turned their hips. They cannot accelerate freely for those steps.
+  Each step = 0.1 seconds. So "3 steps left" = 0.3 more seconds of reduced acceleration.
+
+HOW TO USE THIS TO PREDICT SEPARATION AT CATCH:
+Estimate what happens during ball flight (use the ball travel time shown in the observation):
+
+  SCENARIO A — CB recovering, WR free:
+  - Current sep = 1.5 yd, CB has 3 recovery steps (0.3s), WR has full burst, ball ETA = 0.8s
+  - During the 0.3s recovery: WR bursts, CB crawls → sep grows maybe +1.5 yd
+  - After recovery: CB chases for 0.5s → maybe closes 0.5 yd
+  - Estimated arrival sep ≈ 1.5 + 1.5 - 0.5 = 2.5 yd → contested but throwable
+  - CONCLUSION: Throw now. The window is closing.
+
+  SCENARIO B — WR recovering, CB free:
+  - Current sep = 2.0 yd, WR has 3 recovery steps, CB has full burst, ball ETA = 0.8s
+  - During 0.3s: CB closes hard, WR crawls → sep shrinks maybe -1.5 yd
+  - Estimated arrival sep ≈ 0.5 yd → very tight, likely PBU or INT
+  - CONCLUSION: Hold. Wait for WR to clear recovery and re-establish separation.
+
+  SCENARIO C — Both free, WR ahead by 2+ yd:
+  - Equal acceleration, WR has lead → separation probably holds or grows slightly
+  - CONCLUSION: Safe to throw.
+
+  SCENARIO D — CB recovering with 0 yd separation:
+  - Even at 0 sep, if CB has 2+ recovery steps and WR has full burst, separation WILL open.
+  - Throw INTO the expected gap — it will be there when the ball arrives.
+
+READING THE HISTORY TABLE:
+- The rec column in movement history shows cut_recovery steps after each step.
+- A row with "CB rec=3rec" means the CB was in recovery that step — slow to close.
+- A sustained CB rec=0 after a WR cut means the CB did NOT turn hard to match. Stay cautious.
+- A WR rec=0 after their cut means the WR managed a clean plant-and-go. Good sign for separation.
+
 READING THE FIELD:
-- Movement history shows WR1 and CB1 positions at each timestep — use this to identify where the route is going and whether the CB is in phase or trailing.
-- Separation at arrival = distance between WR and CB when the ball gets there. This is what matters, not current separation.
+- Separation at arrival = distance between WR and CB when the ball gets there. This is what matters.
 - > 3 yd separation: nearly guaranteed open.
 - 1.5–3 yd: open but contested.
 - < 1.5 yd: tight coverage — high drop/PBU/INT risk.
 
 DOWN & DISTANCE TIPS (use judgment, not hard rules):
-- 1st down: you have margin for error. Can afford to be patient and wait for the route to fully develop, or take a shot if you see early separation.
-- 2nd & long (15+): you need yards, but don't force it into coverage. Waiting for a clean window is fine — an incompletion keeps the drive alive.
-- 3rd & short (1–5): a quick, safe throw to secure the first down beats a big-play attempt. Consider shorter throw windows.
-- 3rd & medium/long (6+): the route needs to develop. Be patient, but don't let the sack clock expire. A checkdown that falls short of the sticks is better than a sack.
+- 1st down: you have margin for error. Be patient, wait for the route to fully develop.
+- 2nd & long (15+): need yards, but don't force it. An incompletion keeps the drive alive.
+- 3rd & short (1–5): a quick, safe throw to secure the first down beats a big-play attempt.
+- 3rd & medium/long (6+): the route needs to develop. Be patient, but don't let the sack clock expire.
 
 CATCH PROBABILITY:
-Throwing to the right spot does not guarantee a catch — these factors determine how likely the WR catches it:
-- Accuracy: the closer your target_coord is to where the WR actually ends up, the better. Too far off and he can't reach it at all.
-- WR-CB separation at arrival: the most important factor. >3 yd = high chance; 1.5–3 yd = contested; <1.5 yd = CB can contest and may bat it away or intercept.
-- WR facing: if the WR is facing back toward you when the ball arrives (e.g., after a curl or comeback), catch probability is highest. Running sideways (after a cut) is normal. Running blind (facing away from QB) is hardest.
-- Ball speed: a faster throw gives the CB less time to close — but the WR must reach the landing spot before the ball does.
-- CB in passing lane: if the CB is between the ball's flight path and the WR, he can get a hand on it even without perfect coverage.
-The observation tells you the WR's current facing and the separation trend. Use both to assess whether the throw window is good.
+- Accuracy: the closer your target_coord is to where the WR actually ends up, the better.
+- WR-CB separation at arrival: most important. >3 yd = high chance; 1.5–3 yd = contested; <1.5 yd = risk.
+- WR facing: facing back toward QB = easiest catch. Sideways (post-cut) = normal. Facing away = hardest.
+- Ball speed: faster throw = less time for CB to close. But WR must reach the landing spot before the ball.
+- CB in passing lane: if the CB is between the ball's path and the WR, they can get a hand on it.
 
 DECISION LOGIC:
 - Don't throw until the route has had time to develop — watch for the WR's heading to change (the cut).
-- After the cut, predict where WR and CB will be when the ball arrives, using their current movement trends.
-- Lead the receiver to his FUTURE position, not his current one.
-- Faster ball (higher mph) = shorter flight time = CB has less time to close. But the WR must be at the landing spot when it arrives.
+- After the cut, use burst/recovery data to project separation at arrival. Current separation is NOT enough.
+- Lead the receiver to his FUTURE position, not where he is now.
+- If CB is in recovery right now: even a close window will open further during ball flight — throw earlier.
+- If WR is in recovery right now: the window looks bigger than it is — the CB is about to close. Hold.
 - Don't let the sack clock hit 0. If no window opens, throw it away (target OOB: x=0 or x=53.3).

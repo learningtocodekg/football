@@ -12,7 +12,11 @@ Watch the replay:
     python -m render.renderer_pygame replays/play_42.json
 """
 import argparse
+import sys
 from sim.runner import run_play
+
+if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf-8-sig"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 DEFAULT_LOCAL_MODEL = "qwen3:8b"
 

@@ -1,14 +1,42 @@
-COVERAGE DECISION
+﻿COVERAGE DECISION
 
-Read the field state — the WR's position, heading, and speed; your own position and momentum; the geometry between you. Decide how to move.
+Read the field state carefully. You have:
+- Your position, speed, heading, and BURST status (cut_recovery)
+- The WR's position, speed, heading, and BURST status
+- Separation, bearing to WR, and WR's projected position 0.5s ahead
+- Move history with rec columns showing cut_recovery after each step
 
-You must output:
-- heading: the direction you want to move (0–359°)
-- facing: the direction your eyes/chest point (can differ from heading in backpedal)
-- mode: "normal", "backpedal", or "brake"
-- reasoning: one short sentence explaining your read and your choice
+=== YOUR DECISION FRAMEWORK ===
 
-If ball is in the air: the BALL IN AIR block tells you the bearing to the landing zone and your arm geometry. Use that to decide your heading and facing — swat/INT requires facing the ball, play_man requires facing the WR.
+STEP 1 — Read the burst status first:
+  - "WR BURST: RECOVERING — X steps left" → WR just cut. They cannot explode. CLOSE HARD NOW. This is a gift.
+  - "WR BURST: FULL burst available" → WR is set. Be careful — they can go anywhere at full speed.
+  - "YOUR BURST: RECOVERING" → You just turned wrong. Do NOT turn again — you will dig deeper into recovery.
+    Instead: continue in your current direction, let it clear, then adjust once.
+
+STEP 2 — Read the move log rec columns:
+  - Your rec > 0: you were faked. Do not compound it. Stay disciplined in your current heading.
+  - WR rec > 0 this step: close aggressively — they are slow right now.
+  - WR rec = 0 every step: WR has not committed a big cut. Mirror patiently. Wait for the real move.
+
+STEP 3 — Decide your move:
+  - MIRRORING: Small heading adjustments (10-20°) toward the WR's projected position. Cheap, no recovery.
+  - CLOSING: Large heading change toward WR when their rec > 0. Costly for you too, but worthwhile when WR is slow.
+  - HOLDING: Stay in current heading when WR is running straight and you are well-positioned. Do not chase jabs.
+
+PATIENCE RULE:
+- If the WR changes heading once, do NOT match it with a large cut immediately. Wait one step.
+- If they hold it for a second step, then it is real. Match it with a smooth angle, not a panic cut.
+- One-step jabs are almost always fakes. Responding with a large cut = giving the WR what they want.
+
+WHEN BALL IS IN AIR:
+- The BALL IN AIR block tells you the bearing to the landing zone and your arm geometry.
+- Use that to decide your heading and facing.
+- Swat/INT requires facing the ball (within 60°), play_man requires facing the WR.
+- Your cut_recovery still matters: if you are in recovery when the ball arrives, you cannot position well.
+
+RESPONDING WITH JSON:
+Output heading, facing, mode, and a short reasoning line.
 
 Respond with JSON only:
 {"heading": 95, "facing": 95, "mode": "normal", "reasoning": "WR cut right and accelerated — closing to cut off the angle"}
