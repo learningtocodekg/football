@@ -2,57 +2,45 @@
 Date: 2026-06-08
 
 ## What We Worked On
-Round 8 run with Ollama qwen3:8b (all 10 routes), parallel subagent analysis of all 10 replay JSONs, and synthesis into problems.md.
+Round 9 fixes + run with GPT-5-nano (all 10 routes) + analysis. Also full rewrite of `.claude/future_3d.md` via subagent codebase audit.
 
 ## What Got Done
 
-### Round 8 Ollama Run
-- Ran `python run_all_routes.py --ollama --seed 42` overnight (~6 hours).
-- **6 routes completed cleanly**: comeback (DROP), go (DROP), double_move (PBU), curl (PBU), zig (PBU), post_corner (CATCH).
-- **4 routes errored** mid-run: slant, drag, corner, in — caused by Windows console encoding bug (Unicode chars like `°` and `→` in print statements crash stdout with charmap codec). Replay JSONs for these 4 are from Round 7.
-- Round 8 score (6 new routes): **1C / 2D / 3PBU**
+### Round 9 Fixes (applied before run)
+- **Encoding fix**: Added `sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')` to `run_all_routes.py`. Replaced all `:.0f}°` with `:.0f}deg` in `runner.py` print statements.
+- **JSON enforcement**: Appended "Respond ONLY with a valid JSON object" instruction to `wr_system.txt`, `qb_system.txt`, `cb_system.txt`.
+- **Route geometry injection**: Added `_ROUTE_GEOMETRY` dict to `agents/observation.py`; injected into pre-snap WR observation as `Route shape: <prose description>`. Also injected full phase schedule from `route_phases` in both pre-snap and per-step observations.
+- **QB bearing injection**: In ball-in-air block, added explicit `FACING INSTRUCTION: Set facing={bearing_to_qb:.0f} exactly` line — computed from real coordinates, so WR no longer estimates it.
+- **Heading streak counter**: Computed `steps_on_this_heading` in `build_wr_observation()` by scanning WR history for consecutive steps within 20° of current heading. Injected as `steps_on_this_heading=N` on the WR line.
+- **`future_3d.md` rewrite**: Subagent did full codebase audit and rewrote the 3D planning doc to reflect actual current architecture (PlayPhase enum, BallState fields, QB two-pass, replay JSON schema). Added "Problems Solved by 3D" and "Problems NOT Solved" sections.
 
-### Analysis
-- Dispatched 10 subagents in parallel, one per route, each reading its replay JSON and assessing WR/CB/QB performance.
-- Synthesized all 10 reports into `problems.md` — full replacement with Round 8 findings, old Round 7 analysis moved to appendix.
+### Round 9 Run (GPT-5-nano, seed=42)
+- **Score: 2C / 3D / 4PBU / 1INT** (vs Round 8: 3C / 2D / 4PBU / 1INT — regression on completion count)
+- Comeback: CATCH ← new (was DROP in R8)
+- In: CATCH ← new (was INT in R8)
+- Post_corner: DROPPED ← regression (was CATCH in R8; WR skipped phases 1 and 2, called at 0.8s instead of ~2.4s)
+- Parse errors: 0 for WR and CB (JSON enforcement worked). QB pass1 still had 3 parse errors on slant — truncation issue (token limit).
 
-### problems.md Updated
-- 3 issues marked FIXED (S3, S4, S5)
-- 8 new issues added (N1–N8)
-- All old issues updated with Round 8 evidence
-
-## What's Fixed (confirmed R8)
-- **S3**: CB freeze removed — CB acts from t=0.0. Confirmed every R8 route.
-- **S4 / P1**: cut_recovery field in replay JSON — agents cite it and act on it. WR on double_move / zig / post_corner correctly waited for CB rec > 0 before breaking.
+### Key findings from Round 9
+- **max_sep=5.02 on 8/10 routes** — pre-snap gap is the maximum separation on almost every route. WR is creating zero dynamic separation. The CB tracks with small 10-20° adjustments that never trigger cut_recovery, so WR fakes don't commit CB hips.
+- **Route geometry helps planning, not execution**: WR pre-snap notes correctly described route plan (citing shape), but per-step execution ignored the phase schedule. Post_corner WR jumped to phase 3 heading (315°) at t=0.1, skipping phases 1 and 2 entirely. Go WR immediately faked to 90° despite "NO cut, fly upfield" instruction.
+- **QB bearing injection worked on most routes**: Slant facing 185–188°, double_move 190°. Comeback and in both CATCH.
 
 ## What's Open / Broken
 
-### New Critical Issues
-- **N1 (=S6)**: Parse errors 10–25% per agent with qwen3:8b. No JSON mode available via Ollama. Failures land at worst moments (WR call step, pre-throw step).
-- **N2**: WR executes wrong route shape on 6/10 routes (go ran a fake-cut, slant ran a seam, in ran a fly, zig body headed 180° instead of 90°, curl became a lateral drift, drag ran a sideline route). WR has freedom to choose deception but treats every route as "fake-then-break" regardless of shape.
-- **N3**: WR facing hallucination during ball flight — computes QB bearing as a cardinal direction instead of actual coordinates. Comeback dropped (facing=71° instead of ~180°), zig PBU'd (body headed 180° toward CB), post_corner p_catch depressed (facing=270° instead of ~143°).
-- **N4**: WR's CB-commit trigger ("wait for CB rec > 0") references a field that isn't in WR's observation space. WR infers from CB heading changes but the inference is unreliable.
-- **N5**: WR has no escalation counter — loops fake indefinitely. Comeback: 16-step lateral drift. Curl: 9-step lateral drift (5.5 yards). Each step the cheap fake beats the real cut commitment.
-- **N6**: QB one-step delay costs completions. Double_move: max sep=5.02 yd at t=0.8, threw at t=1.1 (parse error at t=1.0). CB closed from 3.7 to 0.58 yd. PBU.
-- **N7**: CB over-commits to fake direction after N consecutive steps. "Confirmed cut" declared after 2–3 steps; no hedge for double-move. No route anticipation at any step.
-- **N8**: CB geometric hallucinations — invents WR lateral drift that doesn't exist in position data (post_corner t=0.2: x frozen at 16.0, CB responds to "drift").
+### Biggest remaining issue
+- **WR ignores per-step phase schedule**: Phase info is shown in observation but WR doesn't follow it during live play. WR's `wr_note` shows correct planning ("I should be in phase 1 now") but heading output contradicts it. Need to inject real-time phase status: "You are at t=X.Xs. Current phase: Phase N. Expected heading: ~Y°. Your heading: Z°. [OFF COURSE / ON TRACK]."
 
-### Persisting from Round 7
-- W1: WR calls before completing cut (in, zig)
-- W2: WR heading/facing wrong post-call (comeback, zig, post_corner)
-- W3: WR wrong route shape (see N2)
-- S2: CB template-lock reasoning
-- Q4: QB boilerplate hold ("route developing" / "WR hasn't called") for 7–20 steps every route
-
-### Windows encoding bug (blocks future runs)
-- `print()` in runner.py crashes on Unicode chars (`°`, `→`, `≥`) with Windows charmap. Need to either: wrap prints in try/except, or set `PYTHONIOENCODING=utf-8` as env var before running.
+### Still open from R8
+- **N4**: WR CB-commit trigger ("CB rec > 0") still referencing unobservable field. Replace with observable proxy from move log (CB Δhdg > 90° in last N steps).
+- **W1/W2**: WR premature call and wrong heading at call. Post_corner called at 0.8s (phase 1), curl called at 0° (wrong direction for curl).
+- **N7/N8**: CB over-commitment and geometric hallucinations.
+- **QB pass1 truncation**: slant had 3 parse errors from truncated JSON (not malformed). Token limit issue on pass1.
 
 ## NEXT STEP
-**Fix Windows console encoding bug first** (so all 10 routes can complete in Round 9):
-- Option A: `set PYTHONIOENCODING=utf-8 && python run_all_routes.py --ollama`
-- Option B: add `sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')` in run_all_routes.py
-
-Then tackle the highest-impact open issues:
-1. **N2 (WR wrong route shape)** — inject explicit per-phase heading constraints into WR observation (not as prescriptions, as context: "this is a go route: no cut, straight upfield, call when open and fast").
-2. **N3 (WR facing hallucination)** — inject QB bearing explicitly as a computed value in the observation so the WR doesn't estimate it.
-3. **N5 (WR escalation loop)** — inject step count on current heading from simulation side so WR can't miscount ("you have been on heading 270° for 9 consecutive steps").
+**Inject real-time phase status into per-step WR observation** in `agents/observation.py`, `build_wr_observation()`:
+- Compute current expected phase from `route_phases` and `t`
+- Compare expected heading to `wr.heading`
+- If off by more than ~30°, inject: "PHASE CHECK: t=X.Xs → Phase N ({prev_t}–{threshold_t}s): expected heading ~Y°. Your heading: Z°. OFF COURSE — correct this step."
+- If on track: "PHASE CHECK: t=X.Xs → Phase N: heading Z° ✓ ON TRACK"
+All data already available in `build_wr_observation()` — no new parameters needed.

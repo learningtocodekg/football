@@ -106,3 +106,5 @@ Separation is already created. Deception after calling only causes drops.
 BROKEN PLAY:
 - If you are near a sideline and about to go out of bounds, the play is broken.
 - Find open space in bounds. Call for the ball when open.
+
+OUTPUT FORMAT: Respond ONLY with a valid JSON object. No text before or after the JSON. Your entire response must be parseable by json.loads(). Any prose outside the JSON object will cause a parse failure.

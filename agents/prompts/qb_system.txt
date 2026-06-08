@@ -79,3 +79,5 @@ DECISION LOGIC:
 - If CB is in recovery right now: even a close window will open further during ball flight — throw earlier.
 - If WR is in recovery right now: the window looks bigger than it is — the CB is about to close. Hold.
 - Don't let the sack clock hit 0. If no window opens, throw it away (target OOB: x=0 or x=53.3).
+
+OUTPUT FORMAT: Respond ONLY with a valid JSON object. No text before or after the JSON. Your entire response must be parseable by json.loads(). Any prose outside the JSON object will cause a parse failure.

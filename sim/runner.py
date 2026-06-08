@@ -333,8 +333,8 @@ def run_play(
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=False, t=t)
                 r = wr_decision.get("reasoning", "")
                 call_flag = " [CALL FOR BALL]" if wr_decision.get("call_for_ball") else ""
-                print(f"  t={t:.1f}  WR move   -> hdg={wr_decision['heading']:.0f}° "
-                      f"facing={wr_decision['facing']:.0f}° throttle={wr_decision['throttle']}"
+                print(f"  t={t:.1f}  WR move   -> hdg={wr_decision['heading']:.0f}deg "
+                      f"facing={wr_decision['facing']:.0f}deg throttle={wr_decision['throttle']}"
                       f"{call_flag}  | {r}")
                 actions["WR1"] = {**wr_decision, "action": "run_route"}
 
@@ -345,7 +345,7 @@ def run_play(
                     wr_call_heading_pending = wr_agent.call_heading
                     telemetry["wr_call_t"] = wr_agent.call_t
                     events.append({"type": "WR_CALL_FOR_BALL", "t": wr_agent.call_t, "heading": wr_agent.call_heading})
-                    print(f"  t={t:.1f}  WR called for the ball! heading={wr_agent.call_heading:.0f}°")
+                    print(f"  t={t:.1f}  WR called for the ball! heading={wr_agent.call_heading:.0f}deg")
 
             # ── QB decision ──────────────────────────────────────────────
             if t < 0.5:
@@ -418,7 +418,7 @@ def run_play(
                 )
                 cb_move = cb_agent.decide_movement(cb_obs)
                 r = cb_move.get("reasoning", "")
-                print(f"  t={t:.1f}  CB move   -> hdg={cb_move['heading']:.0f}° facing={cb_move['facing']:.0f}° mode={cb_move['mode']}  | {r}")
+                print(f"  t={t:.1f}  CB move   -> hdg={cb_move['heading']:.0f}deg facing={cb_move['facing']:.0f}deg mode={cb_move['mode']}  | {r}")
                 actions["CB1"] = {**cb_move, "action": "cover"}
 
         # ── BALL_IN_AIR phase ────────────────────────────────────────────
@@ -442,7 +442,7 @@ def run_play(
                 )
                 cb_move = cb_agent.decide_movement(cb_obs)
                 r = cb_move.get("reasoning", "")
-                print(f"  t={t:.1f}  CB move   -> hdg={cb_move['heading']:.0f}° facing={cb_move['facing']:.0f}° mode={cb_move['mode']}  | {r}")
+                print(f"  t={t:.1f}  CB move   -> hdg={cb_move['heading']:.0f}deg facing={cb_move['facing']:.0f}deg mode={cb_move['mode']}  | {r}")
                 actions["CB1"] = {**cb_move, "action": "cover"}
 
             # WR movement in air — free to adjust heading
@@ -460,7 +460,7 @@ def run_play(
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=True, t=t)
                 r = wr_decision.get("reasoning", "")
-                print(f"  t={t:.1f}  WR (air)  -> hdg={wr_decision['heading']:.0f}° facing={wr_decision['facing']:.0f}° throttle={wr_decision['throttle']}  | {r}")
+                print(f"  t={t:.1f}  WR (air)  -> hdg={wr_decision['heading']:.0f}deg facing={wr_decision['facing']:.0f}deg throttle={wr_decision['throttle']}  | {r}")
                 actions["WR1"] = {**wr_decision, "action": "run_route"}
 
             ball = advance_ball(ball, DT)
@@ -503,7 +503,7 @@ def run_play(
                 if not snapped_back:
                     detected_cut_t = cut_candidate_t
                     telemetry["detected_cut_t"] = cut_candidate_t
-                    print(f"  t={cut_candidate_t:.1f}  [WR cut confirmed] heading held at {new_wr_hdg:.0f}°")
+                    print(f"  t={cut_candidate_t:.1f}  [WR cut confirmed] heading held at {new_wr_hdg:.0f}deg")
                 cut_candidate_t = None
                 cut_candidate_from_hdg = None
             if detected_cut_t is None and prev_wr_heading is not None:

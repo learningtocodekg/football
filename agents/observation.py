@@ -488,6 +488,22 @@ def _wr_facing_modifier(wr: PlayerState, qb: PlayerState) -> tuple[str, float]:
         return "facing away from QB (running blind)", 0.80
 
 
+_ROUTE_GEOMETRY: dict[str, str] = {
+    "go": "FLY ROUTE — run straight upfield at full speed the ENTIRE play. NO cut. Create separation through pure speed. Call when you have a step on the CB.",
+    "slant": "SLANT — stem upfield 2-3 steps, then cut sharp diagonally ACROSS the field (heading ~135deg or ~45deg toward the QB side). Low-depth crossing route.",
+    "curl": "CURL — stem upfield 4-6 steps, then HOOK BACK toward the QB (heading ~180deg). You turn around and come back to the ball. Final heading is roughly back toward QB.",
+    "comeback": "COMEBACK — stem upfield 6-8 steps toward the sideline, then break BACK toward the sideline at the same depth (heading ~270deg if left, ~90deg if right). You stop going upfield and come back flat.",
+    "in": "IN (DIG) — stem upfield 4-5 steps, then cut HARD across the field toward the opposite hash (heading ~90deg or ~270deg). Sharp flat cross.",
+    "out": "OUT — stem upfield 4-5 steps, then cut HARD to the sideline (heading ~270deg or ~90deg).",
+    "corner": "CORNER — stem upfield, make an inside fake, then break diagonally to the CORNER of the end zone (heading ~315deg or ~45deg). Ends outside and deep.",
+    "post": "POST — stem upfield, make an outside fake, then break diagonally toward the GOALPOST (heading ~45deg or ~315deg). Ends inside and deep.",
+    "post_corner": "POST-CORNER — three committed phases: stem upfield, break toward post (~45deg), then break back to corner (~315deg). Each phase must be held for multiple steps.",
+    "zig": "ZIG — stem upfield, make a hard break at one angle (e.g. ~45deg or ~135deg), then snap to the opposite angle. Two distinct committed cuts.",
+    "double_move": "DOUBLE MOVE — run an initial route convincingly for 3-4+ steps to commit the CB's hips, then snap hard to the opposite direction. The fake must look real.",
+    "drag": "DRAG — flat crossing route at very low depth (~1-3 yards past LOS), heading directly across the field toward the opposite hash. Stays low and flat.",
+}
+
+
 def build_wr_pre_snap_observation(
     wr: PlayerState,
     wr_attrs: PlayerAttrs,
@@ -506,6 +522,7 @@ def build_wr_pre_snap_observation(
         "",
         "ROUTE CALLED:",
         f"  Route: {route}",
+        f"  Route shape: {_ROUTE_GEOMETRY.get(route, 'Execute the route as called.')}",
     ]
     if route_phases and len(route_phases) >= 3:
         lines.append("  FULL ROUTE SCHEDULE:")
@@ -571,12 +588,22 @@ def build_wr_observation(
     time_to_cut = cut_time - t
 
     wr_accel_str = _accel_status(wr.cut_recovery)
+
+    steps_on_current_heading = 1
+    if wr_history:
+        for h in reversed(wr_history):
+            diff = abs((h["wr_hdg"] - wr.heading + 180) % 360 - 180)
+            if diff <= 20.0:
+                steps_on_current_heading += 1
+            else:
+                break
+
     lines = [
         f"=== WR OBSERVATION  t={t:.1f}s ===",
         "",
         f"YOUR NOTE (from last step): {wr_note if wr_note else '(none yet)'}",
         "",
-        f"YOU (WR): pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
+        f"YOU (WR): pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°  steps_on_this_heading={steps_on_current_heading}",
         f"  YOUR BURST: {wr_accel_str}",
     ]
 
@@ -674,7 +701,7 @@ def build_wr_observation(
             f"BALL IN AIR — ETA: {ball.eta:.2f}s",
             f"  Landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  ±{fuzz:.1f} yd",
             f"  Your distance to landing zone: {dist_to_land:.1f} yd",
-            f"  QB is at bearing {bearing_to_qb:.0f}° from you — the ball is coming from that direction.",
+            f"  FACING INSTRUCTION: Set facing={bearing_to_qb:.0f} exactly. This is the computed bearing from your position to the QB — the direction the ball is coming from. Do NOT estimate this number; use {bearing_to_qb:.0f} directly.",
             f"  Your current facing: {wr.facing:.0f}° — {facing_label}",
             f"  YOUR HEADING: {wr.heading:.0f}° — do not change this.",
         ]

@@ -60,17 +60,14 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
 ## Known Issues
-- **Windows console encoding bug**: Unicode chars (`°`, `→`, `≥`) in print statements crash stdout with charmap codec on Windows. 4/10 routes errored in Round 8 run. Fix: set `PYTHONIOENCODING=utf-8` before running or wrap prints in try/except.
-- **N2 — WR wrong route shape**: WR ignores route geometry on 6/10 routes; defaults to generic fake-then-break. Needs per-phase heading context injected in observation.
-- **N3 — WR facing hallucination**: WR computes QB bearing as cardinal direction instead of from actual (x,y). Must inject bearing as a computed value.
-- **N4 — WR phantom CB rec trigger**: WR waits for "CB rec > 0" which is not in WR's observation. Needs observable proxy (CB heading delta).
-- **N5 — WR escalation loop**: No step counter on current heading; WR loops fake indefinitely. Inject step count from simulation side.
-- **N1/S6 — Parse error rate 10–25%** with qwen3:8b. No JSON-mode enforcement available via Ollama.
-- **N6 — QB 1-step delay**: QB needs to throw same step as WR call on short-window plays. Parse error at critical step caused double_move PBU.
-- **N7 — CB over-commits to fake**: CB declares "confirmed cut" after 2–3 steps with no hedge for double-move structure.
-- **S2 — CB template-lock**: Boilerplate hold reasoning 7–20 steps every route. Different form than Round 7 but same pattern.
-- **W1 — WR premature call**: Still calling before completing cut on in, zig.
-- **W2 — WR wrong facing post-call**: Facing hallucination during ball flight (N3).
+- **WR ignores per-step phase schedule (CRITICAL)**: Route geometry + phase schedule injected in R9 but WR skips phases freely. Post_corner jumped to Phase 3 at t=0.1. NEXT FIX: inject real-time phase status "PHASE CHECK: t=X → Phase N, expected Y°, your heading Z°. [ON TRACK / OFF COURSE]" in `build_wr_observation()`.
+- **max_sep=5.02 on 8/10 routes**: Pre-snap gap is the max separation on nearly every route. WR creating zero dynamic separation — CB never has to commit hips.
+- **N4 — WR phantom CB rec trigger**: Still referencing "CB rec > 0" (unobservable). Replace with CB Δhdg proxy from move log.
+- **W1/W2 — WR premature/wrong-heading call**: Curl called at heading=0°; post_corner called at t=0.8s during Phase 1. QB bearing injection fixed ball-in-air facing; call-time heading validation still missing.
+- **N7 — CB over-commits to fake**: "Confirmed cut" declared after 2–3 steps, no hedge for double-move.
+- **N8 — CB geometric hallucinations**: Invents WR lateral drift that isn't in position data.
+- **QB pass1 truncation (slant)**: 3 parse errors from truncated (not malformed) JSON — token limit issue on pass1, not fixed by JSON system-prompt enforcement.
+- **S2 — CB template-lock**: Boilerplate hold reasoning every route.
 - **detected_cut_t**: Still misfires on jabs (P3).
 - **CB intent variety**: C3 not addressed.
 
@@ -83,6 +80,7 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - Round 6 partial (post CB redesign): slant_42 → PBU sep=1.24 (vs Run 5 DROP sep=4.83)
 - Round 7 (post physics overhaul, gpt-5-nano): 3C/1D/3PBU/1INC/1INT/1SACK — down from Round 5
 - Round 8 (Ollama qwen3:8b, 6 of 10 new; 4 errored): **1C/2D/3PBU** (new routes); 3C/2D/4PBU/1INT (all 10)
+- Round 9 (GPT-5-nano, all 10 routes, post-encoding+JSON+geometry fixes): **2C/3D/4PBU/1INT** — comeback+in converted; post_corner regressed
 
 ## Not Started
 B–E phases

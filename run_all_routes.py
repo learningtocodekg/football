@@ -7,7 +7,12 @@ Usage:
     python run_all_routes.py --routes go curl slant  # specific routes only
 """
 import argparse
+import io
 import sys
+
+if hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
 from pathlib import Path
 from sim.runner import run_play
 
