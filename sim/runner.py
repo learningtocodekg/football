@@ -52,6 +52,9 @@ def _build_attrs(row: dict) -> PlayerAttrs:
     return PlayerAttrs(**{k: v for k, v in row.items() if k not in skip})
 
 
+# TODO S4: Verify agents are citing cut_recovery in their reasoning.
+# Log lines tagged [CUT_REC] show when recovery fires. If agents aren't reacting,
+# check that cb_system.txt and wr_system.txt have the right prompts.
 def _player_snap(pid: str, state: PlayerState, action: dict) -> dict:
     return {
         "id": pid,
@@ -59,6 +62,7 @@ def _player_snap(pid: str, state: PlayerState, action: dict) -> dict:
         "heading": round(state.heading, 1),
         "facing": round(state.facing, 1),
         "speed": round(state.speed, 2),
+        "cut_recovery": state.cut_recovery,
         "mode": state.mode,
         "action": action.get("action", ""),
         "reasoning": action.get("reasoning", ""),
@@ -378,6 +382,10 @@ def run_play(
                         obs, states["QB"].x, states["QB"].y,
                         wr_x=states["WR1"].x, wr_y=states["WR1"].y,
                         wr_heading=states["WR1"].heading, wr_speed=states["WR1"].speed,
+                        wr_cut_recovery=states["WR1"].cut_recovery,
+                        wr_max_speed=attrs["WR1"].max_speed,
+                        cb_x=states["CB1"].x if "CB1" in states else None,
+                        cb_y=states["CB1"].y if "CB1" in states else None,
                     )
                 actions["QB"] = qb_action
                 p1 = qb_action.get("pass1")
@@ -400,9 +408,10 @@ def run_play(
                     telemetry["throw_t"] = t
                     telemetry["throw_distance"] = round(dist, 1)
                     phase = PlayPhase.BALL_IN_AIR
+                    actions["QB"] = {"action": "hold", "reasoning": "ball in air"}
 
             # ── CB movement (A2 mode) ────────────────────────────────────
-            if cb_agent is not None and "CB1" in states and t >= 0.3:
+            if cb_agent is not None and "CB1" in states and t >= 0.0:
                 cb_obs = build_cb_observation(
                     t, states["CB1"], attrs["CB1"], states["WR1"], ball,
                     wr_history=move_history, ball_total_eta=ball_total_eta,
@@ -507,6 +516,12 @@ def run_play(
         # CB movement (A2 mode)
         if cb_agent is not None and "CB1" in states and "heading" in actions.get("CB1", {}):
             states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT)
+
+        # ── cut_recovery transition logging (move_history[-1] = prev step) ──
+        if states["WR1"].cut_recovery > 0 and (not move_history or move_history[-1].get("wr_cut_rec", 0) == 0):
+            print(f"  t={t:.1f}  [CUT_REC] WR entered {states['WR1'].cut_recovery}-step recovery")
+        if "CB1" in states and states["CB1"].cut_recovery > 0 and (not move_history or move_history[-1].get("cb_cut_rec", 0) == 0):
+            print(f"  t={t:.1f}  [CUT_REC] CB entered {states['CB1'].cut_recovery}-step recovery")
 
         move_history.append({
             "t": t,

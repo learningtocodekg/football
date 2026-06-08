@@ -60,14 +60,15 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
 ## Known Issues
-- **New physics untested end-to-end** — smoke tests pass, no full run yet
-- **Speed shed (80%) / recovery base (4 steps)** — tuning values, may need adjustment after first run
-- **WR note hallucination**: WR writes "fake completed" after 1 step. Needs simulation-side step count injection.
-- **QB throws too quickly post-call**: Will new QB prompt (burst/recovery scenarios) improve timing? Unknown.
-- **WR calls pre-cut**: heading gate suppresses worst cases; prompt guides the rest. Still a risk.
-- **CB intent almost always "swat"** — intent variety untested.
-- **detected_cut_t**: Still misfires on jabs, two-step persistence check helps but imperfect.
-- CB pre-snap alignment not varying by route type.
+- **Round 8 not run yet** — all fixes applied, no results
+- **Speed shed (80%) / recovery base (4 steps)** — tuning values, may need adjustment after next run
+- **WR note hallucination (partially fixed)**: NOTE GROUNDING RULE added to prompt; runtime step-count injection not added
+- **CB observation lateral gap**: CB must compute |WR.x - CB.x| itself; not pre-computed in observation
+- **detected_cut_t**: Still misfires on jabs (P3), two-step persistence helps but imperfect
+- **CB intent variety**: C3 (intent not position-aware) not addressed
+- **CB speed ceiling**: C4 (locked at 6.75 in backpedal) not addressed
+- **QB go-route freelance**: Q1 intentionally left — user confirmed QB throwing without WR call is fine
+- **S4 TODO in runner.py**: Verify agents are citing cut_recovery in reasoning after next run
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT
@@ -76,7 +77,8 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - Round 4 (OpenAI gpt-5-nano): **4C/2D/3PBU/1INT** ← best full-run score
 - Round 5 (OpenAI gpt-5-nano, post P-NEW + blacklist + ball-in-air fixes): 4C/1D/2PBU/1INC/1INT
 - Round 6 partial (post CB redesign): slant_42 → PBU sep=1.24 (vs Run 5 DROP sep=4.83)
-- Round 7: NOT RUN YET — post physics overhaul
+- Round 7 (post physics overhaul): 3C/1D/3PBU/1INC/1INT/1SACK — down from Round 5
+- Round 8: NOT RUN YET — post 17-fix session (WR/CB/QB prompts + code fixes)
 
 ## Not Started
 B–E phases

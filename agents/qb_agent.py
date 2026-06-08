@@ -29,6 +29,10 @@ def _build_options(
     wr_speed: float,
     min_mph: float,
     max_mph: float,
+    wr_cut_recovery: int = 0,
+    wr_max_speed: float = 9.5,
+    cb_x: float | None = None,
+    cb_y: float | None = None,
 ) -> tuple[list[dict], str]:
     """Generate throw options at the target, showing where the WR will actually be at arrival."""
     tx, ty = target
@@ -36,22 +40,57 @@ def _build_options(
     if dist < 0.01:
         dist = 0.01
 
+    recovery_time = wr_cut_recovery * 0.1  # seconds the WR is still rebuilding speed
+
     options = []
     for label, frac in OPTION_SPEEDS:
         mph = min_mph + frac * (max_mph - min_mph)
         eta = dist / (mph * MPH_TO_YDS_S)
-        # Project WR forward by eta using current heading/speed
+        # Project WR forward by eta using current heading/speed (constant-speed estimate)
         wr_proj_x = wr_x + math.sin(math.radians(wr_heading)) * wr_speed * eta
         wr_proj_y = wr_y + math.cos(math.radians(wr_heading)) * wr_speed * eta
         wr_offset = math.hypot(tx - wr_proj_x, ty - wr_proj_y)
-        options.append({
+
+        opt = {
             "label": label,
             "target": [round(tx, 1), round(ty, 1)],
             "mph": round(mph, 1),
             "eta": round(eta, 2),
             "wr_at_arrival": [round(wr_proj_x, 1), round(wr_proj_y, 1)],
             "wr_offset": round(wr_offset, 1),
-        })
+        }
+
+        # ── Recovery-aware projection: WR rebuilds to max speed during flight ──
+        if wr_cut_recovery > 0:
+            if eta <= recovery_time:
+                # Entire flight is during recovery — current speed is the estimate
+                rec_proj_x, rec_proj_y = wr_proj_x, wr_proj_y
+            else:
+                # Phase 1: recovery_time seconds at current (slow) speed
+                mid_x = wr_x + math.sin(math.radians(wr_heading)) * wr_speed * recovery_time
+                mid_y = wr_y + math.cos(math.radians(wr_heading)) * wr_speed * recovery_time
+                # Phase 2: remaining time at recovered max speed
+                free_time = eta - recovery_time
+                rec_proj_x = mid_x + math.sin(math.radians(wr_heading)) * wr_max_speed * free_time
+                rec_proj_y = mid_y + math.cos(math.radians(wr_heading)) * wr_max_speed * free_time
+            opt["wr_at_arrival_recovered"] = [round(rec_proj_x, 1), round(rec_proj_y, 1)]
+            opt["wr_offset_recovered"] = round(math.hypot(tx - rec_proj_x, ty - rec_proj_y), 1)
+
+        # ── CB context relative to the landing zone ──────────────────────────
+        if cb_x is not None and cb_y is not None:
+            cb_to_land = math.hypot(tx - cb_x, ty - cb_y)
+            wr_to_land = wr_offset
+            if cb_y > ty + 1.0:
+                opt["cb_context"] = "CB in throw lane"
+            elif cb_to_land < wr_to_land:
+                opt["cb_context"] = "CB may contest"
+            else:
+                opt["cb_context"] = "CB behind WR"
+
+        options.append(opt)
+
+    show_recovery = wr_cut_recovery > 0
+    show_cb = cb_x is not None and cb_y is not None
 
     lines = [
         "  label     land at         mph    flight   WR will be at arrival    offset from ball",
@@ -64,8 +103,31 @@ def _build_options(
             f"{o['mph']:.0f} mph   {o['eta']:.2f}s   "
             f"({o['wr_at_arrival'][0]:.1f},{o['wr_at_arrival'][1]:.1f})   {catchable}"
         )
+        if show_recovery:
+            rec = o["wr_at_arrival_recovered"]
+            rec_catchable = "CATCHABLE" if o["wr_offset_recovered"] <= 1.3 else f"MISS by {o['wr_offset_recovered']}yd"
+            lines.append(
+                f"            w/ accel (recovery): WR at ({rec[0]:.1f},{rec[1]:.1f})   {rec_catchable}"
+            )
+        if show_cb:
+            lines.append(f"            CB_CONTEXT: {o['cb_context']}")
     lines.append("")
-    lines.append("NOTE: WR projection uses current heading/speed — if a cut is pending, actual position will differ.")
+    if show_recovery:
+        if recovery_time > 0:
+            lines.append(
+                f"NOTE: WR is in cut_recovery ({wr_cut_recovery} steps ≈ {recovery_time:.1f}s) — "
+                "the 'current speed' row assumes the WR stays slow; the 'w/ accel (recovery)' row assumes "
+                "the WR rebuilds to max speed after recovery ends. The truth is between them; trust 'w/ accel' "
+                "for longer flights, 'current speed' for very fast throws."
+            )
+    else:
+        lines.append("NOTE: WR projection uses current heading/speed — if a cut is pending, actual position will differ.")
+    if show_cb:
+        lines.append(
+            "CB_CONTEXT: 'CB in throw lane' = CB body is between QB and landing zone (a flat throw risks a tip — "
+            "use more arc or a different target). 'CB may contest' = CB is closer to the landing spot than the WR. "
+            "'CB behind WR' = throw hard and fast, the CB cannot catch up."
+        )
     return options, "\n".join(lines)
 
 
@@ -89,7 +151,9 @@ class QBAgent:
 
     def decide(self, observation: str, qb_x: float, qb_y: float,
                wr_x: float = 0.0, wr_y: float = 0.0,
-               wr_heading: float = 0.0, wr_speed: float = 0.0) -> dict:
+               wr_heading: float = 0.0, wr_speed: float = 0.0,
+               wr_cut_recovery: int = 0, wr_max_speed: float = 9.5,
+               cb_x: float | None = None, cb_y: float | None = None) -> dict:
         system = _SYSTEM_PROMPT
 
         # ── Pass 1: read the field ───────────────────────────────────────
@@ -112,7 +176,9 @@ class QBAgent:
         options, options_text = _build_options(
             p1["target_area"], qb_x, qb_y,
             wr_x, wr_y, wr_heading, wr_speed,
-            self.min_mph, self.max_mph
+            self.min_mph, self.max_mph,
+            wr_cut_recovery=wr_cut_recovery, wr_max_speed=wr_max_speed,
+            cb_x=cb_x, cb_y=cb_y,
         )
         pass2_prompt = _PASS2_TEMPLATE.replace("{options_block}", options_text)
         raw2 = call_llm(system, observation + "\n\n" + pass2_prompt,

@@ -57,6 +57,13 @@ def call_llm(
     resp = client.chat.completions.create(**kwargs)
     msg = resp.choices[0].message
     content = msg.content or ""
+
+    # Retry once if content is empty
+    if not content.strip():
+        resp = client.chat.completions.create(**kwargs)
+        msg = resp.choices[0].message
+        content = msg.content or ""
+
     # qwen3 via Ollama sometimes puts the answer only in model_extra["reasoning"]
     # when thinking mode triggers and content ends up empty
     if not content and provider == "ollama":

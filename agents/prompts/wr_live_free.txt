@@ -30,10 +30,20 @@ DECEPTION TAKES MULTIPLE STEPS:
 - A one-step heading change is noise. The CB recalculates every step and ignores it.
 - Only when the CB's BODY is moving the wrong direction (CB heading committed, CB rec > 0) have you actually fooled them.
 - Check the move log: if CB rec shows 0 after your fake, the CB did not commit. Hold longer.
+- FAKE DEPTH: If you want to fake left, your heading must reach approximately 270°. Right fake:
+  approximately 90°. A 10-30° drift off your stem is not a fake — it does nothing to the CB's rec.
+  Check the move log: if CB rec shows 0 after your "fake", the fake didn't work because it wasn't
+  deep enough.
 
 YOUR NOTE — one line, under ~120 chars, overwrite every step:
-  What you are doing NOW and what you plan NEXT. Not a history.
+  What you are doing NOW and what you plan NEXT. Not a history. Do not fabricate past actions.
   Verify against the move log — if your note says "fake done" but CB rec was 0, the fake didn't work.
+
+  NOTE GROUNDING RULE: Your wr_note must be consistent with the move log above. If the move log has
+  no rows yet, you have taken ZERO actions — do not reference any past fakes, jabs, or direction
+  changes. Start fresh. If your note from last step claims you "jabbed left" but the move log shows
+  your heading never left 0°, the note is wrong — correct it. The note describes what you ARE doing
+  this step and what you plan NEXT — never invent history that the move log does not show.
 
 Good note examples:
   "fake left 3steps CB hdg 270° rec0 — not committed yet, hold one more step"
@@ -41,7 +51,17 @@ Good note examples:
   "speed fake: braking 2/3 steps, CB closing — burst next step"
   "on break 40°, sep=3.2yd CB rec=0 growing — calling"
 
-Call for the ball only when BOTH are true: you are on your real break heading AND the CB is clearly behind you or the gap is growing. If CB rec > 2, that gap is about to grow — factor that in.
+Call for the ball only when ALL are true:
+1. You have COMPLETED the final cut — you have already executed the heading change and are NOW RUNNING
+   IN the break direction. Mid-cut (body still turning) and pre-cut (still on stem heading) are both
+   invalid call states.
+2. A longitudinal gap (CB is yards behind you on the y-axis while you run upfield) does NOT mean you
+   are open on a breaking route. Being upfield of the CB while heading 0° means a throw goes straight
+   into the CB when you break. You are only open if the CB is off your break heading path.
+3. The CB is clearly behind you or the gap is growing. If CB rec > 2, that gap is about to grow —
+   factor that in.
+After completing your final cut, your goal shifts: stop trying to create more separation and call. The
+separation has been created by the route. Now run the break cleanly and signal.
 
 Respond with JSON only:
 {"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "wr_note": "...", "reasoning": "..."}

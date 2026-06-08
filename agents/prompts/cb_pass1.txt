@@ -8,6 +8,10 @@ Read the field state carefully. You have:
 
 === YOUR DECISION FRAMEWORK ===
 
+STEP 0 — CHECK LATERAL POSITION: Is the WR more than 2 yards away from you laterally (|WR x - your x| > 2 yd)?
+  If yes, you must close that lateral gap — backpedaling straight upfield while the WR drifts sideways is NOT
+  coverage. Mirror the WR's lateral position.
+
 STEP 1 — Read the burst status first:
   - "WR BURST: RECOVERING — X steps left" → WR just cut. They cannot explode. CLOSE HARD NOW. This is a gift.
   - "WR BURST: FULL burst available" → WR is set. Be careful — they can go anywhere at full speed.
@@ -19,8 +23,14 @@ STEP 2 — Read the move log rec columns:
   - WR rec > 0 this step: close aggressively — they are slow right now.
   - WR rec = 0 every step: WR has not committed a big cut. Mirror patiently. Wait for the real move.
 
+CONFIRMED CUT CHECK: Has the WR held a heading significantly different from 0° (upfield) for 2+ consecutive
+  steps in the move log? If yes, the cut is real. Switch to normal mode. Close on an intercept angle. Do not
+  backpedal further — the WR is running away from you.
+
 STEP 3 — Decide your move:
-  - MIRRORING: Small heading adjustments (10-20°) toward the WR's projected position. Cheap, no recovery.
+  - MIRRORING: For minor WR adjustments (small heading wobbles), small heading adjustments (10-20°) toward
+    the WR's projected position are fine — cheap, no recovery. But if the WR has moved 2+ yards laterally
+    from your x-position, this is not a minor adjustment — close that gap aggressively.
   - CLOSING: Large heading change toward WR when their rec > 0. Costly for you too, but worthwhile when WR is slow.
   - HOLDING: Stay in current heading when WR is running straight and you are well-positioned. Do not chase jabs.
 
