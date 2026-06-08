@@ -60,15 +60,19 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
 ## Known Issues
-- **Round 8 not run yet** — all fixes applied, no results
-- **Speed shed (80%) / recovery base (4 steps)** — tuning values, may need adjustment after next run
-- **WR note hallucination (partially fixed)**: NOTE GROUNDING RULE added to prompt; runtime step-count injection not added
-- **CB observation lateral gap**: CB must compute |WR.x - CB.x| itself; not pre-computed in observation
-- **detected_cut_t**: Still misfires on jabs (P3), two-step persistence helps but imperfect
-- **CB intent variety**: C3 (intent not position-aware) not addressed
-- **CB speed ceiling**: C4 (locked at 6.75 in backpedal) not addressed
-- **QB go-route freelance**: Q1 intentionally left — user confirmed QB throwing without WR call is fine
-- **S4 TODO in runner.py**: Verify agents are citing cut_recovery in reasoning after next run
+- **Windows console encoding bug**: Unicode chars (`°`, `→`, `≥`) in print statements crash stdout with charmap codec on Windows. 4/10 routes errored in Round 8 run. Fix: set `PYTHONIOENCODING=utf-8` before running or wrap prints in try/except.
+- **N2 — WR wrong route shape**: WR ignores route geometry on 6/10 routes; defaults to generic fake-then-break. Needs per-phase heading context injected in observation.
+- **N3 — WR facing hallucination**: WR computes QB bearing as cardinal direction instead of from actual (x,y). Must inject bearing as a computed value.
+- **N4 — WR phantom CB rec trigger**: WR waits for "CB rec > 0" which is not in WR's observation. Needs observable proxy (CB heading delta).
+- **N5 — WR escalation loop**: No step counter on current heading; WR loops fake indefinitely. Inject step count from simulation side.
+- **N1/S6 — Parse error rate 10–25%** with qwen3:8b. No JSON-mode enforcement available via Ollama.
+- **N6 — QB 1-step delay**: QB needs to throw same step as WR call on short-window plays. Parse error at critical step caused double_move PBU.
+- **N7 — CB over-commits to fake**: CB declares "confirmed cut" after 2–3 steps with no hedge for double-move structure.
+- **S2 — CB template-lock**: Boilerplate hold reasoning 7–20 steps every route. Different form than Round 7 but same pattern.
+- **W1 — WR premature call**: Still calling before completing cut on in, zig.
+- **W2 — WR wrong facing post-call**: Facing hallucination during ball flight (N3).
+- **detected_cut_t**: Still misfires on jabs (P3).
+- **CB intent variety**: C3 not addressed.
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT
@@ -77,8 +81,8 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - Round 4 (OpenAI gpt-5-nano): **4C/2D/3PBU/1INT** ← best full-run score
 - Round 5 (OpenAI gpt-5-nano, post P-NEW + blacklist + ball-in-air fixes): 4C/1D/2PBU/1INC/1INT
 - Round 6 partial (post CB redesign): slant_42 → PBU sep=1.24 (vs Run 5 DROP sep=4.83)
-- Round 7 (post physics overhaul): 3C/1D/3PBU/1INC/1INT/1SACK — down from Round 5
-- Round 8: NOT RUN YET — post 17-fix session (WR/CB/QB prompts + code fixes)
+- Round 7 (post physics overhaul, gpt-5-nano): 3C/1D/3PBU/1INC/1INT/1SACK — down from Round 5
+- Round 8 (Ollama qwen3:8b, 6 of 10 new; 4 errored): **1C/2D/3PBU** (new routes); 3C/2D/4PBU/1INT (all 10)
 
 ## Not Started
 B–E phases

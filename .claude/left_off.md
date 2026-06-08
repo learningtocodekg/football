@@ -1,51 +1,58 @@
 # Left Off
-Date: 2026-06-07
+Date: 2026-06-08
 
 ## What We Worked On
-Full round 7 post-mortem. problems.md had 19 issues from a 10-route run (3C/1D/3PBU/1INC/1INT/1SACK). Analyzed all of them, planned 4 parallel sub-agents to fix them, and dispatched.
+Round 8 run with Ollama qwen3:8b (all 10 routes), parallel subagent analysis of all 10 replay JSONs, and synthesis into problems.md.
 
 ## What Got Done
 
-### WR Prompts (S1, W1, W2, W3, W4)
-- **S1 NOTE GROUNDING**: Added explicit rule to `wr_live_free.txt` — wr_note must be verified against the move log; if log is empty, no actions have occurred, do not fabricate history. Breaks the t=0.0 hallucination feedback loop.
-- **W1 call criteria**: Strengthened in both `wr_system.txt` and `wr_live_free.txt` — call only after completing the final cut (not mid-cut or on stem); longitudinal gap ≠ open on breaking route.
-- **W2 post-call lock**: Made absolute in `wr_live_committed.txt` — no heading changes between call and catch, no exceptions before ball is in air.
-- **W3 route fidelity**: Added "THE ROUTE IS YOUR DECEPTION TOOL" section to `wr_system.txt` — route phases are the geometric setup, not suggestions.
-- **W4 jab depth**: Added explicit minimum (60–90° off stem) and compass anchors (~270° left / ~90° right) to `wr_system.txt` and `wr_live_free.txt`.
+### Round 8 Ollama Run
+- Ran `python run_all_routes.py --ollama --seed 42` overnight (~6 hours).
+- **6 routes completed cleanly**: comeback (DROP), go (DROP), double_move (PBU), curl (PBU), zig (PBU), post_corner (CATCH).
+- **4 routes errored** mid-run: slant, drag, corner, in — caused by Windows console encoding bug (Unicode chars like `°` and `→` in print statements crash stdout with charmap codec). Replay JSONs for these 4 are from Round 7.
+- Round 8 score (6 new routes): **1C / 2D / 3PBU**
 
-### CB Prompts (S2, C1, C2)
-- **DANGER MODEL**: Added to `cb_system.txt` — 3+ yd separation on break heading + ball in air = catch. CB now has a failure anchor.
-- **LATERAL MIRRORING**: Backpedal only when WR is heading ~0° (approaching). If WR x drifts 1–2 yd away, close laterally.
-- **FLIP TRIGGER**: After confirmed cut (heading held 2+ steps), flip to normal mode immediately, close at full speed.
-- **STEP 0** added to `cb_pass1.txt` decision framework: check lateral gap before anything else.
-- **CONFIRMED CUT CHECK**: If WR held non-upfield heading 2+ steps, close hard.
+### Analysis
+- Dispatched 10 subagents in parallel, one per route, each reading its replay JSON and assessing WR/CB/QB performance.
+- Synthesized all 10 reports into `problems.md` — full replacement with Round 8 findings, old Round 7 analysis moved to appendix.
 
-### QB Agent (Q2, Q3)
-- **_build_options** now takes `wr_cut_recovery`, `wr_max_speed`, `cb_x`, `cb_y`.
-- **Recovery-aware projection**: When WR is in cut_recovery, shows two WR-at-arrival estimates: current speed (conservative) and projected rebuilt speed (optimistic). Previously assumed constant speed, which caused post-cut lead errors.
-- **CB context flag**: Each option now tagged `CB in throw lane` / `CB may contest` / `CB behind WR`.
-- **runner.py** passes the 4 new args to `qb_agent.decide()`.
-- **qb_pass2.txt** updated with guidance on reading recovery range and CB flags.
+### problems.md Updated
+- 3 issues marked FIXED (S3, S4, S5)
+- 8 new issues added (N1–N8)
+- All old issues updated with Round 8 evidence
 
-### Code Fixes (S3, S4, S5, S6)
-- **S3**: Removed `t >= 0.3` guard in `runner.py` — CB now acts from step 1 (was a hardcoded code gate, not a prompt issue).
-- **S4**: `cut_recovery` added to `_player_snap()` — now appears in replay JSON. `[CUT_REC]` transition logs added. `# TODO S4` tracking comment in runner.py.
-- **S5**: `actions["QB"] = {"action": "hold", "reasoning": "ball in air"}` set immediately after throw — replay no longer shows stale throw reasoning for every in-air step.
-- **S6**: Empty-response retry added to `call_llm` — retries once if content is whitespace/empty.
+## What's Fixed (confirmed R8)
+- **S3**: CB freeze removed — CB acts from t=0.0. Confirmed every R8 route.
+- **S4 / P1**: cut_recovery field in replay JSON — agents cite it and act on it. WR on double_move / zig / post_corner correctly waited for CB rec > 0 before breaking.
 
-## What's Open / Known Issues
-- **None of these fixes have been run yet** — no Round 8 data
-- C3 (CB intent not position-aware), C4 (CB speed locked 6.75), P3 (detected_cut_t fires on jabs) not addressed
-- Q1 (QB throws without WR call on go route) — intentionally left: user said QB freelancing is fine
-- S4 TODO: next run will show if agents are actually citing cut_recovery in reasoning
-- CB observation still doesn't pre-compute the lateral gap as an explicit field — CB must subtract x-coords itself (noted by CB agent as a possible improvement)
+## What's Open / Broken
+
+### New Critical Issues
+- **N1 (=S6)**: Parse errors 10–25% per agent with qwen3:8b. No JSON mode available via Ollama. Failures land at worst moments (WR call step, pre-throw step).
+- **N2**: WR executes wrong route shape on 6/10 routes (go ran a fake-cut, slant ran a seam, in ran a fly, zig body headed 180° instead of 90°, curl became a lateral drift, drag ran a sideline route). WR has freedom to choose deception but treats every route as "fake-then-break" regardless of shape.
+- **N3**: WR facing hallucination during ball flight — computes QB bearing as a cardinal direction instead of actual coordinates. Comeback dropped (facing=71° instead of ~180°), zig PBU'd (body headed 180° toward CB), post_corner p_catch depressed (facing=270° instead of ~143°).
+- **N4**: WR's CB-commit trigger ("wait for CB rec > 0") references a field that isn't in WR's observation space. WR infers from CB heading changes but the inference is unreliable.
+- **N5**: WR has no escalation counter — loops fake indefinitely. Comeback: 16-step lateral drift. Curl: 9-step lateral drift (5.5 yards). Each step the cheap fake beats the real cut commitment.
+- **N6**: QB one-step delay costs completions. Double_move: max sep=5.02 yd at t=0.8, threw at t=1.1 (parse error at t=1.0). CB closed from 3.7 to 0.58 yd. PBU.
+- **N7**: CB over-commits to fake direction after N consecutive steps. "Confirmed cut" declared after 2–3 steps; no hedge for double-move. No route anticipation at any step.
+- **N8**: CB geometric hallucinations — invents WR lateral drift that doesn't exist in position data (post_corner t=0.2: x frozen at 16.0, CB responds to "drift").
+
+### Persisting from Round 7
+- W1: WR calls before completing cut (in, zig)
+- W2: WR heading/facing wrong post-call (comeback, zig, post_corner)
+- W3: WR wrong route shape (see N2)
+- S2: CB template-lock reasoning
+- Q4: QB boilerplate hold ("route developing" / "WR hasn't called") for 7–20 steps every route
+
+### Windows encoding bug (blocks future runs)
+- `print()` in runner.py crashes on Unicode chars (`°`, `→`, `≥`) with Windows charmap. Need to either: wrap prints in try/except, or set `PYTHONIOENCODING=utf-8` as env var before running.
 
 ## NEXT STEP
-**Run Round 8** (all 10 routes) and compare against Round 7 scorecard (3C/1D/3PBU/1INC/1INT/1SACK). Look specifically for:
-1. CB starting to move at t=0.0 (no more 3-step freeze)
-2. `[CUT_REC]` log lines appearing in output — confirms physics is logging
-3. WR not outputting "jabbed left last step" at t=0.0
-4. CB heading changing laterally during stem phase (not pure 0°)
-5. QB options table showing two WR projections when cut_recovery > 0
+**Fix Windows console encoding bug first** (so all 10 routes can complete in Round 9):
+- Option A: `set PYTHONIOENCODING=utf-8 && python run_all_routes.py --ollama`
+- Option B: add `sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')` in run_all_routes.py
 
-Run: `.venv\Scripts\python run_all_routes.py`
+Then tackle the highest-impact open issues:
+1. **N2 (WR wrong route shape)** — inject explicit per-phase heading constraints into WR observation (not as prescriptions, as context: "this is a go route: no cut, straight upfield, call when open and fast").
+2. **N3 (WR facing hallucination)** — inject QB bearing explicitly as a computed value in the observation so the WR doesn't estimate it.
+3. **N5 (WR escalation loop)** — inject step count on current heading from simulation side so WR can't miscount ("you have been on heading 270° for 9 consecutive steps").
