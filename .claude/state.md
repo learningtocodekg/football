@@ -59,25 +59,33 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - `_cb_situation()` emits a lean `GEOMETRY:` block: separation, bearing, WR projected pos in 0.5s, intercept bearing
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
-## Known Issues (post-Round 11)
-- **WR call trigger fires on any CB recovery — not just genuine hip commit (CRITICAL)**: CB making a minor tracking adjustment enters 1-step recovery → WR immediately calls, cutting stem 40-80% short. The WR needs to distinguish genuine hip-commit (CB heading away from final break direction) from a tracking wobble.
-- **Multi-phase routes: terminal phase always skipped**: On double_move, zig, post_corner, in — WR calls on intermediate phase, final break never executes. WR treats "first cut = catch heading."
-- **Break direction wrong on some routes**: Comeback: 270° instead of 180°. Corner: improvised 270° fake instead of ~90° inside fake. Post_corner: called at 45° (fake) not 315° (terminal).
-- **qwen3:8b CB parse errors**: 3-6 per route, inflating some WR separation numbers (in route: 7.7 yd from CB failure, not WR execution).
-- **Drag call timing self-defeating**: Calling at the cut triggers WR recovery → QB waits → CB closes. Should call 0.1s before the break.
-- **detected_cut_t still misfires on jabs (P3)**: Unchanged.
+## Known Issues (post-Round 12 full run)
+
+### WR — mostly fixed
+- **post_corner INCOMPLETE**: Window A fires before terminal 315° break. WR calls at intermediate 45° heading, heading locks, terminal break never executes. Window A should only fire when no more cuts remain.
+- **curl INCOMPLETE**: WR correct (called heading=180° after full stem). QB targeting bug — throws to y=68.4 behind a WR already at y≈67.5 running back toward QB (heading=180° = decreasing y). QB misprojects 180° heading as increasing y.
+- **slant PBU**: Full stem (t=2.2), CB still swats at 1.08 yd. Likely irreducible geometry.
+
+### CB — BROKEN (critical)
+- **Always swat intent** (10/10 routes). Repeatedly admits arm tip is 3-5 yd from ball path, still picks swat. Never picks play_man even at close range. CB is a passive observer during ball flight.
+- **Always 5 yd off-coverage** pre-snap. Never presses regardless of route type.
+- **Self-induces recovery** from minor tracking adjustments (2-4 times per route), killing closing burst at the worst moments.
+- **Patience doctrine → passivity**: CB was broken before but masked by WR failures. WR now executes clean routes → CB weaknesses fully exposed.
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT
 - Round 2 (Ollama qwen3:8b, post-fix): 2C/5D/1INC/1INT
 - Round 3 (OpenAI gpt-5-nano): 2C/6D/1PBU/1INT
-- Round 4 (OpenAI gpt-5-nano): **4C/2D/3PBU/1INT** ← best full-run score
+- Round 4 (OpenAI gpt-5-nano): **4C/2D/3PBU/1INT**
 - Round 5 (OpenAI gpt-5-nano, post P-NEW + blacklist + ball-in-air fixes): 4C/1D/2PBU/1INC/1INT
 - Round 6 partial (post CB redesign): slant_42 → PBU sep=1.24 (vs Run 5 DROP sep=4.83)
 - Round 7 (post physics overhaul, gpt-5-nano): 3C/1D/3PBU/1INC/1INT/1SACK — down from Round 5
 - Round 8 (Ollama qwen3:8b, 6 of 10 new; 4 errored): **1C/2D/3PBU** (new routes); 3C/2D/4PBU/1INT (all 10)
-- Round 9 (GPT-5-nano, all 10 routes, post-encoding+JSON+geometry fixes): **2C/3D/4PBU/1INT** — comeback+in converted; post_corner regressed
+- Round 9 (GPT-5-nano, all 10 routes, post-encoding+JSON+geometry fixes): **2C/3D/4PBU/1INT**
 - Slant-only focused session (post-separation-redesign + call-timing + parse fix): slant_42 → **CATCH sep=2.07 yd**, 0 parse errors
+- Round 10 (GPT-5-nano, post obs overhaul): 4C/1INC/5PBU
+- Round 11 (Ollama qwen3:8b, post call-timing overhaul): **7C/3PBU**
+- Round 12 (GPT-5-nano, post CB-rec quality check + phase gate): **7C/1PBU/2INC** ← best GPT score
 
 ## Not Started
 B–E phases
