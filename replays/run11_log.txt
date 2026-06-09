@@ -1,0 +1,752 @@
+
+============================================================
+ROUTE: slant  |  seed=42  ->  replays/slant_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The WR is slightly to the left of the CB's starting position. Aligning outside provides cushion while allowing the CB to react to outside routes. The CB's speed and coverage rating support off-coverage, balancing risk and reaction time.
+  WR pre-snap plan: CB is in a shaded position, inside and upfield, likely to mirror my movement. Th  | CB's inside shade means he'll try to stay in front, but the stem will force him to commit to covering me upfield. A sharp cut across the field will create separation as he can't recover in time. The 5yd initial gap gives room for the stem to deepen the coverage, setting up the break.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Commit CB's hips upfield with stem phase. Accelerate to maximize separation before final 45deg break. CB's full burst means body gap alone isn't enough - need hip commit before calling.
+  t=0.0  QB -> 'hold'    | route developing
+  t=0.0  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst. CB must close gap by adjusting heading slightly right (95°) to intercept angle while maintaining visual contact.
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB has full burst and hasn't reacted yet. Accelerate to build speed for the 45deg cut, which will create separation by committing CB's hips. Call just before the cut (Window A) to align QB's throw with the break.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=175deg facing=175deg mode=normal  | WR moving straight upfield requires mirroring their direction to maintain lateral alignment; adjusting heading to 175° aligns with projected path while preserving facing for play_man tracking.
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Maintain 0deg stem to commit CB's hips upfield. CB is already squared toward me (175deg heading) and can mirror movement. Need to run stem long enough to create separation before final 45deg cut. Accelerate to maximize distance while keeping CB engaged.
+  t=0.2  QB -> 'hold'    | route developing
+  [CB pass1 parse error] raw='To determine the optimal movement for the cornerback (CB) in this scenario, we analyze the spatial and directional dynam'
+  t=0.2  CB move   -> hdg=175deg facing=175deg mode=normal  | parse_error
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | In stem phase (0deg), CB is upfield/left with full burst. Must commit CB's hips via 14-yard stem before final 45deg cut. Accelerate to maximize speed for separation. Call only after cut confirms CB rec > 0.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=170deg facing=170deg mode=normal  | WR is moving straight upfield with full burst; adjust heading to intercept projected path while maintaining facing for play_man positioning
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | At t=0.4, I'm at snap position executing stem phase. CB is upfield (1.9yd gap) with full burst, mirroring my 0deg path. Must commit CB's hips upfield before final 45deg break. Accelerate to maintain speed, delay cut until t=2.0 to maximize stem deception.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=159deg facing=159deg mode=normal  | WR is moving straight upfield with full burst; adjust heading to intercept projected position while maintaining full burst capacity
+  t=0.5  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains mobile with full burst; must accelerate to maximize separation before 45° cut. Body gap alone isn't separation - need CB rec > 0 post-cut to confirm window.
+  t=0.5  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the CB is positioned to close the gap before the WR breaks to the right sideline.
+  t=0.5  CB move   -> hdg=10deg facing=10deg mode=normal  | WR is moving straight upfield with full burst; adjusting heading toward projected path to close gap before they escape
+  t=0.5  [CUT_REC] CB entered 2-step recovery
+  t=0.6  WR move   -> hdg=45deg facing=45deg throttle=accelerate [CALL FOR BALL]  | CB is hip-committed (rec=2) from prior stem phase. Final cut to 45deg creates separation. Call 0.1s pre-cut to ensure QB throws as break initiates, leveraging CB's restricted burst recovery.
+  t=0.6  WR called for the ball! heading=45deg
+  t=0.6  QB pass2  -> 'hold'    | CB is recovering with 2 steps left, and the WR hasn't called for the ball yet. The tight separation (1.52 yd) is contested, and the WR is facing away from the QB. Waiting for the WR to signal and the route to develop further will improve the window.
+  t=0.6  CB move   -> hdg=354deg facing=354deg mode=normal  | WR is moving straight upfield with full burst; adjust heading to intercept projected path while closing lateral gap
+  t=0.6  [CUT_REC] WR entered 1-step recovery
+  t=0.7  WR move   -> hdg=45deg facing=45deg throttle=accelerate  | Called for ball at 45°, QB is throwing to current path. Any heading change would run away from throw. Accelerate to position for catch while facing direction of travel.
+  t=0.7  QB pass1  -> thinking target=[17.1, 53.4] | WR is moving upfield-right while CB is recovering and heading back. Projected WR position aligns with open gap as CB cannot close quickly.
+  t=0.7  QB pass2  -> 'throw'   | The medium throw allows the WR to recover speed post-recovery while keeping the CB's closing distance limited, offering a contested but catchable window with optimal separation.
+  t=0.7  CB move   -> hdg=79deg facing=171deg mode=normal  | WR cut right and is in recovery (1 step left), allowing aggressive closing on projected path while maintaining facing toward WR for play_man intent
+  t=0.6  [WR cut confirmed] heading held at 45deg
+  CB intent -> 'swat'  | Arm tip is already within 0.6yd of landing zone (1.0yd reach) and facing is within 60? of ball path. Swat is feasible with minimal movement needed. Play_man requires closing 0.12yd in 0.18s (possible but risky), while interception needs 0.7yd reach (slightly further). Swat offers higher success probability with current positioning.
+  t=0.8  CB move   -> hdg=135deg facing=135deg mode=normal  | Ball in air requires facing landing zone (135°) to contest. WR's full burst demands proactive positioning despite lateral alignment.
+  t=0.8  WR (air)  -> hdg=45deg facing=117deg throttle=accelerate  | Maintain 45° heading to stay on QB's throw path. Adjust facing to 117° to track the ball's trajectory from QB. Accelerate to close 0.5yd gap before landing zone. Do not change heading risk missing catch. CB rec=0 but separation is already created via route.
+  t=0.9  CB move   -> hdg=132deg facing=132deg mode=normal  | Ball is in air and landing zone is within arm reach. Adjust heading and facing to directly contest the swat while closing the gap as WR moves upfield-right.
+  t=0.9  WR (air)  -> hdg=45deg facing=180deg throttle=coast  | Maintain heading 45° to stay on QB's throw path. Adjust facing to 180° to track ball from QB direction. Coasting ensures stable approach to landing zone without overshooting. CB is behind and cannot close due to prior cut recovery.
+
+  t=0.9  RESOLUTION -> PBU  sep=1.0yd
+Replay saved -> replays/slant_42.json  (10 steps)
+
+==================================================
+OUTCOME : PBU
+Telemetry: {'max_separation': 5.02, 'throw_t': 0.7, 'throw_distance': 11.0, 'sack': False, 'qb_calls': 4, 'qb_parse_errors': 0, 'wr_calls': 11, 'wr_parse_errors': 0, 'cb_calls': 12, 'cb_parse_errors': 1, 'cb_intent': 'swat', 'wr_call_t': 0.6, 'broken_play': False, 'detected_cut_t': 0.6}
+
+============================================================
+ROUTE: comeback  |  seed=42  ->  replays/comeback_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | 
+  WR pre-snap plan: CB is inside shade with 5yd cushion, will commit to mirroring my stem. The upfie  | Inside shade CB will prioritize cutting inside to stay in front. My stem will force him to turn his hips upfield, committing to recovery. By breaking back toward the sideline at ~2.5s, I'll create a gap as he's still recovering from the initial cut. The 5yd separation gives room for the stem to deepen the gap before the break.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Pre-snap cushion is not separation. Accelerate to build speed for stem, forcing CB to commit upfield. Cut to 180° at t=2.5s when CB is squared toward me, creating hips-committed window for break.
+  t=0.0  QB -> 'hold'    | route developing
+  t=0.0  CB move   -> hdg=174deg facing=174deg mode=normal  | WR is slightly to the right and behind; adjusting heading to face their direction for optimal positioning
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is committed to mirroring stem (174deg heading). Need to run stem fully to pull CB upfield and commit their hips. Final cut to 180deg will create separation once CB rec > 0. Call after break when gap peaks.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving upfield with full burst; adjust heading to 95° to mirror projected path and close gap before they gain separation
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Current stem phase (0deg) is committing CB's hips upfield. CB is inline and upfield with full burst, but stem drift will push him deeper. Must accelerate to maximize stem length before final 180deg break. Body gap alone isn't separation - need CB rec > 0 after cut. Do not call during stem; wait for CB hip commitment post-cut.
+  t=0.2  QB -> 'hold'    | route developing
+  t=0.2  CB move   -> hdg=175deg facing=175deg mode=normal  | WR moving straight upfield; adjust heading to face projected path and close lateral gap
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB is already squared toward me but has full burst. Need to maximize stem duration to create separation before final 180° cut. Accelerate to extend stem and force CB to commit weight upfield, creating window for break.
+  t=0.3  QB -> 'hold'    | route developing
+  [CB pass1 parse error] raw='The CB should adjust his heading to **95°**, facing **95°**, in **normal** mode. This maneuver allows the CB to close th'
+  t=0.3  CB move   -> hdg=175deg facing=175deg mode=normal  | parse_error
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains uncommitted (rec=free) despite stem; need full 5-step stem to lock CB hips upfield. Accelerate to maximize separation before 180° break. Call only after CB rec>0 confirms hip commitment.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=164deg facing=164deg mode=normal  | The WR is moving upfield at a faster speed than the CB. To prevent further separation, the CB must adjust heading to intercept the WR's projected position at bearing 164°, aligning with the WR's movement while maintaining coverage.
+  t=0.5  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Current stem phase (0deg) pulls CB upfield, committing their hips to mirror. CB remains uncommitted (rec=0) despite 1.2yd gap. Must accelerate to maximize stem depth before final 180deg break, ensuring CB's hips are locked wrong for break. Call only after break confirms CB rec>0.
+  t=0.5  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the CB is in position to cover. Wait for the WR to signal before throwing.
+  t=0.5  CB move   -> hdg=20deg facing=20deg mode=normal  | WR moving straight upfield with full burst; adjust heading toward projected path to close gap before they escape coverage
+  t=0.5  [CUT_REC] CB entered 2-step recovery
+  t=0.6  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is committed (rec=2 steps) from stem drift; must accelerate to maximize body gap before final break. Calling too early risks CB recovering burst. Wait for stem to commit hips fully before snapping break.
+  t=0.6  QB pass2  -> 'hold'    | CB is recovering with 2 steps left, reducing his ability to close the gap. WR hasn't called for the ball yet, and the route isn't fully developed. Wait for the WR to signal before throwing.
+  [CB pass1 parse error] raw='To determine the optimal movement for the cornerback (CB) in this scenario, we must analyze the spatial and directional '
+  t=0.6  CB move   -> hdg=20deg facing=20deg mode=normal  | parse_error
+  t=0.7  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB's burst is recovering (1 step left), creating window for 180deg break. Accelerate to maximize speed for final cut while maintaining body gap. Pre-snap cushion isn't separation - need CB's hips committed before breaking.
+  t=0.7  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and is facing away from QB with tight separation; CB is recovering and may not close gap in time
+  t=0.7  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst; CB must close gap while managing recovery by adjusting heading toward projected path
+  t=0.8  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | In stem phase (0deg), CB hips not committed. Must accelerate to maximize body gap before final break. CB's full burst available, so pre-snap gap irrelevant. Wait for stem to commit CB's hips wrong way before snapping.
+  t=0.8  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and current separation is 1.00 yd (contact range). CB has full burst and is positioned to close quickly if WR cuts. Wait for WR to signal before throwing.
+  t=0.8  CB move   -> hdg=347deg facing=347deg mode=normal  | Mirror WR's upfield trajectory while closing lateral gap to position for play_man
+  t=0.9  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB hips committed (rec=2 at t=0.5) but final break not yet executed. Must accelerate stem to maximize CB commitment before breaking. Call only after 180deg cut confirms CB rec > 0.
+  t=0.9  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and the route isn't fully developed. Current separation is too tight (1.00 yd) with CB in position to close quickly. Wait for WR's signal before throwing.
+  t=0.9  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst; CB must close lateral gap by adjusting heading left to intercept projected path
+  [WR live parse error] raw="**Answer:**  \nThe wide receiver (WR) should **call for the ball** now. Here's the reasoning:  \n\n1. **Positional Advantag"
+  t=1.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | parse_error
+  t=1.0  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route is still developing. CB is in position to close the gap quickly, and the contested separation makes it risky to throw early on 3rd down.
+  t=1.0  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst; CB maintains heading to mirror WR's path and stay aligned
+  t=1.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains uncommitted (rec=free) despite stem. Faking left (270deg) will force CB to adjust hips away from final 180deg break. Accelerate to maximize speed before committing to break.
+  t=1.1  QB pass2  -> 'hold'    | The WR has not called for the ball yet, and the current separation is contested. Waiting for the WR's cut and potential change in direction is critical to avoid a bad throw.
+  [CB pass1 parse error] raw='The cornerback (CB) should **maintain their current heading of 95°** to close the gap and position themselves to interce'
+  t=1.1  CB move   -> hdg=95deg facing=95deg mode=normal  | parse_error
+  t=1.2  WR move   -> hdg=180deg facing=180deg throttle=accelerate [CALL FOR BALL]  | CB hips are committed right (95deg) after stem, final 180deg break creates separation. Call immediately post-cut as CB rec >0 confirms hip commit, gap peaks now.
+  t=1.2  WR called for the ball! heading=180deg
+  t=1.2  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and is still running straight upfield. The CB is positioned to potentially close the gap after the WR's cut, which hasn't occurred yet.
+  t=1.2  CB move   -> hdg=343deg facing=343deg mode=normal  | Mirror WR's upfield trajectory with precise heading adjustment to intercept landing zone
+  t=1.2  [CUT_REC] WR entered 3-step recovery
+  t=1.2  [CUT_REC] CB entered 2-step recovery
+  t=1.3  WR move   -> hdg=270deg facing=180deg throttle=accelerate  | QB is throwing to current heading (270°). Must maintain heading to stay on trajectory. Facing 180° aligns with QB's position for optimal catch probability. Accelerate to close distance and position for the catch.
+  t=1.3  QB pass1  -> thinking target=[14.3, 56.7] | The WR is moving left toward the sideline, and the CB is recovering, leaving enough separation for a throw. Targeting where the WR will be when the ball arrives accounts for his movement.
+  t=1.3  QB pass2  -> 'throw'   | The bullet throw ensures the fastest flight time (0.19s) with a projected open separation of 3.5yd, leveraging the WR's recovery phase to maximize catch window while minimizing CB closure.
+  t=1.3  CB move   -> hdg=290deg facing=306deg mode=normal  | WR cut left and is in recovery (3 steps), closing lateral gap to intercept projected path
+  t=1.2  [WR cut confirmed] heading held at 270deg
+  CB intent -> 'swat'  | Facing the ball (306?) is within 60? of the ball's path (296?). PBU arm tip (1.0yd reach) is 2.8yd from landing zone, closer than INT's 3.2yd. With 0.19s ETA, I can adjust heading to align arm tip with ball path. Swatting offers better disruption chance than play_man (3.1yd separation too far for body contact). Prioritize swat to contest the catch.
+  t=1.4  CB move   -> hdg=288deg facing=288deg mode=normal  | WR in recovery, closing lateral gap to intercept ball while aligning arm for swat
+  t=1.4  WR (air)  -> hdg=270deg facing=127deg throttle=accelerate  | Hold heading 270° as per QB's throw trajectory. Adjust facing to 127° to face the ball's direction. Accelerate to ensure proximity to the landing zone without altering heading.
+  t=1.5  CB move   -> hdg=297deg facing=297deg mode=normal  | WR is recovering from a confirmed left cut (270°) and cannot burst. Lateral separation (2.8 yd) requires closing. Adjust heading/facing to 297° to intercept landing zone while maintaining full burst availability.
+  t=1.5  WR (air)  -> hdg=270deg facing=126deg throttle=accelerate  | Maintain heading 270° to stay on the QB's throw path. Adjust facing to 126° to directly face the QB for optimal catching position. Accelerate to reach the landing zone quickly without altering heading.
+
+  t=1.5  RESOLUTION -> CATCH  sep=3.26yd
+Replay saved -> replays/comeback_42.json  (16 steps)
+
+==================================================
+OUTCOME : CATCH
+Telemetry: {'max_separation': 5.02, 'throw_t': 1.3, 'throw_distance': 15.1, 'sack': False, 'qb_calls': 10, 'qb_parse_errors': 0, 'wr_calls': 17, 'wr_parse_errors': 1, 'cb_calls': 18, 'cb_parse_errors': 3, 'cb_intent': 'swat', 'wr_call_t': 1.2, 'broken_play': False, 'detected_cut_t': 1.2}
+
+============================================================
+ROUTE: go  |  seed=42  ->  replays/go_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The WR is positioned near the 20-yard line with moderate separation. Choosing off-coverage (5 yards off) provides cushion to react to route development while aligning outside takes away outside routes (out, comeback). This balances coverage against a WR with average speed while leveraging my 82 coverage rating to stay disciplined and avoid overcommitting.
+  WR pre-snap plan: CB is aligned to my left and slightly upfield, creating an inside shade. He will  | The CB's inside shade positions him to cut inside if I break, but my straight route will maximize speed advantage. Since he's already 5 yards upfield, I need to pull ahead to create a longitudinal gap. His attempt to mirror will delay his closing, allowing me to call when I have a clear step on him.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Start with full burst to pull CB upfield. CB is left/upfield but will need to commit to follow. Accelerate to max speed to create separation. Call when CB is behind on y-axis (3-5yd gap) and burst is recovering.
+  t=0.0  QB -> 'hold'    | route developing
+  [CB pass1 parse error] raw='To determine the optimal heading for the CB (player facing 180°, at position (15.5, 55.0)) to intercept the WR (at (16.0'
+  t=0.0  CB move   -> hdg=0deg facing=0deg mode=normal  | parse_error
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Maximize speed to create body gap while CB is committed right (90deg). CB's full burst allows closing, but sustained acceleration will force them to backpedal. Call just after reaching max speed when gap exceeds CB's recovery capability.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield with full burst. Adjust heading to 0° to close gap and maintain facing on WR for interception.
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing straight acceleration to maximize body gap while CB remains uncommitted. Need to wait for CB's hips to lock into wrong direction (0deg) via stem commitment before calling. Current burst advantage will create separation when CB's recovery steps exceed 0.
+  t=0.2  QB -> 'hold'    | route developing
+  t=0.2  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is slightly right and ahead; adjusting heading right to close lateral gap while maintaining upfield momentum
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains uncommitted (rec=free) despite 3.4yd body gap. Must maximize speed to create separation before CB can close. No fake required for straight route; focus on burst to outpace CB.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving upfield with full burst; CB must adjust heading to 0° to close gap and match WR's direction
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB rec remains free (full burst available), so true separation hasn't occurred. Continue accelerating to maximize body gap and commit CB's hips before calling. Current 3.2yd gap is insufficient without CB hip commitment.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=95deg facing=95deg mode=normal  | WR moving straight upfield with full burst; CB needs to adjust heading slightly left to position for interception while closing lateral gap
+  t=0.5  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing straight acceleration to maximize body gap while CB remains uncommitted. CB's full burst prevents premature calls; true separation requires CB hip commitment after gap peaks.
+  t=0.5  QB pass2  -> 'hold'    | WR has not called for the ball, and while separation is open, the WR is facing away from the QB, reducing catch probability. Wait for the WR to establish a clear route before throwing.
+  t=0.5  CB move   -> hdg=180deg facing=180deg mode=normal  | WR is moving straight upfield; adjust heading to 180° to mirror movement and position for interception
+  t=0.6  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing straight acceleration to maximize speed while CB remains uncommitted. True separation will occur when CB's burst recovers (indicated by CB rec > 0) after gap peaks, triggering the call window.
+  [QB pass1 parse error] raw=
+{"action": "throw", "target_coord": [16.0, 53.5], "ball_speed_mph": 37, "reasoning": "WR is running straight upfield with full burst, CB is behind and facing away. Projected WR position at ball arrival matches lead hint. Open separation (2.86yd) allows safe throw to landing spot."}
+  t=0.6  QB pass2  -> 'hold'    | parse_error
+  t=0.6  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst; CB needs to close gap by adjusting heading slightly left to intercept path
+  t=0.7  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing straight acceleration maximizes speed advantage. CB is upfield but hasn't committed to pursuit. Final cut will create separation when CB's hips are locked in wrong direction (95deg heading). Wait for CB rec > 0 before calling.
+  t=0.7  QB pass2  -> 'hold'    | WR hasn't called for the ball and CB hasn't committed to coverage; wait for the route to develop and separation to open.
+  t=0.7  CB move   -> hdg=95deg facing=95deg mode=normal  | Maintain lateral alignment while tracking WR's straight path; no confirmed cut detected to justify aggressive adjustment
+  t=0.8  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | WR is maintaining straight 0deg route to pull CB upfield. CB is right (95deg) and slower (3.3yd/s). Need to let stem commit CB's hips before breaking. Current body gap (0.6yd) isn't separation yet. Will call when CB rec > 0 confirms hips are committed wrong way.
+  t=0.8  QB pass2  -> 'hold'    | The WR is running blind and hasn't called for the ball, while the CB is actively closing in with full burst. The contested separation (1.62 yd) requires waiting for the WR to establish a clear route before throwing.
+  [CB pass1 parse error] raw='To determine the optimal heading for the CB (the player) to intercept the WR (the opponent), we must analyze the relativ'
+  t=0.8  CB move   -> hdg=95deg facing=95deg mode=normal  | parse_error
+  t=0.9  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains right/upfield with full burst; stem hasn't committed hips. Must wait for CB rec > 0 to confirm gap peak before calling.
+  t=0.9  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and the CB is not in position to close the gap despite the tight separation.
+  [CB pass1 parse error] raw='To determine the optimal heading for the cornerback (CB) in this scenario, we analyze the situation using a structured a'
+  t=0.9  CB move   -> hdg=95deg facing=95deg mode=normal  | parse_error
+  [WR live parse error] raw='{\n  "decision": "Call for the ball",\n  "reasoning": "The WR is running straight upfield at 7.6 yd/s with a max speed of '
+  t=1.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | parse_error
+  t=1.0  QB pass2  -> 'hold'    | WR is facing away from QB and CB is positioned to close gap; wait for WR to call or make a cut
+  t=1.0  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield; adjust heading to 0° to intercept their path and close the gap
+  t=1.0  [CUT_REC] CB entered 2-step recovery
+  t=1.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is committed upfield (2 recovery steps), body gap 0.6yd. True separation requires final break + CB rec > 0. Accelerate to maximize gap before breaking. Do not call during stem; wait for CB's burst to fully recover post-cut.
+  t=1.1  QB pass2  -> 'hold'    | CB is recovering with 2 steps left, limiting his ability to close the gap despite current contested separation. Wait for WR to call before committing to a throw.
+  t=1.1  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst; CB must close lateral gap by adjusting heading left to intercept
+  t=1.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate [CALL FOR BALL]  | CB is recovering (1 step left) with 2.4yd/s speed, cannot match WR's 7.9yd/s acceleration. Body gap 1.3yd + CB burst restriction creates high-probability window. Call 0.1s before final cut as stem committed CB's hips upfield.
+  t=1.2  WR called for the ball! heading=0deg
+  t=1.2  QB pass1  -> thinking target=[16.0, 58.8] | The WR is running straight upfield with full burst, while the CB is recovering from a cut and has limited burst. Throwing to the projected position where the WR will be when the ball arrives allows the WR to maintain separation despite the CB's limited closing speed.
+  t=1.2  QB pass2  -> 'throw'   | The bullet option provides a 3.7yd open separation at arrival with minimal flight time, leveraging the CB's recovery state to ensure a clean window despite their closing speed.
+  t=1.2  CB move   -> hdg=333deg facing=308deg mode=normal  | Ball in flight - closing on landing zone while managing recovery, facing WR to track movement
+  [CB pass2 parse error] raw='To determine the best course of action, we must evaluate the feasibility of each option based on the given information a'
+  t=1.3  CB move   -> hdg=331deg facing=318deg mode=normal  | Adjust heading to close gap toward landing zone while facing WR, leveraging full burst to position for interception
+  t=1.3  WR (air)  -> hdg=0deg facing=180deg throttle=accelerate  | Ball is traveling from QB toward landing zone. Must hold heading 0° to stay on path. Adjust facing to 180° to look back at QB and track ball. Accelerate to close 1.3 yd gap while maintaining heading lock.
+  t=1.4  CB move   -> hdg=346deg facing=327deg mode=normal  | WR is moving straight upfield with full burst. Adjust heading toward projected zone (346°) to close gap while maintaining facing on WR (327°) for play_man intent.
+  t=1.4  WR (air)  -> hdg=0deg facing=134deg throttle=accelerate  | Maintain heading 0° to stay on the ball's trajectory. Adjust facing to 134° to look toward the QB's direction (bearing from WR to QB). Accelerate to reach the landing zone (0.4 yd away) while keeping heading locked to avoid missing the catch.
+
+  t=1.4  RESOLUTION -> CATCH  sep=3.06yd
+Replay saved -> replays/go_42.json  (15 steps)
+
+==================================================
+OUTCOME : CATCH
+Telemetry: {'max_separation': 5.02, 'throw_t': 1.2, 'throw_distance': 15.2, 'sack': False, 'qb_calls': 9, 'qb_parse_errors': 1, 'wr_calls': 16, 'wr_parse_errors': 1, 'cb_calls': 17, 'cb_parse_errors': 4, 'cb_intent': 'play_man', 'wr_call_t': 1.2, 'broken_play': False, 'detected_cut_t': None}
+
+============================================================
+ROUTE: double_move  |  seed=42  ->  replays/double_move_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The WR is positioned slightly to the left of the CB's starting point. An outside shade positions the CB to disrupt outside routes (out/comeback) while maintaining 5-yard cushion. This balances coverage against potential speed threats without overcommitting. The CB's 82 coverage rating supports off-coverage, and the 5.5-yard separation allows for reactive pursuit without being too close.
+  WR pre-snap plan: CB is aligned to my left, upfield, and in a position to mirror my movement. The   | CB's left-side alignment means he must cross my path to cover my break. The stem phase (0°) will draw him deeper, while the hard cut to 90° forces a hip commit. Since he's already upfield, his recovery from the cut will leave a gap. The QB's timing aligns with the Phase 3 break, creating an open window for the throw.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Initial stem commits CB hips upfield. Accelerate to build speed for 1.5s phase. Final cut to 90deg will create separation by forcing CB recovery lag. Wait for CB rec > 0 before calling.
+  t=0.0  QB -> 'hold'    | route developing
+  t=0.0  CB move   -> hdg=0deg facing=0deg mode=normal  | Mirror WR's upfield direction to close 5-yard gap while maintaining visual contact
+  t=0.1  WR move   -> hdg=90deg facing=0deg throttle=accelerate [CALL FOR BALL]  | Final cut to 90deg confirms CB hips are committed wrong way (CB rec>0). Call now as gap peaks and QB throws around 2.2s.
+  t=0.1  WR called for the ball! heading=90deg
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving upfield while slightly to the right of CB. Adjust heading slightly left of 90° to close lateral gap and prepare for upfield pursuit while maintaining facing toward WR.
+  t=0.2  WR move   -> hdg=90deg facing=90deg throttle=accelerate  | QB is throwing to current heading (90°). Accelerate to close gap while facing 90° to track ball. Maintain heading to avoid drifting away from landing zone.
+  t=0.2  QB -> 'hold'    | route developing
+  t=0.2  CB move   -> hdg=164deg facing=95deg mode=normal  | Confirmed WR cut right (held 90° for 2 steps). Adjust heading to 164° to close intercept angle while maintaining facing on WR.
+  t=0.1  [WR cut confirmed] heading held at 90deg
+  t=0.3  WR move   -> hdg=90deg facing=90deg throttle=accelerate  | The QB is throwing to the current heading (90°). Accelerate to maximize speed while maintaining alignment. Facing 90° ensures optimal catch position as the ball travels in that direction.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=155deg facing=95deg mode=normal  | WR cut right and accelerated — closing to cut off the angle
+  t=0.4  WR move   -> hdg=90deg facing=90deg throttle=accelerate  | QB is throwing to current heading (90°). Must maintain heading to stay on trajectory. Accelerate to reach max speed (9.5 yd/s) for best positioning. Facing already matches heading. No need to change heading or facing. Avoid out-of-bounds by staying within x ∈ [0, 53.3] yard range.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=146deg facing=146deg mode=normal  | WR is accelerating right (90°) with full burst - adjust heading to 146° to mirror projected path while maintaining facing for potential swat/intercept
+  t=0.5  WR move   -> hdg=90deg facing=90deg throttle=accelerate  | QB is throwing to current heading (90°). Changing heading would move away from the throw path. Accelerate to reach max speed (9.5 yd/s) for better catch position while maintaining facing 90° to optimize catch probability.
+  t=0.5  QB pass1  -> thinking target=[18.3, 50.1] | The WR is moving right (90°) and will be near (18.3, 50.1) when the ball arrives. Current separation is open (4.10 yards), and the CB is closing but hasn't yet overtaken the WR's path.
+  t=0.5  QB pass2  -> 'throw'   | The WR has called for the ball and is committed to their current heading, while the CB is closing. The bullet option delivers the ball fastest (0.11s) before the CB can close further, and the projected separation at arrival (3.8yd) remains open despite the CB being in the throw lane. Aiming slightly right of the WR's path (target_coord) avoids the CB's position.
+  t=0.5  CB move   -> hdg=138deg facing=164deg mode=normal  | WR moving right (90°) with full burst; adjust heading to 138° to intercept projected path while maintaining facing on WR for play_man
+  CB intent -> 'swat'  | Facing is within 60? of the ball, and the arm tip is positioned to intercept the ball's path. Although the distance to the landing zone is 4.0yd, the swat attempt offers a safer disruption compared to the high-risk interception. The proximity to the WR (3.85yd) also makes playing the man less viable due to the short time remaining.
+  [CB pass1 parse error] raw='To determine the optimal heading for the cornerback (CB) to intercept the ball, we analyze the situation using the provi'
+  t=0.6  CB move   -> hdg=138deg facing=164deg mode=normal  | parse_error
+  t=0.6  WR (air)  -> hdg=90deg facing=104deg throttle=coast  | Heading must remain 90° to stay aligned with the QB's throw path. Facing is adjusted to 104° as instructed to track the ball. Throttle is set to 'coast' since the WR is already near the landing zone. No call_for_ball needed as the ball is in flight.
+  t=0.7  CB move   -> hdg=158deg facing=158deg mode=normal  | Face landing zone to contest swat; adjust heading toward WR's projected path
+  t=0.7  WR (air)  -> hdg=90deg facing=105deg throttle=accelerate  | Maintain heading 90° as per signal to stay on QB's throw path. Adjust facing to 105° to directly face QB for optimal catching angle. Accelerate slightly to ensure proximity to landing zone while maintaining trajectory.
+
+  t=0.7  RESOLUTION -> CATCH  sep=3.6yd
+Replay saved -> replays/double_move_42.json  (8 steps)
+
+==================================================
+OUTCOME : CATCH
+Telemetry: {'max_separation': 5.02, 'throw_t': 0.5, 'throw_distance': 8.6, 'sack': False, 'qb_calls': 2, 'qb_parse_errors': 0, 'wr_calls': 9, 'wr_parse_errors': 0, 'cb_calls': 10, 'cb_parse_errors': 1, 'cb_intent': 'swat', 'wr_call_t': 0.1, 'broken_play': False, 'detected_cut_t': 0.1}
+
+============================================================
+ROUTE: curl  |  seed=42  ->  replays/curl_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The WR is aligned near the left side of the field (16.0 yd mark), and I'm slightly to the right (16.5 yd). Choosing 'outside' shade positions me to contest outside routes while maintaining 5 yd cushion for reaction time. My 82 coverage rating supports off-coverage, allowing me to read routes without overcommitting. This setup balances speed advantage (9.0 yd/s) with lateral flexibility to mirror WR movements.
+  WR pre-snap plan: CB is inside shade with 5yd cushion. He'll commit to mirroring my stem phase, cr  | Starting position gives CB inside leverage. Curl route's stem phase will push him deeper while maintaining 5yd gap. His inside shade means he'll have to cross my path on the hook, creating a timing window. The CB's recovery from a potential hip-turn during the stem will delay his ability to adjust to my break.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Pre-snap cushion is not separation; must commit CB's hips via stem before final cut. Accelerate to build speed while maintaining 0deg heading to pull CB upfield. Call only after stem completes and CB rec > 0 confirms hip commitment.
+  t=0.0  QB -> 'hold'    | route developing
+  t=0.0  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving upfield (0°), CB must adjust heading to 0° to close gap and mirror movement
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | In stem phase, CB is mirroring upfield movement. Need to run full stem to commit CB's hips before final 180° break. Accelerate to build speed for decisive cut, ensuring CB's burst is locked in recovery mode post-break.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield; adjusting heading to 0° allows direct pursuit to close the gap before they escape laterally
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains uncommitted (rec=free) but has full burst. Must accelerate to maximize body gap before final 180° break creates separation. Call only after cut completes and CB rec > 0.
+  t=0.2  QB -> 'hold'    | route developing
+  t=0.2  CB move   -> hdg=175deg facing=175deg mode=normal  | Mirror WR's upfield movement with slight left adjustment to maintain coverage without overcommitting
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is upfield and mobile with full burst; stem phase must commit hips before breaking. Accelerate to maximize speed for final 180° cut, ensuring CB's recovery time creates separation.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=0deg facing=175deg mode=normal  | WR is moving upfield with full burst; adjust heading to 0° to close gap while maintaining facing toward WR's position
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is mirroring stem phase (heading 0°, facing 175°), requiring full stem run to commit hips. Must accelerate to maximize separation before 180° break. Pre-snap cushion is not earned separation; true window opens post-cut with CB rec > 0.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield but is 4.2 yd ahead. CB needs to adjust heading slightly right (95°) to cut off the angle while maintaining forward momentum.
+  t=0.5  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains uncommitted (rec=free) despite stem; body gap alone isn't separation. Must run stem longer to pull CB upfield and commit their hips before breaking. Accelerate to maximize distance while maintaining deception.
+  t=0.5  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route is developing. CB is in position to cover if WR doesn't get open.
+  t=0.5  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield at high speed; CB must adjust heading to 0° to close gap and intercept
+  t=0.6  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains uncommitted (rec=0) and has full burst. Must run stem long enough to create separation before final 180° break. Accelerate to maximize speed for decisive cut.
+  t=0.6  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and the route is expected to develop with a cut at t=2.5s. Current separation is open but the window may change after the WR's cut.
+  t=0.6  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield at full speed; CB needs to adjust heading slightly left to close gap while maintaining facing for potential interception
+  t=0.7  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB's full burst allows reaction, but stem duration will force hips to commit. Final cut at t=2.5 creates separation via CB's reversed direction. Call after cut when CB rec > 0 confirms window.
+  t=0.7  QB pass2  -> 'hold'    | WR has not called for the ball and is still running straight upfield; wait for the route to develop before throwing.
+  t=0.7  CB move   -> hdg=331deg facing=331deg mode=normal  | WR is moving straight upfield with full burst; adjust heading to intercept projected position while maintaining facing for optimal positioning
+  t=0.8  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains uncommitted (rec=free) despite stem phase. Must wait for stem to pull CB upfield before breaking. Pre-snap cushion isn't separation - need CB hips committed wrong way for hook.
+  t=0.8  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and the route isn't fully developed. Waiting for the WR to signal ensures a safer throw.
+  t=0.8  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst; slight heading adjustment to 95° aligns with projected path while maintaining lateral position
+  t=0.9  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains committed to 90deg heading with full burst; body gap (0.6yd) insufficient for separation. Must run stem long enough to pull CB's weight upfield and commit hips before breaking. Accelerate to maximize speed for final break.
+  t=0.9  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route is not developed. CB is in position to close the gap if WR doesn't change direction.
+  [CB pass1 parse error] raw='To determine the optimal movement for the **CB (player)** in this scenario, we analyze the spatial and directional relat'
+  t=0.9  CB move   -> hdg=95deg facing=95deg mode=normal  | parse_error
+  [WR live parse error] raw='**Strategic Decision for the Wide Receiver (WR):**\n\n1. **Current Situation:**  \n   - The WR is at (16.8, 55.1), moving s'
+  t=1.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | parse_error
+  t=1.0  QB pass2  -> 'hold'    | The WR hasn't called for the ball yet, and the cut is scheduled for t=2.5s. Waiting ensures a better throwing window before the CB can close the gap.
+  t=1.0  CB move   -> hdg=345deg facing=345deg mode=normal  | Align heading with WR's projected path to close gap while maintaining burst readiness
+  t=1.0  [CUT_REC] CB entered 1-step recovery
+  t=1.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate [CALL FOR BALL]  | CB burst is recovering (1 step left) confirming hip commitment. Body gap >=1.5yd with CB rec>0 indicates high-probability catch. Call immediately after final cut to ensure QB throws as receiver breaks open.
+  t=1.1  WR called for the ball! heading=0deg
+  t=1.1  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and is still running straight; CB is recovering from a cut, but separation is already at contact range. Wait for the WR to signal or develop the route before throwing.
+  t=1.1  CB move   -> hdg=345deg facing=345deg mode=normal  | WR is moving straight upfield with full burst; adjust heading to intercept projected path while managing recovery state
+  t=1.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Ball is thrown to current heading (0°). Must maintain heading to stay on trajectory. Adjust facing to align with landing zone.
+  [QB pass1 parse error] raw=
+To determine whether the quarterback should throw the ball now or wait for the wide receiver to cut, we need to analyze the **relative positions**, **speeds**, and **directions** of both the wide receiver (WR) and the cornerback (CB), as well as the **timing** of the WR's cut.
+
+---
+
+### **Key Observations:**
+
+1. **Current Position and Movement:**
+   - **WR** is at (16.0, 56.7), moving **upfield (positive y-direction)** at **8.1 yd/s**.
+   - **CB** is at (16.9, 56.4), moving at **3.2 yd/s** in the direction of **345°**, which is **15° below the positive x-axis** (i.e., slightly to the right and downward).
+
+2. **WR's Cut Timing:**
+   - The WR is scheduled to **cut** at **t = 2.5 seconds**, which is **1.3 seconds from now**.
+   - After the cut, the WR will **run back toward the quarterback**, which may create **space** between the WR and the CB.
+
+3. **CB's Direction:**
+   - The CB is moving **away from the WR**, not toward it. This is because the CB's direction (345°) is **to the right and down**, while the WR is **to the left and up**.
+   - Therefore, the CB is **not closing the gap** with the WR.
+
+4. **Ball Arrival Time:**
+   - If the QB throws the ball **now** at **regular speed (0.25 seconds)**, the WR will be at (16.0, 56.7 + 8.1 * 0.25) = (16.0, 58.725).
+   - The CB, moving at 3.2 yd/s in the direction of 345°, would be at (16.9 + 3.2 * cos(345°) * 0.25, 56.4 + 3.2 * sin(345°) * 0.25).
+   - This results in a **CB position** that is **not aligned** with the WR's position at ball arrival, and the **distance** between them is likely **greater than 1 yard**.
+
+5. **WR's Call:**
+   - The WR has **called for the ball**, which implies they believe they are in a **position to catch it**.
+   - Given the WR's speed and direction, and the CB's inability to close the gap, the WR is **moving away from the CB**.
+
+---
+
+### **Conclusion:**
+
+- The WR is **moving away from the CB**.
+- The CB is **not closing the gap**.
+- The WR has **called for the ball**, indicating they are in a **favorable position**.
+- Throwing the ball **now** is the **best option** to capitalize on the WR's position and the CB's inability to intercept.
+
+---
+
+### ✅ **Final Decision:**
+
+**The quarterback should throw the ball now.**
+  t=1.2  QB pass2  -> 'hold'    | parse_error
+  t=1.2  CB move   -> hdg=348deg facing=348deg mode=normal  | WR moving straight upfield; adjust heading to intercept projected position while maintaining facing for play_man
+  t=1.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Separation is already created. QB is throwing to current heading. Changing heading would move away from the throw path. Maintain 0° heading to ensure catch.
+  t=1.3  QB pass2  -> 'hold'    | The WR is facing away from the QB and the CB is closing the gap, with separation below 1.5 yd. Wait for the WR's cut at t=2.5s to establish separation before throwing.
+  t=1.3  CB move   -> hdg=350deg facing=350deg mode=normal  | WR is accelerating straight upfield with full burst; adjusting heading slightly toward projected path to close gap and position for potential interception
+  t=1.4  WR move   -> hdg=0deg facing=180deg throttle=accelerate  | QB is throwing to current heading (0°). Maintain heading to stay on target. Adjust facing to 180° to visually track ball from QB's direction, improving catch probability. Accelerate to maintain speed and position for optimal reception.
+  t=1.4  QB pass1  -> thinking target=[16.0, 60.7] | The WR is heading straight upfield and will be at (16.0, 60.7) when the ball arrives. Despite tight coverage, the WR's speed and route suggest this is a viable landing spot before the CB can close the gap.
+  t=1.4  QB pass2  -> 'throw'   | The soft throw provides a 2.5yd separation at arrival, placing the CB out of arm's reach and creating an open window for the WR to catch the ball away from the defender.
+  t=1.4  CB move   -> hdg=350deg facing=326deg mode=normal  | WR moving straight upfield with full burst; CB positioned to close gap while facing WR's projected path for interception
+  CB intent -> 'play_man'  | The WR is 1.65yd away, and with my speed of 5.3yd/s, I can close the gap to within 1.0yd before the ball arrives. Playing the man ensures a guaranteed disruption, as the risk of a clean catch is higher than attempting a risky interception or swat.
+  t=1.5  CB move   -> hdg=350deg facing=335deg mode=normal  | WR moving straight upfield with full burst; maintain heading to intercept landing zone while facing WR
+  t=1.5  WR (air)  -> hdg=0deg facing=137deg throttle=accelerate  | Ball is in flight toward landing zone. Heading must remain 0° to stay on trajectory. Adjust facing to 137° to track ball's origin. Accelerate to close remaining 1.4 yd gap while maintaining heading lock.
+  [CB pass1 parse error] raw='To determine the optimal heading for the cornerback (CB) in this scenario, we must analyze the spatial relationship betw'
+  t=1.6  CB move   -> hdg=350deg facing=335deg mode=normal  | parse_error
+  t=1.6  WR (air)  -> hdg=0deg facing=180deg throttle=coast  | Maintain heading 0° to stay on ball's trajectory. Adjust facing to 180° to directly look back at QB for catch. Coasting ensures speed is sustained without overshooting the landing zone.
+  t=1.7  CB move   -> hdg=345deg facing=347deg mode=normal  | Maintain heading toward WR's projected path while staying disciplined; WR hasn't committed a confirmed cut yet.
+  t=1.7  WR (air)  -> hdg=0deg facing=180deg throttle=coast  | Maintain heading 0° to stay on the ball's trajectory, facing 180° to look at the QB for the catch, and coast to reach the landing zone without overshooting.
+  t=1.8  CB move   -> hdg=350deg facing=352deg mode=normal  | Adjust heading slightly to intercept WR's path while maintaining facing the WR to track their movement before the ball arrives
+  t=1.8  WR (air)  -> hdg=0deg facing=143deg throttle=accelerate  | Hold heading 0° to stay on QB's throw path. Adjust facing to 143° to track the ball's trajectory. Accelerate to close the 1.2 yd gap to the landing zone while maintaining alignment with the QB's throw.
+
+  t=1.8  RESOLUTION -> PBU  sep=2.36yd
+Replay saved -> replays/curl_42.json  (19 steps)
+
+==================================================
+OUTCOME : PBU
+Telemetry: {'max_separation': 5.02, 'throw_t': 1.4, 'throw_distance': 16.6, 'sack': False, 'qb_calls': 11, 'qb_parse_errors': 1, 'wr_calls': 20, 'wr_parse_errors': 1, 'cb_calls': 21, 'cb_parse_errors': 2, 'cb_intent': 'play_man', 'wr_call_t': 1.1, 'broken_play': False, 'detected_cut_t': None}
+
+============================================================
+ROUTE: zig  |  seed=42  ->  replays/zig_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The WR is positioned near the left sideline, so aligning outside takes away outside routes. Off-coverage (5 yards) provides sufficient cushion while allowing reaction time to the WR's route.
+  WR pre-snap plan: CB is inside shade with 5yd cushion, will commit to mirroring stem. Use upfield   | CB's inside position means he'll try to mirror upfield movement. The stem phase will draw him deeper, creating space. A hard left cut (Phase 2) will commit his hips to recovery, leaving him vulnerable when I break right (Phase 3). The 5yd initial gap combined with route geometry ensures separation by 1.5s.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Start stem phase by accelerating upfield to push CB deeper. CB is already facing 180°, so running stem will commit their hips. Wait 1.0s then cut left (270°) to force CB's hips wrong, creating separation for final 90° break.
+  t=0.0  QB -> 'hold'    | route developing
+  [CB pass1 parse error] raw='To determine the optimal movement for the **CB (Covering Player)**, we analyze the spatial relationship between the **CB'
+  t=0.0  CB move   -> hdg=0deg facing=0deg mode=normal  | parse_error
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem to push CB deeper (0deg) before left cut. CB is already committed right (90deg) but needs hip commit via left jab. Accelerate to maximize stem length, then snap left cut to force CB's hips wrong for final break.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield at higher speed; CB must adjust heading to 0° to close gap and stay in position
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Maintain 0deg stem to push CB upfield (4.8yd gap). CB is free to close but hasn't committed hips. Accelerate to maximize burst for left cut at t=1.0s, forcing CB hip commitment. Call only after left cut confirms CB rec > 0.
+  t=0.2  QB -> 'hold'    | route developing
+  t=0.2  CB move   -> hdg=0deg facing=0deg mode=normal  | Maintain straight-upfield pursuit to close gap while keeping WR in sight; no confirmed cut yet, avoid premature adjustments
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to push CB deeper while maintaining 0deg heading. CB's hips are uncommitted (0deg), so fake left (270deg) after 1.0s will force CB's hips to commit wrong way. Final break to 90deg will create separation once CB rec > 0. Call only after final cut when gap peaks.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=0deg facing=0deg mode=normal  | Maintain straight-upfield pursuit to stay aligned with WR's path; no lateral separation to address yet.
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to push CB upfield (body gap 3.7yd). CB burst is full but not committed; need to run stem long enough to make CB lean wrong way before final 270deg jab. Final break to 90deg will create separation as CB cannot recover in time.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight but faster; slight left adjustment to close gap while maintaining visual contact
+  t=0.4  [CUT_REC] CB entered 2-step recovery
+  t=0.5  WR move   -> hdg=270deg facing=0deg throttle=accelerate [CALL FOR BALL]  | CB is committed upfield (2 rec steps), final left cut creates separation. Call immediately after cut to exploit CB's locked recovery state before they can realign.
+  t=0.5  WR called for the ball! heading=270deg
+  t=0.5  QB pass2  -> 'hold'    | WR has not called for the ball and is still facing away from QB, requiring patience for the route to develop
+  [CB pass1 parse error] raw='To determine the optimal movement for the cornerback (CB) in this scenario, we must consider the following key factors:\n'
+  t=0.5  CB move   -> hdg=95deg facing=95deg mode=normal  | parse_error
+  t=0.5  [CUT_REC] WR entered 2-step recovery
+  t=0.6  WR move   -> hdg=270deg facing=270deg throttle=accelerate  | Hold heading 270° to stay on QB's throw path. Accelerate to close gap and adjust facing to 270° to track ball's trajectory, maximizing catch probability.
+  t=0.6  QB pass1  -> thinking target=[14.9, 51.7] | The WR is committed to moving left (270°) toward the sideline, and the LEAD HINT projects they will be near (14.9, 51.7) when the ball arrives. While the CB is recovering, the initial 4.13-yard separation is open, and throwing to this area aligns with the WR's path before their next cut to upfield.
+  t=0.6  QB pass2  -> 'throw'   | The projected separation at arrival (4.3yd) is open, and the target_coord is placed away from the CB's arrival position, minimizing tip risk despite the CB being in the throw lane.
+  t=0.6  CB move   -> hdg=205deg facing=188deg mode=normal  | WR in recovery (2 steps left) and drifting left. Close angle by heading 205° toward projected zone, facing 188° to intercept.
+  t=0.5  [WR cut confirmed] heading held at 270deg
+  CB intent -> 'swat'  | Facing the ball (188?) is within 60? of the landing zone (198?). My swat arm tip (1.0yd reach) is 3.1yd from the zone, within the 4.0yd release uncertainty. Closing the 4.1yd distance to the zone is not feasible in 0.15s, but my arm is already on the path. Swatting is safer than an interception (which requires 3.6yd reach) and better than playing the man (needs 1.0yd proximity to WR).
+  t=0.7  CB move   -> hdg=198deg facing=198deg mode=normal  | WR is recovering from a confirmed left cut (270°), creating a gap. Closing angle to intercept landing zone while maintaining burst readiness.
+  t=0.7  WR (air)  -> hdg=270deg facing=180deg throttle=accelerate  | Ball is in flight to current heading path. Must maintain 270° heading to stay on trajectory. Adjust facing to 180° to lock eyes on QB/ball origin. Accelerate to close 0.4yd gap while keeping heading locked. CB is 4yd behind and cannot recover in time.
+  t=0.8  CB move   -> hdg=227deg facing=227deg mode=normal  | WR moving left (270°) with full burst; adjust heading to 227° to close lateral gap and position for swat
+  t=0.8  WR (air)  -> hdg=270deg facing=107deg throttle=accelerate  | The WR must maintain heading 270° as instructed. Facing is adjusted to 107° (exact bearing to QB). Throttle remains 'accelerate' to ensure positional stability during the final 0.05s before ball arrival.
+
+  t=0.8  RESOLUTION -> CATCH  sep=3.77yd
+Replay saved -> replays/zig_42.json  (9 steps)
+
+==================================================
+OUTCOME : CATCH
+Telemetry: {'max_separation': 5.02, 'throw_t': 0.6, 'throw_distance': 12.3, 'sack': False, 'qb_calls': 3, 'qb_parse_errors': 0, 'wr_calls': 10, 'wr_parse_errors': 0, 'cb_calls': 11, 'cb_parse_errors': 2, 'cb_intent': 'swat', 'wr_call_t': 0.5, 'broken_play': False, 'detected_cut_t': 0.5}
+
+============================================================
+ROUTE: drag  |  seed=42  ->  replays/drag_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The WR is slightly left of the CB's starting position (x=16.0 vs CB's x=16.5). Aligning outside shade positions the CB to cover outside routes while maintaining 5-yard cushion for reaction time. The CB's 9.0 yd/s speed and 82 coverage rating justify off-coverage, allowing lateral mirroring if the WR breaks toward the sideline.
+  WR pre-snap plan: CB is aligned on my inside (left) with 5 yd upfield lead. He will mirror my stem  | His inside shade means he'll be forced to turn his hips to stay with my stem. The 5 yd upfield separation gives him a head start, but the drag's flat trajectory will keep him shallow. Breaking right (90°) will take me away from his line of sight and create a lateral gap. I need to commit to the stem first to force his hip turn, then exploit the recovery delay on the break.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is uncommitted (rec=0) and has full burst; must run stem to pull CB upfield first. Calling during stem risks CB mirroring break. Wait for CB rec>0 after stem completes before snapping.
+  t=0.0  QB -> 'hold'    | route developing
+  t=0.0  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield; CB needs to close gap by moving upfield to intercept
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB is aligned inside with 5yd lead and will mirror stem movement. Final 90deg break will create separation by committing CB's hips wrong. Call only after stem completes and CB rec > 0.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=175deg facing=175deg mode=normal  | WR is moving upfield, CB needs to intercept by heading west to close the gap
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB is squared toward me but will mirror stem movement. Need to run stem long enough to create separation before breaking right. Accelerate to maximize speed for final break.
+  t=0.2  QB -> 'hold'    | route developing
+  [CB pass1 parse error] raw='To determine the optimal action for the cornerback (CB) in this scenario, we need to analyze the spatial and directional'
+  t=0.2  CB move   -> hdg=175deg facing=175deg mode=normal  | parse_error
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield (CB rec=0 in log). Need full burst to finish stem before breaking right. CB's full burst means they can mirror stem, so must run stem long enough to create separation on break.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=170deg facing=170deg mode=normal  | Adjust heading to intercept WR's projected upfield path while maintaining full burst readiness
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains mobile with full burst, so accelerating maximizes speed for final break. Call will occur after 90deg cut when CB rec > 0 confirms hip commitment.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=160deg facing=160deg mode=normal  | WR moving straight upfield with full burst; adjust heading to 160° to close gap toward projected position while maintaining facing for tracking
+  t=0.5  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing 0deg acceleration to run stem long enough to commit CB's hips upfield. CB's full burst means he'll mirror stem, but final 90deg break will create separation once his hips are committed. Call just before final cut when CB rec > 0 confirms window.
+  t=0.5  QB pass2  -> 'hold'    | WR hasn't called for the ball yet; wait for route development and separation confirmation before throwing
+  t=0.5  CB move   -> hdg=11deg facing=11deg mode=normal  | WR is moving straight upfield with full burst; adjust heading to intercept projected path while maintaining positioning to counter potential break
+  t=0.5  [CUT_REC] CB entered 2-step recovery
+  t=0.6  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing 0deg stem to maximize CB hip commitment. CB is recovering (2 steps left) and cannot mirror break yet. Must accelerate to full speed before final cut. Call only after completing 90deg break when CB rec > 0 confirms window.
+  t=0.6  QB pass2  -> 'hold'    | WR has not called for the ball yet, and the CB is in recovery. Wait for the WR to signal before throwing.
+  t=0.6  CB move   -> hdg=70deg facing=11deg mode=normal  | WR moving straight upfield with full burst; CB in recovery from cut, prioritize letting burst recover before adjusting heading toward projected path
+  t=0.7  WR move   -> hdg=90deg facing=0deg throttle=accelerate [CALL FOR BALL]  | CB's 1-step recovery confirms hips are committed upfield after stem. Final break to 90deg creates separation. Call now to align QB's throw with peak gap before CB recovers.
+  t=0.7  WR called for the ball! heading=90deg
+  t=0.7  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and the route requires waiting for the cut to develop properly before throwing.
+  t=0.7  CB move   -> hdg=348deg facing=0deg mode=normal  | WR is moving straight upfield with full burst; CB must adjust heading to intercept projected path while minimizing recovery cost
+  t=0.7  [CUT_REC] WR entered 3-step recovery
+  t=0.8  WR move   -> hdg=90deg facing=90deg throttle=accelerate  | Called for ball at 90°, must hold heading to stay on trajectory. Accelerate to close gap while facing 90° (sideline) to optimize catch angle. CB's 1-step recovery delay ensures no interference.
+  t=0.8  QB pass2  -> 'hold'    | WR is recovering (3 steps) and CB is recovering (1 step) with CB having higher burst. Current separation is 1.28yd (contact range). Throwing now would allow CB to close gap during ball flight. Wait for WR to clear recovery and re-establish separation.
+  t=0.8  CB move   -> hdg=90deg facing=90deg mode=normal  | WR cut right and is in recovery (3 steps left). Closing lateral gap by heading east to intercept WR's projected path.
+  t=0.7  [WR cut confirmed] heading held at 90deg
+  t=0.9  WR move   -> hdg=90deg facing=90deg throttle=coast  | Ball is in flight to current heading. Must maintain heading to avoid missing catch. Coasting preserves position while tracking ball. CB is behind and cannot close due to prior recovery steps.
+  t=0.9  QB pass1  -> thinking target=[17.7, 53.0] | The WR is committed to moving right, and the CB's position and heading suggest they may not close the gap quickly enough for a contested catch.
+  t=0.9  QB pass2  -> 'throw'   | Aim slightly right of the WR's path to avoid the CB's throw lane, with medium speed balancing accuracy and timing for the contested separation.
+  t=0.9  CB move   -> hdg=95deg facing=95deg mode=normal  | WR cut right and is in recovery (2 steps left), cannot explode. Closing the lateral gap by adjusting heading to 95° to intercept WR's projected path while maintaining facing toward the WR.
+  [CB pass2 parse error] raw="To determine the best course of action, we must evaluate whether the **arm tip** is aligned with the **ball's path** and"
+  t=1.0  CB move   -> hdg=95deg facing=95deg mode=normal  | WR cut right and accelerated — closing to cut off the angle
+  t=1.0  WR (air)  -> hdg=90deg facing=180deg throttle=accelerate  | Ball is in flight to landing zone at (17.7, 53.0). Heading must remain 90° to stay on QB's throw path. Facing 180° tracks ball from QB's direction. Accelerate to close 0.4 yd gap before catch.
+  t=1.1  CB move   -> hdg=165deg facing=159deg mode=normal  | WR is accelerating rightward with full burst; closing angle to intercept landing zone while maintaining facing toward WR
+  t=1.1  WR (air)  -> hdg=90deg facing=119deg throttle=coast  | Maintain heading 90° to stay on trajectory. Adjust facing to 119° to directly face the QB's direction (bearing from WR to QB). Coasting ensures stable position near landing zone (0.2 yd away). No need to change heading or call for ball.
+
+  t=1.1  RESOLUTION -> PBU  sep=1.35yd
+Replay saved -> replays/drag_42.json  (12 steps)
+
+==================================================
+OUTCOME : PBU
+Telemetry: {'max_separation': 5.02, 'throw_t': 0.9, 'throw_distance': 10.3, 'sack': False, 'qb_calls': 6, 'qb_parse_errors': 0, 'wr_calls': 13, 'wr_parse_errors': 0, 'cb_calls': 14, 'cb_parse_errors': 2, 'cb_intent': 'play_man', 'wr_call_t': 0.7, 'broken_play': False, 'detected_cut_t': 0.7}
+
+============================================================
+ROUTE: corner  |  seed=42  ->  replays/corner_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The WR is slightly left of the CB's starting position (x=16.0 vs 16.5). Aligning outside shade positions the CB to cover outside routes while maintaining 5-yard cushion. This balances coverage against potential speed while keeping the CB in a position to mirror lateral movement without overcommitting.
+  WR pre-snap plan: CB is aligned left and slightly upfield, shading the inside. He will commit to m  | CB's inside shade means he'll prioritize cutting inside to stay with me. My stem upfield will force him to turn his hips, committing to recovery. The fake inside during the stem will exaggerate his hip turn, leaving him unable to react to the sharp left break. The 5-yard separation gives room to exploit his recovery penalty on the break.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Running stem phase to commit CB's hips upfield. CB is aligned left and shaded inside, will mirror stem. Final 290deg break creates separation once CB's hips are committed wrong. Call after cut confirms CB rec > 0.
+  t=0.0  QB -> 'hold'    | route developing
+  t=0.0  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving upfield (0°) and CB needs to close the 5.0 yd gap by accelerating upfield to intercept
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB is aligned left/upfield with full burst; must fake inside (0deg) to pull CB's weight before breaking left. Call only after final cut confirms CB rec > 0.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield; CB must adjust heading to 0° to close gap and intercept before WR escapes coverage
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains uncommitted (rec=free), so must run stem longer to create separation. Accelerate to maximize distance before final cut.
+  t=0.2  QB -> 'hold'    | route developing
+  t=0.2  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield but slightly left; adjusting heading to 95° to close lateral gap while maintaining forward momentum
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains uncommitted (rec=free) despite body gap. Must run stem longer to create separation before final break. Accelerate to maximize distance while CB tracks inline.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield with full burst; CB must adjust heading to 0° to close gap and intercept
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB hips upfield. CB is aligned left and upfield, so maintaining 0deg heading allows stem to pull CB into wrong direction. Final cut to 290deg will create separation once CB rec > 0. Call anticipates window after cut.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=175deg facing=175deg mode=normal  | Mirror WR's straight-upfield movement by adjusting heading to stay aligned and prevent lateral separation
+  t=0.5  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. Accelerate to maximize speed for break. Call will trigger immediately after 290deg cut when CB rec > 0 confirms hip commitment.
+  t=0.5  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and is facing away from QB with full burst. CB is positioned to close quickly if WR cuts left after t=2.5s. Need to wait for route development before throwing.
+  t=0.5  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is moving straight upfield; CB must close gap by aligning heading with WR's path to intercept
+  t=0.6  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains uncommitted (rec=free) and has full burst; body gap is temporary. Must fake deeper (270deg) to commit CB's hips before final break. Accelerate to extend stem and create separation window.
+  t=0.6  QB pass2  -> 'hold'    | WR has not called for the ball and the route is not yet developed; wait for the WR to signal before throwing.
+  t=0.6  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst; CB adjusts heading slightly right to mirror path and position for interception
+  t=0.7  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Maintain 0deg stem to pull CB upfield and commit their hips right. Accelerate to maximize burst for final 290deg break. CB's full burst and free rec indicate no separation yet. Fake inside (90deg) next step to lock CB's hips wrong for left break.
+  t=0.7  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route isn't developed. Wait for the cut signal before throwing.
+  t=0.7  CB move   -> hdg=0deg facing=0deg mode=normal  | WR is accelerating upfield with full burst; CB must commit to intercept by aligning heading/upfield to close gap before WR escapes coverage
+  t=0.8  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to pull CB upfield; fake inside (left drift) will commit CB's hips for final 290deg break. Call imminent pre-cut (Window A) or post-cut (Window B) when CB rec > 0.
+  t=0.8  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route is scheduled to break at t=2.5s. Current separation is contested (2.24yd) and CB is in position to close if WR doesn't cut.
+  t=0.8  CB move   -> hdg=355deg facing=355deg mode=normal  | WR is moving straight upfield but is 2.2 yd ahead; adjust heading slightly left to intercept while maintaining full burst acceleration
+  t=0.9  WR move   -> hdg=270deg facing=0deg throttle=accelerate  | CB hips are uncommitted (355deg heading); fake left (270deg) creates >90deg angle to commit CB. Accelerate to deepen fake, then break to 290deg after CB rec >0 confirms hip commitment.
+  t=0.9  QB pass2  -> 'hold'    | WR has not called for the ball and is still running straight upfield; throwing before the cut risks a contested catch or interception.
+  t=0.9  CB move   -> hdg=352deg facing=352deg mode=normal  | WR moving straight upfield; adjust heading slightly west to mirror movement and close lateral gap
+  t=0.9  [CUT_REC] WR entered 3-step recovery
+  t=1.0  WR move   -> hdg=270deg facing=0deg throttle=accelerate  | CB remains uncommitted (rec=free) despite WR's 270deg cut. Must accelerate further to force CB's hips to turn left. Pre-snap gap and CB's full burst disqualify current call window. Final break direction requires CB to recover rightward, creating separation after WR's cut completes.
+  t=1.0  QB pass2  -> 'hold'    | WR is recovering from a cut and facing away from QB, while CB has full burst. Current separation is contested, and the WR hasn't called for the ball yet.
+  t=1.0  CB move   -> hdg=231deg facing=231deg mode=normal  | WR is recovering from a left cut and cannot explode - close directly to intercept while maintaining forward momentum
+  t=0.9  [WR cut confirmed] heading held at 270deg
+  t=1.0  [CUT_REC] CB entered 2-step recovery
+  t=1.1  WR move   -> hdg=290deg facing=231deg throttle=accelerate [CALL FOR BALL]  | CB hips are committed wrong (rec=2) after stem phase. Final break to 290deg creates true separation. Call immediately as gap peaks before CB recovers. Body gap (1.3yd) + CB recovery steps = high-probability catch.
+  t=1.1  WR called for the ball! heading=290deg
+  t=1.1  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and is still running left toward sideline. CB is recovering, but WR's current facing away from QB reduces catch probability. Wait for WR's upfield cut at t≈2.8s before throwing.
+  t=1.1  CB move   -> hdg=236deg facing=236deg mode=normal  | WR in recovery state with 2 steps left, cannot explode. CB must close gap by adjusting heading to 236° to intercept WR's projected path while avoiding additional hip-turns.
+  t=1.2  WR move   -> hdg=290deg facing=180deg throttle=accelerate  | Ball is traveling along 290° heading. Facing 180° (toward QB) maximizes catch probability. Accelerate to ensure positioning for the catch without altering trajectory.
+  [QB pass1 parse error] raw=
+{"action": "throw", "target_coord": [13.5, 54.9], "ball_speed_mph": 37, "reasoning": "WR is committed to left route, CB is recovering (1 step) and cannot close quickly. Throwing to projected WR position (13.5,54.9) accounts for 0.25s travel time, creating separation before CB can react."}
+  t=1.2  QB pass2  -> 'hold'    | parse_error
+  t=1.2  CB move   -> hdg=253deg facing=253deg mode=normal  | WR is in recovery and moving left toward sideline; closing angle by matching heading to intercept projected path
+  t=1.3  WR move   -> hdg=290deg facing=290deg throttle=accelerate  | The QB has thrown the ball to the current heading (290°). Heading must remain unchanged to ensure the ball is caught. Facing is adjusted to 290° to align with the ball's trajectory. Accelerate to position for the catch while staying within bounds.
+  [QB pass1 parse error] raw=
+To determine whether the quarterback should throw the ball, we must evaluate the situation based on the WR's position, the CB's movement, and the timing of the route.
+
+---
+
+### **Key Observations:**
+
+1. **WR Position and Movement:**
+   - The WR is currently at **(14.1, 54.7)**.
+   - They are moving in a direction of **290°**, which is **left and slightly upfield**.
+   - Their velocity components are:
+     - **x**: -5.5 * cos(20°) ≈ -5.17 yd/s (left)
+     - **y**: 5.5 * sin(20°) ≈ 1.88 yd/s (up)
+   - The WR **called for the ball**, indicating they believe they are open.
+
+2. **CB Position and Movement:**
+   - The CB is at **(15.3, 56.3)**.
+   - They are moving in a direction of **253°**, which is **left and slightly upfield**.
+   - Their velocity components are:
+     - **x**: -5.5 * cos(17°) ≈ -5.26 yd/s (left)
+     - **y**: 5.5 * sin(17°) ≈ 1.57 yd/s (up)
+   - The CB is **closing in** on the WR, as both are moving left and up, and the WR is to the left of the CB.
+
+3. **Separation at Time of Throw:**
+   - The current separation between WR and CB is **~1.96 yards**, which is **contested**.
+   - If the ball is thrown now, it will arrive at **~1.56 seconds**.
+   - At that time, the WR is expected to be at **(12.8, 55.2)**.
+   - The CB, in that time, will be at **(13.41, 56.88)**.
+   - The separation at that moment would be **~1.8 yards**, still contested.
+
+---
+
+### **Decision Analysis:**
+
+- The WR **called for the ball**, which is a strong indicator that they are **open**.
+- Despite the CB being close, the WR is on a route that **will change direction** at **t = 2.5 seconds** (cutting to 0°, straight upfield).
+- If the QB waits, the WR will be **moving away from the CB** as they cut to the middle of the field, creating more space.
+- However, **timing is critical** in football. If the WR is open and the ball can be thrown before the CB closes the gap, it's a **good decision** to throw.
+
+---
+
+### **Conclusion:**
+
+Given that the WR **called for the ball** and is on a route that will eventually open up, the quarterback should **throw the ball to the WR's expected position** at **(12.8, 55.2)**, even though the separation is contested. The WR is open, and the timing is favorable.
+
+$$
+\boxed{\text{Throw the ball to the WR at (12.8, 55.2).}}
+$$
+  t=1.3  QB pass2  -> 'hold'    | parse_error
+  t=1.3  CB move   -> hdg=261deg facing=261deg mode=normal  | WR cut left and accelerated toward sideline â€” closing angle to intercept lateral movement
+  t=1.4  WR move   -> hdg=290deg facing=290deg throttle=accelerate  | The ball is thrown to the current heading (290°), so heading must remain unchanged. Facing is adjusted to 290° to face the direction of the ball's arrival, optimizing reception.
+  t=1.4  QB pass2  -> 'hold'    | The current separation is contested (1.85 yards), and the CB is closing in. The WR is still on their 290° path, and waiting for the cut to 0° at t=2.5s may create a better window.
+  t=1.4  CB move   -> hdg=267deg facing=267deg mode=normal  | WR's confirmed left cut (290°) with full burst requires intercepting their projected path. Adjust heading to 267° to close the angle while maintaining facing for play_man.
+  t=1.5  WR move   -> hdg=290deg facing=290deg throttle=accelerate  | The QB has thrown the ball to the current heading (290°). Changing heading would move away from the ball's trajectory. Accelerate to position for the catch while keeping facing aligned with the ball's path to maximize catch probability.
+  [QB pass2 parse error] raw=
+The quarterback should **throw the lob** option. Here's the breakdown:
+
+1. **Separation at Arrival**: The lob option provides the **best separation** (2.1 yards) at arrival, which is above the 1.8-yard threshold for a "clean window" (no CB interference). This minimizes the CB's ability to contest the catch.
+
+2. **CB Positioning**: The CB is moving toward the WR's path, but the 2.1-yard gap at arrival ensures the CB cannot close the distance quickly enough. The lob's longer flight time (0.44 seconds) allows the WR to secure the ball before the CB can react.
+
+3. **Target Placement**: The target_coord (11.2, 55.8) is directly in line with the WR's movement. While the CB is to the right of this point, the lob's trajectory and timing maximize the WR's chance to catch the ball away from the CB's reach.
+
+**Conclusion**: The lob option balances separation, timing, and positioning to give the WR the best chance to complete the pass without CB interference. 
+
+**Answer**: Throw the lob.
+  t=1.5  QB pass1  -> thinking target=[11.2, 55.8] | The WR is moving left toward the sideline while the CB is closing in. The WR called for the ball, indicating they believe they're open. Throwing to (11.2, 55.8) accounts for their leftward movement and the CB's pursuit, creating a gap before the WR cuts upfield at t=2.5s.
+  t=1.5  QB pass2  -> 'hold'    | parse_error
+  t=1.5  CB move   -> hdg=271deg facing=271deg mode=normal  | WR is moving left (290°) and accelerating; adjust heading to 271° to intercept their projected path while maintaining full burst capability
+  t=1.6  WR move   -> hdg=290deg facing=270deg throttle=coast  | QB is throwing to current heading (290°). Must hold heading exactly as per signal. Coasting maintains speed without altering path. Facing 270° (left sideline) aligns with expected ball trajectory. No heading change allowed before catch. CB is behind and cannot close at full speed due to recovery penalty.
+  t=1.6  QB pass2  -> 'hold'    | The WR is facing away from the QB and the CB is actively closing the gap. Waiting for the WR's cut to 0° (straight upfield) at t=2.5s will create a better throwing window.
+  t=1.6  CB move   -> hdg=275deg facing=275deg mode=normal  | WR is moving left (290°) with full burst; adjust heading to 275° to intercept projected path while maintaining facing for play_man
+  t=1.7  WR move   -> hdg=290deg facing=90deg throttle=accelerate  | The QB has thrown the ball to the user's current heading of 290°, so the user must hold this heading. Adjusting facing to 90° (right) optimizes reception by looking towards the ball's trajectory.
+  [QB pass1 parse error] raw=
+**Answer:**  
+The decision to hold is based on the contested coverage and the CB's potential to close the gap. While the WR is moving left, the CB's recovery and movement toward the WR may still allow them to adjust. Therefore, it is prudent to wait for a clearer opportunity.  
+
+**Final Answer:**  
+\boxed{\text{Hold}}
+  t=1.7  QB pass2  -> 'hold'    | parse_error
+  t=1.7  CB move   -> hdg=277deg facing=277deg mode=normal  | WR is moving left (290°) with full burst; adjusting heading to 277° intercepts projected path while maintaining facing for potential swat/INT
+  t=1.8  WR move   -> hdg=290deg facing=110deg throttle=accelerate  | 
+  t=1.8  QB pass1  -> thinking target=[8.5, 56.8] | The WR is on a 290° path toward the left sideline, but the route schedule indicates a cut to 0° (upfield) at t=2.5s. Throwing to the lead area where the WR will be when the ball arrives accounts for their current trajectory while anticipating the upcoming cut, creating separation before the CB can close the gap.
+  t=1.8  QB pass2  -> 'throw'   | The bullet option provides the fastest ball speed (54 mph) with a 0.25s flight time, ensuring the CB cannot close the 2.1yd separation effectively while aiming left of the WR's path to avoid the CB's position.
+  t=1.8  CB move   -> hdg=280deg facing=258deg mode=normal  | WR confirmed leftward movement (290°) for 2+ steps; closing angle to intercept before ball arrives
+  CB intent -> 'swat'  | Facing the ball (258?) is within 60? of the landing zone (276?). Arm tip (1.0yd reach) is 2.7yd from the zone, which is within swat range. Need to close lateral gap to the WR (1.97yd) while moving toward the ball's landing zone. Swat offers a safer disruption than interception (3.1yd arm reach) and allows contesting the catch if the WR is open.
+  t=1.9  CB move   -> hdg=276deg facing=276deg mode=normal  | WR moving left (290°) with full burst; closing lateral gap to contest ball at landing zone
+  t=1.9  WR (air)  -> hdg=290deg facing=116deg throttle=accelerate  | Maintain heading 290° to stay on trajectory. Adjust facing to 116° as instructed to look toward the QB's direction. Accelerate to reach landing zone (8.5, 56.8) while keeping heading locked to avoid moving away from the ball's path.
+  t=2.0  CB move   -> hdg=283deg facing=276deg mode=normal  | WR moving left with full burst; adjust heading to intercept projected path while maintaining swat angle
+  t=2.0  WR (air)  -> hdg=290deg facing=116deg throttle=accelerate  | Maintain heading 290° to stay on QB's throw path. Accelerate to close 0.9 yd gap while keeping facing 116° (directly at QB) for optimal catch angle. Do not alter heading as the ball is already in flight.
+  [CB pass1 parse error] raw="The defensive back (CB) needs to adjust their heading and facing to intercept the ball. Here's the breakdown:\n\n1. **Late"
+  t=2.1  CB move   -> hdg=283deg facing=276deg mode=normal  | parse_error
+  t=2.1  WR (air)  -> hdg=290deg facing=116deg throttle=coast  | Ball is in the air and heading is locked. Facing is set to look back at QB. Throttle is coast to maintain speed without changing heading.
+
+  t=2.1  RESOLUTION -> CATCH  sep=2.18yd
+Replay saved -> replays/corner_42.json  (22 steps)
+
+==================================================
+OUTCOME : CATCH
+Telemetry: {'max_separation': 5.02, 'throw_t': 1.8, 'throw_distance': 20.2, 'sack': False, 'qb_calls': 16, 'qb_parse_errors': 4, 'wr_calls': 23, 'wr_parse_errors': 0, 'cb_calls': 24, 'cb_parse_errors': 1, 'cb_intent': 'swat', 'wr_call_t': 1.1, 'broken_play': False, 'detected_cut_t': 0.9}
+
+============================================================
+ROUTE: post_corner  |  seed=42  ->  replays/post_corner_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The WR is positioned slightly to the left of the CB, so aligning outside takes away outside routes. With 5 yards off, I have cushion to react to any movement while maintaining coverage.
+  WR pre-snap plan: CB is inside with a tight shade, likely to mirror my movement. The stem phase wi  | CB's inside alignment means he'll struggle to stay with a break to the post. The stem phase will draw him upfield, creating a gap. Breaking to the post forces him to cross the field, leaving him behind when I transition to the corner. The timing aligns with QB's expectation for the open route.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Stem phase requires straight acceleration to commit CB upfield. CB is behind and facing me, so maintaining 0deg ensures they mirror my movement. Final break to 315deg will create separation once CB is committed right. No need for early fakes; focus on stem length to set up window.
+  t=0.0  QB -> 'hold'    | route developing
+  t=0.0  CB move   -> hdg=0deg facing=0deg mode=normal  | Closing the gap by moving upfield to track the WR's straight movement.
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | In stem phase, running straight to pull CB upfield. CB is committed to 90deg (right), so final break to 315deg (left) will create separation. Accelerate to maximize speed for the cut.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=0deg facing=0deg mode=normal  | Mirroring WR's upfield movement to stay in coverage
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB is mirroring movement but lacks burst to close gap. Accelerate to maximize speed for 45deg cut, ensuring CB's hips are committed right before final 315deg break.
+  t=0.2  QB -> 'hold'    | route developing
+  t=0.2  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield but has 4.8 yd separation. CB needs to close gap while maintaining vision to prevent deep route. Slight left angle ensures coverage without overcommitting.
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to push CB deeper upfield. CB remains committed to 90deg with full burst; true separation only occurs after final 315deg cut when CB rec > 0. Body gap alone insufficient - need hip commitment before calling.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is running straight upfield with full burst; maintain facing to track movement while staying in normal mode to avoid premature recovery
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to push CB upfield. CB's heading (95deg) indicates right-side commitment. Accelerate to maximize speed, ensuring CB cannot mirror break. Final cut to 45deg will create separation by committing CB to wrong direction.
+  t=0.4  QB -> 'hold'    | route developing
+  t=0.4  CB move   -> hdg=90deg facing=90deg mode=normal  | WR moving straight upfield with full burst; adjust heading left to close gap and mirror lateral position
+  t=0.5  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips rightward. CB is mirroring movement and needs to be pushed deeper. Final cut to 45deg will create separation by forcing CB to cross field. Call only after cut confirms CB rec > 0.
+  t=0.5  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route isn't fully developed. Wait for the WR to signal before throwing.
+  t=0.5  CB move   -> hdg=180deg facing=180deg mode=normal  | WR is moving upfield with full burst; CB must adjust heading left (180°) to close gap and intercept
+  t=0.5  [CUT_REC] CB entered 2-step recovery
+  t=0.6  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is committed (rec=2 steps) from prior cut, body gap 1.6yd. Stem phase complete, final break to 45deg will create separation. Call after final cut confirms CB rec>0 (window B).
+  t=0.6  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and CB is recovering, so separation will grow during ball flight. Wait for the route to develop.
+  t=0.6  CB move   -> hdg=195deg facing=195deg mode=normal  | WR moving upfield requires lateral closure; small heading adjustment to intercept without overcommitting to recovery
+  t=0.7  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to push CB deeper. CB's burst is recovering, so they cannot mirror break yet. Final cut to 45deg will commit CB's hips to right, creating separation. Call after stem completes.
+  t=0.7  QB pass2  -> 'hold'    | WR has not called for the ball and is still running straight; wait for the route to develop before throwing.
+  [CB pass1 parse error] raw='To determine the optimal heading for the defender (CB) in this scenario, we must consider the following:\n\n1. **Position '
+  t=0.7  CB move   -> hdg=195deg facing=195deg mode=normal  | parse_error
+  t=0.8  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is mobile and uncommitted (rec=free). Stem phase requires full burst to pull CB upfield. Call must wait for CB hip commitment after final cut. Accelerate to extend stem and create separation window.
+  t=0.8  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and the current separation is too tight with both players at full burst. Wait for the WR's signal before throwing.
+  t=0.8  CB move   -> hdg=349deg facing=349deg mode=normal  | WR is moving straight upfield with full burst; intercepting requires heading toward their projected position (349°) to close gap before they escape
+  t=0.8  [CUT_REC] CB entered 2-step recovery
+  t=0.9  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is committed to 285deg (left) with 2 recovery steps. WR must finish stem (0deg) to maximize CB hip commitment. Accelerate to peak speed before final break. Call after final cut when CB rec > 0 confirms hips are locked.
+  t=0.9  QB pass2  -> 'hold'    | CB is recovering with 2 steps left, and WR hasn't called for the ball yet. Wait for the WR to signal and the route to develop before throwing.
+  t=0.9  CB move   -> hdg=345deg facing=345deg mode=normal  | WR is moving straight upfield with full burst; intercepting their projected path requires heading 345° to close gap before they escape
+  t=1.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is recovering (rec=1) from prior cut, indicating hips are committed upfield. Final 315deg break will lock CB in wrong direction. Call after cut when CB rec > 0 confirms window.
+  t=1.0  QB pass2  -> 'hold'    | WR hasn't called for the ball and is still running straight; CB is recovering from a cut but hasn't committed to pursuit. Wait for WR to signal or make the cut before throwing.
+  t=1.0  CB move   -> hdg=345deg facing=345deg mode=normal  | WR moving straight upfield; CB aligns heading to intercept projected path while managing recovery state
+  t=1.1  WR move   -> hdg=45deg facing=45deg throttle=accelerate [CALL FOR BALL]  | Final cut to 45deg commits CB hips wrong (CB rec=2 after cut). Call immediately as gap peaks with CB recovering. Body gap >=1.5yd and CB rec>0 confirms high-probability catch.
+  t=1.1  WR called for the ball! heading=45deg
+  t=1.1  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and is facing away from QB with CB in position to close gap
+  t=1.1  CB move   -> hdg=347deg facing=347deg mode=normal  | WR is moving straight upfield with full burst; CB must adjust heading to intercept projected path while maintaining position to block the throw
+  t=1.1  [CUT_REC] WR entered 2-step recovery
+  t=1.2  WR move   -> hdg=45deg facing=45deg throttle=accelerate  | QB is throwing to current 45° heading. Must hold heading to stay on target. Accelerate to close gap and face direction of travel for optimal catch probability. CB is behind and cannot adjust quickly.
+  t=1.2  QB pass2  -> 'hold'    | The WR is in recovery (2 steps left) and the CB is free with full burst, creating a tight contact range. Throwing now would risk interception. Waiting allows the WR to clear recovery and potentially open the gap before committing.
+  t=1.2  CB move   -> hdg=27deg facing=27deg mode=normal  | The WR is recovering from a cut, so the CB should close the gap by heading towards the WR's projected position. The bearing to the projected position is 27°, requiring the CB to adjust heading and facing in that direction to intercept.
+  t=1.1  [WR cut confirmed] heading held at 45deg
+  t=1.2  [CUT_REC] CB entered 1-step recovery
+  t=1.3  WR move   -> hdg=45deg facing=45deg throttle=accelerate  | Already called for ball; must hold 45° heading to stay on QB's trajectory. Accelerate to close gap while facing direction of throw for optimal catch position.
+  t=1.3  QB pass1  -> thinking target=[18.1, 58.0] | The WR is committed to their 45° path and will be near (18.1, 58.0) when the ball arrives. Despite tight coverage, the WR's movement and CB's recovery create a window for a regular-speed throw.
+  t=1.3  QB pass2  -> 'throw'   | The WR is in recovery, reducing CB's closing speed, and the medium throw provides a 1.1yd separation with enough flight time for proper placement away from the CB.
+  t=1.3  CB move   -> hdg=30deg facing=327deg mode=normal  | WR is recovering from a confirmed cut (1 rec step) and moving diagonally right/upfield. Closing aggressively on projected path to intercept before burst recovers.
+  CB intent -> 'play_man'  | The WR is within 1.0yd of me, and my speed (4.7yd/s) allows closing the gap in 0.22s. While the PBU arm tip is 1.2yd from the landing zone, the time to adjust heading is insufficient. Playing the man guarantees disruption at the catch, leveraging proximity to force a drop.
+  t=1.4  CB move   -> hdg=95deg facing=343deg mode=normal  | WR is accelerating diagonally right; adjust heading to 95° to cut off their path while maintaining facing toward WR for play_man intent
+  t=1.4  WR (air)  -> hdg=45deg facing=180deg throttle=accelerate  | QB throw path is locked on 45° heading. Accelerate to landing zone (18.1,58.0) while facing QB (180°) to track ball. Do not alter heading - changing it would run away from throw path.
+  t=1.4  [CUT_REC] CB entered 1-step recovery
+  t=1.5  CB move   -> hdg=95deg facing=355deg mode=normal  | WR is moving diagonally upfield-right with full burst; maintain heading to intercept while facing WR to play_man
+  t=1.5  WR (air)  -> hdg=45deg facing=139deg throttle=accelerate  | Maintain heading 45° to stay on QB's throw path. Adjust facing to 139° to track the ball. Accelerate to close the 0.2yd gap to the landing zone. CB is recovering and behind; no need to cut yet. Focus on reaching the landing zone before the ball arrives.
+  t=1.6  CB move   -> hdg=346deg facing=359deg mode=normal  | WR moving diagonally upfield-right with full burst; adjust heading to intercept landing zone while maintaining facing toward WR to prepare for play_man
+  t=1.6  WR (air)  -> hdg=45deg facing=142deg throttle=accelerate  | Maintain 45° heading to stay on QB's throw path. Adjust facing to 142° (exact bearing to QB) to track the ball. Accelerate to close 0.6 yd gap while keeping heading locked. Do not change heading - any deviation would run away from the throw.
+
+  t=1.6  RESOLUTION -> CATCH  sep=2.11yd
+Replay saved -> replays/post_corner_42.json  (17 steps)
+
+==================================================
+OUTCOME : CATCH
+Telemetry: {'max_separation': 5.02, 'throw_t': 1.3, 'throw_distance': 13.2, 'sack': False, 'qb_calls': 10, 'qb_parse_errors': 0, 'wr_calls': 18, 'wr_parse_errors': 0, 'cb_calls': 19, 'cb_parse_errors': 1, 'cb_intent': 'play_man', 'wr_call_t': 1.1, 'broken_play': False, 'detected_cut_t': 1.1}
+
+============================================================
+ROUTE: in  |  seed=42  ->  replays/in_42.json
+============================================================
+  [A4 mode] LLM WR (qwen3:8b) + LLM QB (qwen3:8b) + LLM CB (qwen3:8b)
+  CB pre-snap -> offset=5.0yd  side=outside  | The CB is slightly behind the WR (5.5 yd separation) and positioned slightly to the right (outside). Choosing 5-yard off-coverage provides cushion while aligning outside to take away outside routes. The CB's speed (9.0 yd/s) and coverage rating (82/99) justify this balanced approach, minimizing risk while maintaining leverage.
+  WR pre-snap plan: CB is aligned to my left, 5 yd upfield with inside shade. He will commit to mirr  | CB's inside shade means he's positioned to cut across my path if I break. By running straight upfield (stem), I'll force his hips to turn, creating a recovery penalty. The sharp 90° cut to the right sideline will exploit his inability to reverse direction quickly. The 5 yd separation gives him time to close, but the route's geometry ensures I'm open if he's committed to the stem.
+  t=0.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | In stem phase, running straight upfield to pull CB upfield and commit their hips. Must accelerate to build separation before sharp 90deg cut. Pre-snap cushion isn't earned separation - only after stem commits CB's hips can call.
+  t=0.0  QB -> 'hold'    | route developing
+  t=0.0  CB move   -> hdg=170deg facing=170deg mode=normal  | WR is set to go upfield with full burst. Adjust facing to track WR while moving upfield to close gap before they accelerate.
+  t=0.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | In stem phase, CB is committed to mirroring upfield movement. Must accelerate to maximize body gap and force CB's hips to turn 170°. Final cut to 90° will create window by committing CB's hips wrong. Call only after cut confirms CB rec > 0.
+  t=0.1  QB -> 'hold'    | route developing
+  t=0.1  CB move   -> hdg=173deg facing=173deg mode=normal  | WR moving straight upfield; adjusting heading to match bearing for interception while maintaining forward momentum
+  t=0.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains uncommitted (rec=free) and can mirror break if cut early. Must accelerate to maximize burst for sharp 90deg break. True separation only occurs post-cut when CB's hips are locked wrong.
+  t=0.2  QB -> 'hold'    | route developing
+  t=0.2  CB move   -> hdg=171deg facing=171deg mode=normal  | WR moving straight upfield with full burst; adjust heading to close lateral gap while maintaining intercept angle
+  t=0.3  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB is committed to mirroring stem phase (171deg heading). Need to run stem long enough to pull CB upfield and commit his hips before final 90deg break. Body gap alone isn't separation - must wait for CB rec > 0 after cut.
+  t=0.3  QB -> 'hold'    | route developing
+  t=0.3  CB move   -> hdg=171deg facing=171deg mode=normal  | WR remains straight upfield with full burst; CB maintains current heading to stay disciplined and avoid premature cuts
+  t=0.4  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB rec remains free (no hip commit) during stem phase. Must complete 5 steps_on_this_heading (1.6s remaining) to pull CB upfield. Call only after final 90° cut when CB rec > 0 confirms hip commit.
+  t=0.4  QB -> 'hold'    | route developing
+  [CB pass1 parse error] raw="The defensive player (CB) should **adjust his heading to 144°** to face the WR's projected position and close the gap. H"
+  t=0.4  CB move   -> hdg=171deg facing=171deg mode=normal  | parse_error
+  t=0.5  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains uncommitted (rec=0) despite body gap. Must run stem long enough to create separation before sharp 90deg break. Call only after cut completes and CB rec>0.
+  t=0.5  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the CB is actively closing in on a contested separation. Wait for the route to develop before throwing.
+  [CB pass1 parse error] raw='To determine the optimal heading for the defender (CB) to intercept the ball carrier (WR), we analyze the relative posit'
+  t=0.5  CB move   -> hdg=171deg facing=171deg mode=normal  | parse_error
+  t=0.6  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB remains committed to mirroring stem (171deg heading, free burst). Must accelerate to maximize separation before final 90deg cut. Pre-snap gap is irrelevant; true separation only occurs after stem commits CB's hips. Continue stem phase to create leverage for uncontested break.
+  t=0.6  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route cut is scheduled for t=2.0s. Current separation is contact range (1.00 yd) with CB closing, requiring patience for the route to develop.
+  [CB pass1 parse error] raw='To determine the optimal heading for the CB (the player), we must consider the relative positions and movements of both '
+  t=0.6  CB move   -> hdg=171deg facing=171deg mode=normal  | parse_error
+  t=0.7  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Continuing stem phase to commit CB's hips upfield. CB remains uncommitted (rec=free) and can mirror movement. Final break to 90deg will create separation once CB's hips are locked in wrong direction. Call occurs post-cut when CB rec>0 confirms hip commitment.
+  t=0.7  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route isn't developed. Current separation is 1.00 yd (contact range) with both players at full burst. Need to wait for WR's cut signal before throwing.
+  [CB pass1 parse error] raw='To determine the optimal heading for the **CB (Covering Body)**, we need to analyze the relative positions, velocities, '
+  t=0.7  CB move   -> hdg=171deg facing=171deg mode=normal  | parse_error
+  t=0.8  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB hips remain committed back (171deg) with full burst; body gap (1.2yd) insufficient without hip commitment. Must accelerate straight to pull CB upfield, delaying break until t=2.0 to ensure CB rec > 0 post-cut. Call only after final break confirms hip commitment.
+  t=0.8  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and is facing away from QB with full burst available. CB is in position to close gap as WR breaks route at t=2.0s.
+  [CB pass1 parse error] raw='To determine the optimal heading for the cornerback (CB), we need to analyze the spatial relationship between the CB and'
+  t=0.8  CB move   -> hdg=171deg facing=171deg mode=normal  | parse_error
+  t=0.9  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB hips committed 171deg (back toward QB), body gap 2.5yd. Final 90deg break will commit CB wrong way. Accelerate to maximize burst for break, call 0.1-0.2s before final cut when CB rec > 0.
+  t=0.9  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and the route development is pending. Current separation is open but WR is facing away from QB, reducing catch probability. Need to wait for the WR's signal before throwing.
+  [CB pass1 parse error] raw='To determine the optimal next move for the cornerback (CB), we must analyze the spatial relationship between the CB and '
+  t=0.9  CB move   -> hdg=171deg facing=171deg mode=normal  | parse_error
+  t=1.0  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | CB hips remain committed back (171deg) with full burst; body gap alone isn't separation. Must complete stem phase (steps_on_this_heading=11) to commit CB's weight upfield before final 90deg break. Call only after final cut confirms CB rec>0.
+  t=1.0  QB pass2  -> 'hold'    | WR hasn't called for the ball yet and the route is expected to develop around t=2.1s. Current separation is open but WR is facing away from QB, reducing catch probability. Need to wait for the route to fully develop before throwing.
+  t=1.0  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield at full burst; CB must adjust heading to intercept while maintaining facing for potential swat/INT
+  t=1.0  [CUT_REC] CB entered 3-step recovery
+  t=1.1  WR move   -> hdg=0deg facing=0deg throttle=accelerate [CALL FOR BALL]  | CB is committed upfield (rec=3), final cut imminent. Call before break to align QB's throw with peak separation. Throttle to maximize speed for catch.
+  t=1.1  WR called for the ball! heading=0deg
+  t=1.1  QB pass2  -> 'hold'    | WR hasn't called for the ball yet, and CB is in recovery with 3 steps left. Wait for the WR to signal before throwing.
+  t=1.1  CB move   -> hdg=95deg facing=95deg mode=normal  | WR is moving straight upfield with full burst; CB must close gap while managing recovery without overcommitting
+  t=1.2  WR move   -> hdg=0deg facing=0deg throttle=accelerate  | Ball is in flight to current heading (0°). Must maintain heading to ensure catch. Adjust facing to 0° to track ball. Accelerate to close gap and position for catch.
+  t=1.2  QB pass1  -> thinking target=[16.0, 58.8] | The WR is committed to straight upfield, and the CB's recovery reduces his ability to close the gap. Leading the WR to his projected position at ball arrival creates an open window.
+  t=1.2  QB pass2  -> 'throw'   | Projected WR-CB separation of 8.4yd at arrival ensures CB is out of reach, and target_coord (16.0,58.8) is 0.5yd ahead of WR's path with 1.3yd catch radius, avoiding CB's closing position.
+  t=1.2  CB move   -> hdg=356deg facing=354deg mode=normal  | WR moving straight upfield with full burst; CB must close gap to landing zone while managing recovery without overcommitting
+  CB intent -> 'play_man'  | The ball is landing upfield, and I'm 7.22 yards behind the WR. My heading is aligned with the ball's path (355?), but my arm tip is 7.5 yards from the landing zone. Closing the 8.5-yard gap in 0.19s is impossible at 3.0yd/s. Swatting requires 1.0yd reach, but the arm tip is 7.5yd from the zone. Playing the man is the only viable option: I can attempt to close the 7.22yd gap by moving upfield, forcing the WR into a contested catch. Closer proximity increases the chance of a hard hit and potential drop.
+  t=1.3  CB move   -> hdg=355deg facing=355deg mode=normal  | WR moving straight upfield; adjust heading to face WR and close gap while managing recovery burst
+  t=1.3  WR (air)  -> hdg=0deg facing=132deg throttle=coast  | Heading must remain 0° to stay on QB's throw path. Adjust facing to 132° to track the ball. Coasting maintains speed without altering trajectory.
+  t=1.4  CB move   -> hdg=95deg facing=95deg mode=normal  | WR cut right and accelerated — closing to cut off the angle
+  t=1.4  WR (air)  -> hdg=0deg facing=134deg throttle=coast  | Hold heading 0° to stay on QB's throw path. Adjust facing to 134° to track ball from QB's position. Coasting maintains speed without risking separation. CB is recovering (1 step left) but remains behind; no need to change direction.
+
+  t=1.4  RESOLUTION -> CATCH  sep=7.7yd
+Replay saved -> replays/in_42.json  (15 steps)
+
+==================================================
+OUTCOME : CATCH
+Telemetry: {'max_separation': 7.7, 'throw_t': 1.2, 'throw_distance': 15.2, 'sack': False, 'qb_calls': 9, 'qb_parse_errors': 0, 'wr_calls': 16, 'wr_parse_errors': 0, 'cb_calls': 17, 'cb_parse_errors': 6, 'cb_intent': 'play_man', 'wr_call_t': 1.1, 'broken_play': False, 'detected_cut_t': None}
+
+============================================================
+SUMMARY
+============================================================
+  slant          PBU            max_sep=5.02 yd  throw_t=0.7s
+  comeback       CATCH          max_sep=5.02 yd  throw_t=1.3s
+  go             CATCH          max_sep=5.02 yd  throw_t=1.2s
+  double_move    CATCH          max_sep=5.02 yd  throw_t=0.5s
+  curl           PBU            max_sep=5.02 yd  throw_t=1.4s
+  zig            CATCH          max_sep=5.02 yd  throw_t=0.6s
+  drag           PBU            max_sep=5.02 yd  throw_t=0.9s
+  corner         CATCH          max_sep=5.02 yd  throw_t=1.8s
+  post_corner    CATCH          max_sep=5.02 yd  throw_t=1.3s
+  in             CATCH          max_sep=7.7 yd  throw_t=1.2s

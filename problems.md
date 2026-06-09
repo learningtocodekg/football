@@ -2,6 +2,63 @@
 
 ---
 
+## CURRENT STATE (post-Round 11 — Ollama qwen3:8b, seed=42, new observation + prompt)
+
+### Round 11 Results
+
+| Route | Outcome | Sep @ resolution | WR call_t | CB rec at call | Notes |
+|-------|---------|-----------------|-----------|---------------|-------|
+| slant | PBU | 1.0 yd | t=0.6 | rec=2 | Stem only 0.6s of 2.0s; CB mild recovery, not genuine hip commit |
+| comeback | CATCH | 3.26 yd | t=1.2 | rec=2 | Stem 1.2s of 2.5s; broke to 270° (sideline juke) not 180° (comeback) |
+| go | CATCH | 3.06 yd | t=1.2 | rec=0 | Ran straight upfield correctly; CB self-induced recovery opened window |
+| double_move | CATCH | 3.6 yd | t=0.1 | rec=0 | **1 step of stem**; hallucinated CB rec>0 to justify call; CB rec was 0 |
+| curl | PBU | 2.36 yd | t=1.1 | rec=1 | Stem 1.1s of 2.5s; never executed 180° hook; called on stem heading 0° |
+| zig | CATCH | 3.77 yd | t=0.5 | rec=1 | Stem 0.5s of 1.0s; jab lasted 1 step; Phase 3 (snap right 90°) never ran |
+| drag | PBU | 1.35 yd | t=0.7 | rec=1 | Route shape OK; call at cut → WR recovery → QB waited → CB closed |
+| corner | CATCH | 2.18 yd | t=1.1 | rec=2 | Improvised 270° fake (wrong dir: should be inside ~90°); QB 4 parse errors, 0.7s late |
+| post_corner | CATCH | 2.11 yd | t=1.1 | rec=0 | Treated 45° (fake phase) as catch heading; 315° (corner) never run |
+| in | CATCH | 7.7 yd | t=1.1 | rec=3 | Never ran 90° cross; CB had 6 consecutive parse errors = CB was frozen |
+
+**Round 11 score: 7C / 3PBU** — up from Round 10 (4C/1INC/5PBU). Ollama vs GPT, so not directly comparable, but structural improvement is real.
+
+**What drove the improvement:** Pre-snap cushion no longer triggers instant call (most routes). WR now holds stem for at least a few steps before calling.
+
+**What the catches actually mean:** Of 7 catches, only 2-3 represent genuine route execution (comeback is borderline, go is clean). The others won because: CB had parse errors (in: 6 consecutive, go, double_move), or positional gap from stem was large enough to survive a short stem + fast QB throw. The routes were not run correctly — they succeeded despite that.
+
+---
+
+### New Round 11 Issues
+
+#### R11-W1 — CB rec fires as premature trigger on ANY CB motion (CRITICAL)
+The WR calls the moment CB rec > 0, regardless of what caused the CB to enter recovery. On every route, the CB entering even a 1-step recovery from its own heading adjustment triggers an immediate WR call — even if the stem is only 20-50% complete. The WR is not distinguishing between "CB genuinely committed the wrong way from my stem" and "CB made a minor lateral step and has a 1-step wobble." Fix: the WR needs to understand that CB rec is only a valid window if the CB was committed in the wrong direction *before* entering recovery — not just any transient recovery state.
+
+#### R11-W2 — Stems terminated 40-80% too early on all routes (CRITICAL)
+| Route | Required stem | Actual stem | % complete |
+|-------|--------------|------------|-----------|
+| slant | 2.0s | 0.6s | 30% |
+| comeback | 2.5s | 1.2s | 48% |
+| double_move | 1.5s | 0.1s | 7% |
+| curl | 2.5s | 1.1s | 44% |
+| zig | 1.0s | 0.5s | 50% |
+| in | 2.0s | 1.1s | 55% |
+The WR's reasoning correctly states the required stem length at early steps, then overrides it when any CB recovery event appears.
+
+#### R11-W3 — Multi-phase routes: terminal phase skipped (CRITICAL)
+On every route with 3+ phases (double_move, zig, post_corner, in), the WR called on an intermediate phase and never ran the final break. The "catch heading" — the one the QB throws to and the WR runs to open space — was never executed. The WR treats the setup phase as the payoff phase.
+
+#### R11-W4 — Break direction wrong on some routes (HIGH)
+- Comeback: reasoning said 180° (back toward QB), action was 270° (lateral toward sideline)
+- Corner: reasoning said "fake inside at 90°," action was 270° (toward sideline — the wrong direction for an inside fake)
+- Post_corner: reasoning said 315° terminal, action cut to 45° (the fake, not the break)
+
+#### R11-W5 — Go route working, but call logic uses wrong framework (LOW)
+Go route ran correctly (straight 0° stem, no unnecessary fakes). But the WR's call reasoning borrowed cut-route logic ("CB hip committed") rather than speed-route logic ("I am faster and pulling away"). Worked accidentally because the CB self-induced recovery. Would fail against a CB that never cuts.
+
+#### R11-P1 — qwen3:8b parse errors degrading CB quality (MEDIUM)
+CB had 3-6 parse errors per route. The "in" route CATCH (sep=7.7yd) is a CB failure artifact — 6 consecutive CB parse errors froze the CB for 0.6 seconds. The separation earned is misleading. On routes where CB parsed correctly, the WR's abbreviated stems produced much tighter results.
+
+---
+
 ## CURRENT STATE (post-Round 10 session)
 
 ### QB — ✅ WORKING

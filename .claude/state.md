@@ -59,15 +59,13 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - `_cb_situation()` emits a lean `GEOMETRY:` block: separation, bearing, WR projected pos in 0.5s, intercept bearing
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
-## Known Issues
-- **WR still ignores route phases (CRITICAL — unverified with new obs)**: Observation restructured this session (route desc at top, specific mechanics, snap position, cleaner phase instruction) but not yet tested in a full run. NEXT: run all routes and check if WR executes phases.
-- **PHASE CHECK not implemented**: Per-step "you are at y=X, should be at ~Y, ON/OFF COURSE" injection still open.
-- **max_sep=5.02 on all routes**: Pre-snap gap is the max separation — WR never creates dynamic separation. May improve with new observation.
-- **W1/W2 — WR premature/wrong-heading call**: Slant improved in R10; curl/post_corner still likely early-calling.
-- **N7 — CB over-commits to fake**: "Confirmed cut" declared after 2–3 steps, no hedge for double-move.
-- **N8 — CB geometric hallucinations**: Invents WR lateral drift that isn't in position data.
-- **S2 — CB template-lock**: Boilerplate hold reasoning every route.
-- **detected_cut_t**: Still misfires on jabs (P3).
+## Known Issues (post-Round 11)
+- **WR call trigger fires on any CB recovery — not just genuine hip commit (CRITICAL)**: CB making a minor tracking adjustment enters 1-step recovery → WR immediately calls, cutting stem 40-80% short. The WR needs to distinguish genuine hip-commit (CB heading away from final break direction) from a tracking wobble.
+- **Multi-phase routes: terminal phase always skipped**: On double_move, zig, post_corner, in — WR calls on intermediate phase, final break never executes. WR treats "first cut = catch heading."
+- **Break direction wrong on some routes**: Comeback: 270° instead of 180°. Corner: improvised 270° fake instead of ~90° inside fake. Post_corner: called at 45° (fake) not 315° (terminal).
+- **qwen3:8b CB parse errors**: 3-6 per route, inflating some WR separation numbers (in route: 7.7 yd from CB failure, not WR execution).
+- **Drag call timing self-defeating**: Calling at the cut triggers WR recovery → QB waits → CB closes. Should call 0.1s before the break.
+- **detected_cut_t still misfires on jabs (P3)**: Unchanged.
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT

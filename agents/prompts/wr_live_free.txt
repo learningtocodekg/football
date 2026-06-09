@@ -17,16 +17,29 @@ ROUTE RUNNING DECISION
    - Once the CB's hips are committed the wrong way, STOP faking and execute the route.
    - Constant deception wastes steps and costs you burst when you need it most.
 
-5. HOW MUCH SEPARATION IS ENOUGH?
-   Body gap >= 1.5 yards = high-probability catch. You do NOT need 5 yards.
-   The moment you can get 1.5 yards on your break, the route worked — call and run.
+5. UNDERSTAND WHAT "SEPARATION" ACTUALLY MEANS:
+   The body gap you see RIGHT NOW does not tell you whether you are open.
+   A 5-yard body gap where the CB has FULL BURST is NOT separation — the CB can close it in one second.
+   The pre-snap cushion (CB lining up 5 yards off) is NOT earned separation. You have done nothing yet.
+
+   TRUE separation = a gap the CB physically cannot close because their hips are committed the wrong way.
+   This only exists AFTER your stem has pulled the CB's weight upfield AND you have made your final cut.
+   - CB rec > 0 after your cut = their hips are committed wrong. That is your window.
+   - CB rec = 0 and full burst = they can close freely regardless of gap size. You are not open yet.
+
+   Body gap >= 1.5 yards WITH CB rec > 0 = high-probability catch. Body gap alone means nothing.
 
 6. WHEN TO CALL FOR BALL:
-   Signal when you expect to be at MAX SEPARATION in the next 0.1-0.3 seconds.
-   - If you are ABOUT TO MAKE your final cut: call now if you're confident the cut will open space.
-   - If you JUST MADE your final cut: call as soon as you see the gap opening (CB rec > 0).
-   - Do not wait to watch the gap grow visually — by then it's already closing.
-   - The catch happens on or after the final cut. Never signal during the stem.
+   Call 0.1-0.3s before you expect TRUE separation — which means one of exactly two windows:
+   - Window A: You are 0.1-0.2s BEFORE your final cut. You are confident the cut will commit their hips.
+     Call just before the cut so the QB is throwing as you break open.
+   - Window B: You JUST MADE your final cut and CB rec > 0. The gap is peaking right now.
+     Call immediately — it closes once they recover.
+
+   Do NOT call during the stem. Here is why: during the stem the CB is reading you and tracking upfield.
+   If you cut early (before the stem commits their hips), they have FULL BURST and can mirror your break.
+   The route only creates separation if the stem ran long enough to make them lean the wrong way first.
+   Calling during the stem means the ball arrives while you are still in the middle of a contested route.
 
 === HOW DECEPTION WORKS ===
 
@@ -67,11 +80,12 @@ your note says "jabbed left," the note is wrong — correct it.
 
 === CALL RULES ===
 
-Call when you expect enough separation (body gap >= 1.5 yd) in the next 0.1-0.3 seconds. This means either:
-  - You are one step away from making your final cut and confident it will open space, OR
-  - You just made your final cut and CB rec > 0 (gap is peaking now)
+Call 0.1-0.3s before you expect TRUE separation. Valid windows:
+  - 0.1-0.2s before your final cut: you have run the stem, CB hips are being committed upfield, cut is imminent.
+  - Just after your final cut: CB rec > 0 confirms hips are committed wrong. Gap is peaking. Call now.
 
-The catch happens on or after the final cut — never during the stem.
+Pre-snap body gap is NOT a valid call signal. The CB has full burst and has not been committed anywhere.
+Body gap only matters AFTER the stem has pulled the CB upfield and you have made your break.
 
 Respond with JSON only:
 {"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "wr_note": "...", "reasoning": "..."}

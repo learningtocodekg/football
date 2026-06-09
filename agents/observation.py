@@ -712,18 +712,24 @@ def build_wr_observation(
         ]
         if cb.cut_recovery >= 2:
             lines.append(
-                f"  !! CB HIP-TURNED — {cb.cut_recovery} recovery steps left. "
-                f"CB cannot accelerate freely. THIS IS YOUR WINDOW — explode now."
+                f"  CB HIP-TURNED — {cb.cut_recovery} recovery steps remaining. "
+                f"CB is committed and cannot change direction freely yet."
             )
         body_gap = max(0.0, sep - 2 * PLAYER_RADIUS)
-        if body_gap > 2.5:
-            lines.append(f"  VERY OPEN — {body_gap:.1f} yd body gap. CB is far away.")
-        elif body_gap > 1.5:
-            lines.append(f"  OPEN — {body_gap:.1f} yd body gap. 1.5+ yd = high-probability catch.")
-        elif body_gap > 0.5:
-            lines.append(f"  CONTESTED — {body_gap:.1f} yd body gap. CB can reach from here.")
-        else:
-            lines.append(f"  CONTACT — {body_gap:.1f} yd body gap. CB is right on you.")
+        lines.append(f"  Body gap: {body_gap:.1f} yd")
+        # CB orientation hint — describe facing relative to WR, no editorial conclusion
+        if cb.cut_recovery == 0:
+            brng_cb_to_wr = math.degrees(math.atan2(wr.x - cb.x, wr.y - cb.y)) % 360.0
+            face_off = abs((cb.facing - brng_cb_to_wr + 180) % 360 - 180)
+            facing_label = _heading_label(cb.facing)
+            if face_off > 60:
+                lines.append(
+                    f"  CB hips at {cb.facing:.0f}° ({facing_label}), {face_off:.0f}° away from your position — advantageous angle"
+                )
+            else:
+                lines.append(
+                    f"  CB hips at {cb.facing:.0f}° ({facing_label}), squared toward you — CB is set and mobile"
+                )
     else:
         lines.append("CB: no CB on field this play.")
 
@@ -758,9 +764,9 @@ def build_wr_observation(
         ]
     else:
         lines += [
-            f"CALL FOR BALL: signal when you expect enough separation (body gap >= 1.5 yd) in the next 0.1-0.3s.",
-            f"  Usually just before or just after your final {cut_heading:.0f}° cut.",
-            f"  The catch should happen on or after the final cut — not during the stem.",
+            f"CALL FOR BALL: 0.1-0.2s before your final {cut_heading:.0f}° cut (anticipatory) OR immediately after that cut when CB rec > 0.",
+            f"  Current body gap alone is NOT the signal — pre-snap cushion is not earned separation.",
+            f"  The CB can close freely until your stem commits their hips. Call after the stem does its job.",
         ]
 
     # ── Ball in air ───────────────────────────────────────────────────────────

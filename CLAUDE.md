@@ -62,6 +62,13 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
+## 5. Rejected Approaches
+
+When the user explicitly shuts down a specific approach ("stop recommending X", "don't do that", "I told you already"):
+- Record it in memory immediately.
+- Do not recommend it again in any future conversation.
+- Exception: if you are highly confident the rejected approach is the only viable solution, **ask the user explicitly** before raising it. Never assume past rejection means approval now. State clearly: "You've rejected this before — I think it's the only option here because [reason]. Do you want me to try it?"
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

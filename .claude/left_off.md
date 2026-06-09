@@ -1,55 +1,55 @@
 # Left Off
-Date: 2026-06-08
+Date: 2026-06-09
 
 ## What We Worked On
-WR observation quality session. The WR was reading a vague, poorly-ordered observation that buried the route description mid-prompt and used loose timing/yardage numbers. Goal: make the WR observation concrete, well-structured, and give the WR what it needs to know WHEN to call for the ball.
-
-Also created `show_wr_obs.py` — a diagnostic script that renders the exact text the WR reads at any step with synthetic data, so we can debug the observation without running the full sim.
+Round 11: WR call-timing overhaul. The WR was calling at t=0.0 because pre-snap cushion (CB starts 5 yd off) immediately satisfied the "body gap >= 1.5 yd" rule. Fixed the observation and prompt, ran all 10 routes with Ollama, dispatched 10 subagents for route-by-route WR analysis, updated problems.md.
 
 ## What Got Done
 
-### Observation restructure (`agents/observation.py`)
-- **Route description moved to top** — first thing WR reads, always. Route description was previously buried after play state / CB data; WR was reading its own position before knowing what it was supposed to do.
-- **Phase X of Y removed** — replaced with `YOUR HEADING NOW: Xdeg — [final break / ~Xs remaining, then cut to Ydeg]`. Cleaner and unambiguous.
-- **SNAP POSITION** added — WR always sees `(x, y)` from t=0 as a reference for gauging how far into the route it is.
-- **History window: 10 steps → 20 steps** (1s → 2s of context).
-- **`rec` legend added** to move log header: `free=full burst available; Nrec=hip turned, N more steps until full burst returns`.
-- **`_phase_instruction()` helper** — generates specific mechanics text dynamically from `route_phases`: "Head 0° for ~14 yards (~2.0s). Around t=2.0s — when you feel a 45° cut would give you enough separation — cut to 45° and continue through the catch."
-- **`_est_yards()` helper** — physics-accurate yardage estimate from route phase duration (accounts for acceleration from rest for phase 1, max speed for subsequent phases).
-- **`wr_start` parameter** — passed from `runner.py` to `build_wr_observation`.
-- **"max separation" → "enough separation (body gap >= 1.5 yd)"** — corrects the signal: WR doesn't need 5 yards, just 1.5.
-- Removed Δ/°/² Unicode characters from move log (Windows terminal compat).
+### Observation changes (`agents/observation.py`)
+- **Removed editorial "VERY OPEN / OPEN / GAP / CONTESTED" labels** — these were telling the WR the conclusion instead of the facts. The WR read "VERY OPEN" at t=0 and called immediately.
+- **Replaced with CB orientation hint**: when CB rec=0, show `"CB hips at X° (label), N° away from your position — advantageous angle"` or `"CB hips at X°, squared toward you — CB is set and mobile"`. Facts only, no conclusion.
+- **Removed "THIS IS YOUR WINDOW — explode now"** from the HIP-TURNED alert → now says `"CB is committed and cannot change direction freely yet."` Let the WR decide what to do with that.
+- **Changed CALL FOR BALL line**: from "signal when body gap >= 1.5 yd" to "0.1-0.2s before your final cut (anticipatory) OR immediately after that cut when CB rec > 0. Pre-snap cushion is not earned separation."
 
-### Route timings fixed (`agents/scripted.py`)
-Old timings were wrong vs real football routes. New:
-- slant: 2.0s / ~14 yd / 45°
-- post: 4.0s / ~31 yd / 30°
-- curl: 2.5s / ~19 yd / 180°
-- in: 2.0s / ~14 yd / 90°
-- drag: 1.0s / ~6 yd / 90°
-- zig: 1.0s stem + 0.5s jab (270°) + break (90°)
-- ROUTE_DESCRIPTIONS cleaned up — removed timing numbers from text (now generated dynamically), kept "why it works" context.
+### Prompt changes (`agents/prompts/wr_live_free.txt`)
+- **Rewrote point 5 (Separation)**: explains WHY pre-snap gap isn't separation ("CB has FULL BURST and can close. The pre-snap cushion is NOT earned separation. You have done nothing yet."), defines TRUE separation as gap the CB physically cannot close because hips are committed wrong.
+- **Rewrote point 6 (When to call)**: two explicit windows only — Window A (0.1-0.2s before final cut) and Window B (just after final cut with CB rec > 0). Added the WHY for not calling during stem: "during the stem the CB is reading you and tracking upfield. If you cut early (before the stem commits their hips), they have FULL BURST and can mirror your break."
+- **Rewrote CALL RULES block**: "Pre-snap body gap is NOT a valid call signal. Body gap only matters AFTER the stem has pulled the CB upfield and you have made your break."
 
-### WR prompt rewrite (`agents/prompts/wr_live_free.txt`)
-- **Strategic framework block at top**: 6-point checklist (field position, CB position, current phase, deception frequency, 1.5yd sufficiency, call timing).
-- **Note format standardized**: `[deception: done/needed/not needed yet] | [current action] | [next plan]`.
-- **Call timing updated**: signal when you expect enough separation in next 0.1-0.3s — either just before or just after the final cut.
-- Removed duplicate "DECEPTION SERVES YOUR FINAL CUT" block (was repeated twice).
-- Deception mechanics consolidated.
+### Memory / CLAUDE.md
+- Created `memory/feedback_no_phase_gate.md` — never recommend phase-gate on WR call timing
+- Updated `CLAUDE.md` section 5: when user shuts down an approach, ask explicitly before re-raising it
 
-### runner.py
-- Captures `wr_start_pos` before the game loop and passes it to both `build_wr_observation` calls (LIVE and BALL_IN_AIR phases).
+### Round 11 Results (Ollama qwen3:8b, seed=42)
+7C / 3PBU — up from Round 10 (4C/1INC/5PBU with GPT, different model so not perfectly comparable)
 
-### Diagnostic tool
-- `show_wr_obs.py` — renders two snapshots (stem phase + break phase) of the slant route with synthetic data. Run with `.venv\Scripts\python show_wr_obs.py` to see the exact WR observation without running the full sim.
+| Route | Outcome | WR call_t | Key finding |
+|-------|---------|-----------|-------------|
+| slant | PBU | t=0.6 | Stem only 30% complete; CB minor wobble triggered call |
+| comeback | CATCH | t=1.2 | Stem 48% done; broke to 270° (wrong dir), not 180° comeback |
+| go | CATCH | t=1.2 | Clean straight route; CB self-induced recovery opened window |
+| double_move | CATCH | t=0.1 | 1 step of stem; hallucinated CB rec>0 to justify call |
+| curl | PBU | t=1.1 | Stem 44%; never ran 180° hook; called on stem heading |
+| zig | CATCH | t=0.5 | Jab lasted 1 step; Phase 3 snap-right never executed |
+| drag | PBU | t=0.7 | Route shape OK; call at cut → WR recovery delay → CB closed |
+| corner | CATCH | t=1.1 | Improvised fake in wrong direction (270° not 90° inside) |
+| post_corner | CATCH | t=1.1 | Treated 45° fake as catch heading; 315° never ran |
+| in | CATCH | t=1.1 | CB had 6 consecutive parse errors; 90° cross never ran |
 
 ## What's Open / Broken
 
-### Carried forward
-- **WR still hasn't been run** with the new observation structure — no empirical results yet. This entire session was scaffolding improvements.
-- **Core problem unresolved**: WR tends to run 0° the entire play, never executing route phases. With the route description now at the top and the phase instruction immediately after, it should help — but unverified.
-- **PHASE CHECK not implemented**: The NEXT FIX from Round 9 (inject real-time "you are at (x,y), route expects you at (x', y'), you are ON/OFF COURSE") was deprioritized in favor of the observation restructure. Still open.
-- All other issues from Round 10 prep (W1/W2 premature calls on curl/post_corner, N7 CB over-commits, N8 CB hallucinations) still open.
+### Root problem (unchanged)
+The WR's call trigger fires the moment ANY CB recovery event appears — including trivial tracking adjustments. CB makes a 1-step heading wobble to stay with the WR → WR reads this as "hip committed" and calls immediately, even if the stem is 20-50% complete. On every route, CB entered minor recovery from its own motion, not from genuine hip-commitment caused by a well-run stem.
+
+### Multi-phase routes: terminal phase consistently skipped
+On double_move, zig, post_corner, in — the WR called on an intermediate phase and never ran the final break. The WR treats "first cut I make = catch heading." The setup phase is not understood as a setup.
+
+### Break direction wrong on some routes
+Comeback: broke to 270° (sideline juke) not 180° (comeback to QB). Corner: improvised 270° fake instead of inside fake at ~90°. Post_corner: called at 45° (fake) not 315° (corner).
+
+### qwen3:8b parse errors degrading CB quality
+CB had 3-6 parse errors per route, which inflated some WR results (in: 7.7 yd sep is entirely CB parse failure, not WR execution).
 
 ## NEXT STEP
-**Run all routes** (`run_all_routes.py`) to get a baseline with the new observation structure. See if the WR actually executes route phases now. If WR still ignores phases, the next fix is the PHASE CHECK: inject per-step "you are at y=X, you should have traveled ~Y yards in this phase, you are [ON/OFF COURSE]" into `build_wr_observation`.
+The WR now understands pre-snap cushion ≠ separation. The remaining failure is that it treats any CB recovery as "hip committed." Add to the prompt: the WR should distinguish between (1) CB rec caused by the stem working — CB was running upfield with momentum and now has to reverse — vs (2) CB rec from a minor tracking adjustment where the CB is still oriented correctly to chase the break. The signal for a genuine commit is that the CB was heading significantly *away* from the WR's final break direction before entering recovery. Mild 1-step wobble while tracking = not a window. CB sprinting the wrong way + entering recovery = real window.
