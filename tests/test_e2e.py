@@ -43,13 +43,14 @@ def mock_llm(system, user, model="x", reasoning_effort=None, provider="openai"):
                 t_val = float(m.group(1))
             break
 
-    # Pass 2 is identified by the options table (contains "CATCHABLE" or "MISS by")
-    is_pass2 = "CATCHABLE" in user or "MISS by" in user
+    # Pass 2 is identified by the commit prompt header / options table markers
+    is_pass2 = "STEP 2 OF 2" in user or "CATCHABLE" in user or "MISS by" in user
 
     if is_pass2:
         if t_val >= 2.3:
             return (
-                '{"action":"throw","option":"medium","reasoning":"WR open on slant after cut"}'
+                '{"action":"throw","option":"bullet","target_z":1.5,'
+                '"reasoning":"WR open on slant after cut"}'
             )
         return '{"action":"hold","reasoning":"waiting for WR to cut"}'
 
@@ -94,6 +95,16 @@ assert len(step0["players"]) == 3
 # CB telemetry present
 assert "cb_calls" in replay["footer"]["telemetry"]
 assert "cb_intent" in replay["footer"]["telemetry"]
+
+# 3D ball: pos has z, and z rises then falls during flight
+air_zs = [s["ball"]["pos"][2] for s in replay["steps"]
+          if s["ball"]["state"] == "in_air" and len(s["ball"]["pos"]) > 2]
+throw_events = [ev for s in replay["steps"] for ev in s.get("events", [])
+                if ev.get("type") == "THROW"]
+if throw_events:
+    assert "arc" in throw_events[0], "THROW event missing arc"
+    assert len(air_zs) > 0, "no in-air ball snapshots with z"
+    assert max(air_zs) > 2.2, f"ball never rose above release height: max z={max(air_zs)}"
 
 print(f"\n--- PASS ---")
 print(f"Outcome:       {outcome}")

@@ -3,15 +3,16 @@ from engine.physics import (
     PlayerState, PlayerAttrs, BACKPEDAL_SPEED_FRACTION,
     CUT_RECOVERY_BASE_STEPS, CUT_ANGLE_THRESHOLD, PLAYER_RADIUS,
 )
-from engine.ball import BallState
-from engine.resolution import CB_ARM_REACH, CB_HALF_REACH
+from engine.ball import (
+    BallState, solve_arc, max_ball_speed, max_range, ARC_ANGLES, YD_S_TO_MPH,
+)
+from engine.resolution import (
+    CB_ARM_REACH, CB_HALF_REACH, CB_VERTICAL_REACH, WR_VERTICAL_REACH, HIGH_BALL_Z,
+)
 
 FIELD_WIDTH = 53.3   # yards sideline to sideline
 OOB_WARN_DIST = 3.0  # yards from sideline to trigger OOB warning in WR observation
 WR_HISTORY_WINDOW = 20
-
-MAX_BALL_SPEED_MPH = 60.0
-MIN_BALL_SPEED_MPH = 20.0
 
 # How many recent history entries to include in the prompt
 HISTORY_WINDOW = 20
@@ -24,6 +25,17 @@ ZONE_FUZZ_MIN = 0.25
 
 def _dist(a: PlayerState, b: PlayerState) -> float:
     return math.hypot(a.x - b.x, a.y - b.y)
+
+
+def _height_label(z: float) -> str:
+    """Human-readable label for a ball height in yards."""
+    if z < 0.9:
+        return "low (at the knees)"
+    if z <= 2.0:
+        return "chest-high"
+    if z <= HIGH_BALL_Z:
+        return "above the shoulders"
+    return "high point (full extension)"
 
 
 def _accel_status(cut_recovery: int) -> str:
@@ -60,13 +72,22 @@ def build_qb_observation(
     broken_play: bool = False,
     detected_cut_t: float | None = None,
 ) -> str:
-    max_mph = MIN_BALL_SPEED_MPH + (qb_attrs.throw_power / 99.0) * (MAX_BALL_SPEED_MPH - MIN_BALL_SPEED_MPH)
-    mid_mph = (MIN_BALL_SPEED_MPH + max_mph) / 2.0
     dist_to_wr = _dist(qb, wr)
-    MPH_TO_YDS_S = 1.46667
-    bullet_t = dist_to_wr / (max_mph * MPH_TO_YDS_S)
-    regular_t = dist_to_wr / (mid_mph * MPH_TO_YDS_S)
-    lob_t = dist_to_wr / (MIN_BALL_SPEED_MPH * MPH_TO_YDS_S)
+    v_max = max_ball_speed(qb_attrs.throw_power)
+    arc_strs = []
+    lead_arc, lead_t = None, None
+    for arc in ARC_ANGLES:
+        sol = solve_arc(dist_to_wr, arc)
+        if sol is None or sol[1] > v_max:
+            arc_strs.append(f"{arc}=OUT OF RANGE")
+            continue
+        t_f, _v, peak = sol
+        arc_strs.append(f"{arc}={t_f:.2f}s (peak z={peak:.1f})")
+        if lead_arc is None or arc == "drive":
+            lead_arc, lead_t = arc, t_f
+    if lead_t is None:
+        lead_arc, lead_t = "loft", dist_to_wr / max(v_max * 0.7, 1.0)
+    regular_t = lead_t
 
     facing_label, facing_mult = _wr_facing_modifier(wr, qb)
 
@@ -110,9 +131,8 @@ def build_qb_observation(
     else:
         y_dir = f"INCREASING upfield (current y={wr.y:.1f} → projected y={proj_y_reg:.1f})"
     lines += [
-        f"Ball travel time to WR's CURRENT position ({dist_to_wr:.1f} yd away): "
-        f"bullet={bullet_t:.2f}s ({max_mph:.0f} mph)  regular={regular_t:.2f}s ({mid_mph:.0f} mph)  lob={lob_t:.2f}s ({MIN_BALL_SPEED_MPH:.0f} mph)",
-        f"LEAD HINT: at regular speed WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
+        f"ARC FLIGHT TIMES to WR's CURRENT position ({dist_to_wr:.1f} yd away): " + "  ".join(arc_strs),
+        f"LEAD HINT: on a {lead_arc} arc ({lead_t:.2f}s flight) WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
     ]
 
 
@@ -218,13 +238,12 @@ def build_qb_observation(
 
     lines += [
         "",
-        f"Your throw_power allows ball speeds {MIN_BALL_SPEED_MPH:.0f}–{max_mph:.0f} mph.",
-        "Ball travels straight-line to target_coord. Lead the WR — throw to where he will be, not where he is.",
+        f"YOUR ARM: max ball speed {v_max * YD_S_TO_MPH:.0f} mph — bullet feasible to ≈{max_range('bullet', v_max):.0f} yd, "
+        f"max range ≈{max_range('loft', v_max):.0f} yd on a loft.",
+        "The ball flies a real 3D arc. Flatter arcs (bullet/drive) arrive sooner but pass through the lane "
+        "at reachable height; higher arcs (touch/loft) clear underneath defenders but hang longer — the CB closes the whole time.",
+        "Lead the WR — throw to where he will be, not where he is.",
         "CRITICAL: Do NOT throw until WR has called for the ball (unless broken play).",
-        "",
-        "ACTIONS:",
-        '  hold  → {"action":"hold","reasoning":"..."}',
-        '  throw → {"action":"throw","target_coord":[x,y],"ball_speed_mph":45,"reasoning":"..."}',
     ]
     return "\n".join(lines)
 
@@ -373,6 +392,8 @@ def build_cb_observation(
             "",
             f"BALL IN AIR (your intent: {cb_intent}):",
             f"  ETA: {ball.eta:.2f}s",
+            f"  Ball height now: z={ball.z:.1f} yd ({ball.arc} arc) — arrives at z={ball.landing_z:.1f} ({_height_label(ball.landing_z)})",
+            f"  Your vertical reach: {CB_VERTICAL_REACH:.1f} yd — you cannot touch the ball while it is above that.",
             f"  Landing zone center: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  uncertainty: ±{fuzz:.1f} yd",
             f"  Your distance to zone center: {dist_to_zone:.1f} yd",
             f"  Heading to move toward zone: {bearing_to_zone:.0f}°",
@@ -380,6 +401,10 @@ def build_cb_observation(
             f"{arm_dist_to_zone:.1f}yd from zone center",
             f"  FACING: {facing_instruction}",
         ]
+        if ball.landing_z > HIGH_BALL_Z:
+            lines.append(
+                f"  HIGH BALL: arrives at z={ball.landing_z:.1f} — you can only swat/pick at full extension (reduced odds)."
+            )
 
     # WR movement history with cut_recovery
     if wr_history:
@@ -455,6 +480,8 @@ def build_cb_intent_observation(
         f"=== CB INTENT DECISION  t={t:.1f}s  ETA={ball.eta:.2f}s ===",
         "",
         f"BALL landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  ±{fuzz:.1f}yd  [{zone_dir}]",
+        f"BALL arrives at height z={ball.landing_z:.1f} ({_height_label(ball.landing_z)}) — your vertical reach is {CB_VERTICAL_REACH:.1f} yd."
+        + (" HIGH BALL: swat/pick only at full extension (reduced odds) — playing the man may be better." if ball.landing_z > HIGH_BALL_Z else ""),
         f"  To move toward ball: heading ≈ {bearing_to_ball:.0f}°",
         f"WR pos: ({wr.x:.1f}, {wr.y:.1f})  sep from you: {sep:.2f}yd",
         f"YOUR pos: ({cb.x:.1f}, {cb.y:.1f})  facing={cb.facing:.0f}°  speed={cb.speed:.1f}yd/s",
@@ -782,6 +809,7 @@ def build_wr_observation(
             "",
             f"BALL IN AIR — ETA: {ball.eta:.2f}s",
             f"  Landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  +/-{fuzz:.1f} yd",
+            f"  Ball arrives at height z={ball.landing_z:.1f} ({_height_label(ball.landing_z)}) — be at the spot; your body adjusts to the height.",
             f"  Your distance to landing zone: {dist_to_land:.1f} yd",
             f"  FACING: set facing={bearing_to_qb:.0f} exactly (bearing from you to QB). Do NOT estimate.",
             f"  Your current facing: {wr.facing:.0f}° — {facing_label}",

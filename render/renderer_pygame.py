@@ -47,6 +47,9 @@ FIELD_W   = 53.3
 FIELD_L   = 120.0
 SIDEBAR_W = 310
 TRAIL_LEN = 12   # frames
+SIDE_H    = 140  # px — side-elevation (height) panel below the field
+SIDE_MAX_Z = 12.0  # yards of height shown in the side panel
+REACH_Z   = 3.0  # player vertical reach line
 
 
 class GridironRenderer:
@@ -61,7 +64,7 @@ class GridironRenderer:
         self.fw      = int(FIELD_W * scale)
         self.fh      = int(FIELD_L * scale)
         self.win_w   = self.fw + SIDEBAR_W
-        self.win_h   = self.fh
+        self.win_h   = self.fh + SIDE_H
 
         self.cur     = 0
         self.playing = True
@@ -170,12 +173,19 @@ class GridironRenderer:
             self._txt(txt, (sx + 10, sy + 5), color=REASON_CLR)
 
     def draw_ball(self, ball: dict):
-        bx, by = ball["pos"]
+        pos = ball["pos"]
+        bx, by = pos[0], pos[1]
+        bz = pos[2] if len(pos) > 2 else 0.0
         sx, sy = self.fs(bx, by)
         if ball["state"] == "in_air":
-            pygame.draw.circle(self.screen, BALL_CLR, (sx, sy), 5)
+            # Shadow on the ground, ball circle grows with height
+            pygame.draw.circle(self.screen, BLACK, (sx, sy), 3)
+            rad = max(3, int(4 + bz * 1.1))
+            pygame.draw.circle(self.screen, BALL_CLR, (sx, sy - int(bz * 1.5)), rad)
+            self._txt(f"z={bz:.1f}", (sx + 8, sy - 20), color=ARC_CLR)
             if "landing" in ball:
-                lx, ly = ball["landing"]
+                land = ball["landing"]
+                lx, ly = land[0], land[1]
                 lsx, lsy = self.fs(lx, ly)
                 pygame.draw.line(self.screen, ARC_CLR, (sx, sy), (lsx, lsy), 1)
                 pygame.draw.circle(self.screen, ARC_CLR, (lsx, lsy), 4, 1)
@@ -184,6 +194,80 @@ class GridironRenderer:
         elif ball["state"] == "held":
             # Small dot on holder
             pygame.draw.circle(self.screen, BALL_CLR, (sx, sy), 4)
+
+    # ── Side-elevation (height) panel ─────────────────────────────────────────
+    def sv(self, y: float, z: float) -> tuple[int, int]:
+        """Field (y, z) → side-panel screen coords (x = field y, vertical = height)."""
+        sx = int(y / FIELD_L * self.fw)
+        sy = int(self.fh + SIDE_H - 18 - (z / SIDE_MAX_Z) * (SIDE_H - 34))
+        return sx, sy
+
+    def _flight_segment(self) -> list[dict]:
+        """All steps of the throw flight at or before the current frame (replay is complete)."""
+        end = None
+        for i in range(self.cur, -1, -1):
+            if self.steps[i]["ball"]["state"] == "in_air":
+                end = i
+                break
+        if end is None:
+            return []
+        start = end
+        while start > 0 and self.steps[start - 1]["ball"]["state"] == "in_air":
+            start -= 1
+        stop = end
+        while stop + 1 < len(self.steps) and self.steps[stop + 1]["ball"]["state"] == "in_air":
+            stop += 1
+        return self.steps[start:stop + 1]
+
+    def draw_side_view(self):
+        pygame.draw.rect(self.screen, (12, 30, 12), (0, self.fh, self.fw, SIDE_H))
+        pygame.draw.line(self.screen, LINE_MINOR, (0, self.fh), (self.fw, self.fh), 1)
+        self._txt("SIDE VIEW  (field y vs height z)", (6, self.fh + 3), color=GRAY)
+
+        _, ground_y = self.sv(0, 0)
+        pygame.draw.line(self.screen, LINE_MAJOR, (0, ground_y), (self.fw, ground_y), 1)
+        for yd in range(0, 121, 10):
+            tx, _ = self.sv(yd, 0)
+            pygame.draw.line(self.screen, LINE_MINOR, (tx, ground_y), (tx, ground_y + 4), 1)
+        # Height reference lines
+        for z_ref in (REACH_Z, 6.0, 9.0):
+            _, zy = self.sv(0, z_ref)
+            pygame.draw.line(self.screen, (60, 80, 60), (0, zy), (self.fw, zy), 1)
+            self._txt(f"z={z_ref:.0f}", (self.fw - 34, zy - 12), color=GRAY)
+
+        step = self.steps[self.cur]
+        # Players as stems (body to 2.0 yd, reach tick at 3.0 yd)
+        for p in step["players"]:
+            py = p["pos"][1]
+            color = OFFENSE_CLR if p["id"] in ("QB", "WR1") else DEFENSE_CLR
+            px_s, body_top = self.sv(py, 2.0)
+            _, base = self.sv(py, 0)
+            pygame.draw.line(self.screen, color, (px_s, base), (px_s, body_top), 3)
+            _, reach_y = self.sv(py, REACH_Z)
+            pygame.draw.line(self.screen, color, (px_s - 3, reach_y), (px_s + 3, reach_y), 1)
+            self._txt(p["id"], (px_s - 8, base + 4), color=color)
+
+        # Full flight arc (past + future of the nearest flight)
+        flight = self._flight_segment()
+        if flight:
+            pts = []
+            for s in flight:
+                bp = s["ball"]["pos"]
+                if len(bp) > 2:
+                    pts.append(self.sv(bp[1], bp[2]))
+            if len(pts) >= 2:
+                pygame.draw.lines(self.screen, ARC_CLR, False, pts, 1)
+            land = flight[-1]["ball"].get("landing")
+            if land:
+                lz = land[2] if len(land) > 2 else 0.0
+                lpx, lpy = self.sv(land[1], lz)
+                pygame.draw.circle(self.screen, ARC_CLR, (lpx, lpy), 3, 1)
+
+        # Current ball position
+        bp = step["ball"]["pos"]
+        if step["ball"]["state"] == "in_air" and len(bp) > 2:
+            cx, cy = self.sv(bp[1], bp[2])
+            pygame.draw.circle(self.screen, BALL_CLR, (cx, cy), 4)
 
     def _wrap(self, text: str, max_chars: int) -> list[str]:
         words = text.split()
@@ -220,7 +304,12 @@ class GridironRenderer:
         for ev in step.get("events", []):
             et = ev.get("type", "")
             if et == "THROW":
-                line(f"THROW → {ev.get('target')}  {ev.get('mph')}mph", color=(100,200,255))
+                arc = ev.get("arc", "")
+                tz = ev.get("target_z")
+                tz_str = f" z={tz}" if tz is not None else ""
+                line(f"THROW → {ev.get('target')} {arc}{tz_str} {ev.get('mph')}mph", color=(100,200,255))
+            elif et in ("LANE_TIP", "LANE_PICK"):
+                line(f"► {et} at z={ev.get('ball_z','?')}", color=OUTCOME_CLR["PBU"], font=self.font_lg)
             elif et == "RESOLUTION":
                 oc = ev.get("outcome", "?")
                 col = OUTCOME_CLR.get(oc, WHITE)
@@ -267,6 +356,8 @@ class GridironRenderer:
                 line(f"max_sep  {tel.get('max_separation','?')} yd")
                 line(f"throw_t  {tel.get('throw_t','?')} s")
                 line(f"dist     {tel.get('throw_distance','?')} yd")
+                if tel.get("throw_arc"):
+                    line(f"arc      {tel.get('throw_arc')}  z={tel.get('target_z','?')}")
                 line(f"qb_calls {tel.get('qb_calls','?')}")
 
     def run(self):
@@ -298,6 +389,7 @@ class GridironRenderer:
             for p in step["players"]:
                 self.draw_player(p)
             self.draw_ball(step["ball"])
+            self.draw_side_view()
             self.draw_sidebar()
             pygame.display.flip()
 

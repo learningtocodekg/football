@@ -221,27 +221,31 @@ class ScriptedQB:
     Throws to the WR's exact future position at a fixed time. No LLM calls.
 
     At throw_t, simulates the WR forward along its scripted route for exactly the
-    ball's flight time, then throws to that position. Uses the same physics as the
-    real game loop so the target is always accurate.
+    ball's flight time (from the 3D arc physics), then throws to that position.
+    Uses the same physics as the real game loop so the target is always accurate.
 
-    throw_t:        seconds after snap to release
-    wr_agent:       the ScriptedWR instance (set by runner after construction)
-    wr_attrs:       the WR's PlayerAttrs (set by runner after construction)
-    ball_speed_mph: throw speed
+    throw_t:  seconds after snap to release
+    wr_agent: the ScriptedWR instance (set by runner after construction)
+    wr_attrs: the WR's PlayerAttrs (set by runner after construction)
+    arc:      arc profile for the throw ("bullet" | "drive" | "touch" | "loft")
     """
 
-    MPH_TO_YDS_S = 1.46667
     SIM_DT = 0.05  # step size for WR position simulation (small = accurate)
 
-    def __init__(self, throw_t: float, ball_speed_mph: float = 45.0):
+    def __init__(self, throw_t: float, arc: str = "bullet"):
         self.throw_t = throw_t
-        self.ball_speed_mph = ball_speed_mph
+        self.arc = arc
         self.wr_agent: ScriptedWR | None = None
         self.wr_attrs = None
         self.target: list[float] | None = None
         self.last_action: dict = {"action": "hold", "reasoning": "scripted QB"}
         self.call_count = 0
         self.parse_errors = 0
+
+    def _flight_time(self, dist: float) -> float:
+        from engine.ball import solve_arc
+        sol = solve_arc(dist, self.arc)
+        return sol[0] if sol else 0.0
 
     def decide(self, observation: str, qb_x: float, qb_y: float,
                wr_x: float = 0.0, wr_y: float = 0.0,
@@ -259,7 +263,6 @@ class ScriptedQB:
         from engine.physics import PlayerState
         wr_state = PlayerState(x=wr_x, y=wr_y, speed=wr_speed, heading=wr_heading,
                                facing=wr_heading, mode="normal")
-        speed_yds = self.ball_speed_mph * self.MPH_TO_YDS_S
 
         def simulate_wr(state, duration):
             t = t_val
@@ -272,13 +275,13 @@ class ScriptedQB:
 
         # First pass: estimate eta from current WR position
         dist0 = math.hypot(wr_x - qb_x, wr_y - qb_y)
-        eta = dist0 / speed_yds if dist0 > 0 else 0.0
+        eta = self._flight_time(dist0)
 
         if self.wr_agent and self.wr_attrs:
             future = simulate_wr(wr_state, eta)
             # Second pass: refine eta with the lead distance
             dist1 = math.hypot(future.x - qb_x, future.y - qb_y)
-            eta2 = dist1 / speed_yds if dist1 > 0 else 0.0
+            eta2 = self._flight_time(dist1)
             future = simulate_wr(wr_state, eta2)
             target = [round(future.x, 1), round(future.y, 1)]
         else:
@@ -290,8 +293,8 @@ class ScriptedQB:
         action = {
             "action": "throw",
             "target_coord": target,
-            "ball_speed_mph": self.ball_speed_mph,
-            "reasoning": f"scripted throw at t={self.throw_t} to WR future pos eta≈{eta2:.2f}s",
+            "arc": self.arc,
+            "reasoning": f"scripted {self.arc} throw at t={self.throw_t} to WR future pos eta~{eta2:.2f}s",
         }
         self.last_action = action
         return action

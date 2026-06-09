@@ -122,7 +122,9 @@ def parse_wr_live(raw: str) -> dict | None:
 
 
 def parse_qb_pass2(raw: str, options: list[dict]) -> dict | None:
-    """Parse pass-2 response: hold or throw (by option label)."""
+    """Parse pass-2 response: hold or throw (by arc option label + optional target_z)."""
+    from engine.ball import DEFAULT_TARGET_Z, MIN_TARGET_Z, MAX_TARGET_Z
+
     obj = _extract_json(raw)
     if obj is None:
         return None
@@ -131,24 +133,31 @@ def parse_qb_pass2(raw: str, options: list[dict]) -> dict | None:
     if act == "hold":
         return {"action": "hold", "reasoning": reasoning}
     if act == "throw":
-        label = obj.get("option", "").strip().lower()
+        try:
+            target_z = float(obj.get("target_z", DEFAULT_TARGET_Z))
+        except (TypeError, ValueError):
+            target_z = DEFAULT_TARGET_Z
+        target_z = max(MIN_TARGET_Z, min(MAX_TARGET_Z, target_z))
+
+        label = str(obj.get("option", "")).strip().lower()
         matched = next((o for o in options if o["label"] == label), None)
         if matched is not None:
             return {
                 "action": "throw",
                 "target_coord": matched["target"],
-                "ball_speed_mph": matched["mph"],
+                "arc": matched["arc"],
+                "target_z": target_z,
                 "reasoning": reasoning,
             }
-        # Fallback: model used old format with target_coord/ball_speed_mph directly
+        # Fallback: model gave target_coord directly — accept with first available arc
         tc = obj.get("target_coord")
-        mph = obj.get("ball_speed_mph")
-        if isinstance(tc, list) and len(tc) == 2 and mph is not None:
+        if isinstance(tc, list) and len(tc) == 2 and options:
             print(f"  [QB pass2 fallback] model used target_coord directly (no option label) — accepted")
             return {
                 "action": "throw",
                 "target_coord": [float(tc[0]), float(tc[1])],
-                "ball_speed_mph": float(mph),
+                "arc": options[0]["arc"],
+                "target_z": target_z,
                 "reasoning": reasoning,
             }
         return None

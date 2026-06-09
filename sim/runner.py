@@ -8,8 +8,8 @@ from pathlib import Path
 import yaml
 
 from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff, PLAYER_RADIUS
-from engine.ball import BallState, throw_ball, advance_ball
-from engine.resolution import resolve
+from engine.ball import BallState, throw_ball, advance_ball, DEFAULT_TARGET_Z, YD_S_TO_MPH
+from engine.resolution import resolve, CB_VERTICAL_REACH, CB_FACING_CONE
 from engine.state_machine import PlayPhase
 from replay.recorder import Recorder
 from agents.qb_agent import QBAgent
@@ -32,8 +32,11 @@ DT = 0.1           # seconds per timestep
 SACK_CLOCK = 5.0   # seconds QB has before sack
 MAX_STEPS = 200    # safety cap (~20 s)
 
-MIN_BALL_MPH = 20.0
-MAX_BALL_MPH = 60.0
+# Mid-flight lane contest: CB within this of the ball, ball within vertical reach,
+# CB facing the ball → one tip/pick roll per flight. Only away from the catch point
+# (resolution handles the contest there).
+LANE_CONTEST_RADIUS = 0.75
+LANE_CONTEST_MIN_DIST_TO_LANDING = 3.0
 
 # WR heading change > this in one step → detected cut
 CUT_DETECT_THRESHOLD = 30.0
@@ -70,10 +73,12 @@ def _player_snap(pid: str, state: PlayerState, action: dict) -> dict:
 
 
 def _ball_snap(ball: BallState) -> dict:
-    d: dict = {"state": ball.state, "pos": [round(ball.x, 2), round(ball.y, 2)]}
+    d: dict = {"state": ball.state,
+               "pos": [round(ball.x, 2), round(ball.y, 2), round(ball.z, 2)]}
     if ball.state == "in_air":
-        d["landing"] = [round(ball.landing_x, 2), round(ball.landing_y, 2)]
+        d["landing"] = [round(ball.landing_x, 2), round(ball.landing_y, 2), round(ball.landing_z, 2)]
         d["eta"] = round(ball.eta, 3)
+        d["arc"] = ball.arc
     else:
         d["holder"] = ball.holder_id
     return d
@@ -152,17 +157,16 @@ def run_play(
     qb_throw_power = next(
         (r["throw_power"] for r in roster["players"] if r["id"] == "QB"), 85.0
     )
-    qb_max_mph = MIN_BALL_MPH + (qb_throw_power / 99.0) * (MAX_BALL_MPH - MIN_BALL_MPH)
 
     if scenario.get("qb_scripted"):
         qb_agent = ScriptedQB(
             throw_t=float(scenario.get("qb_throw_t", 2.3)),
-            ball_speed_mph=float(scenario.get("qb_throw_mph", 45.0)),
+            arc=str(scenario.get("qb_throw_arc", "bullet")),
         )
-        print(f"  [ScriptedQB] throw at t={qb_agent.throw_t}s @ {qb_agent.ball_speed_mph}mph")
+        print(f"  [ScriptedQB] throw at t={qb_agent.throw_t}s on a {qb_agent.arc} arc")
     else:
         qb_agent = QBAgent(model=model, reasoning_effort=r_effort, provider=provider,
-                           min_mph=MIN_BALL_MPH, max_mph=qb_max_mph)
+                           throw_power=qb_throw_power)
 
     route_name = scenario.get("wr_route", "slant")
     route_phases = ROUTES.get(route_name, ROUTES["slant"])
@@ -249,6 +253,8 @@ def run_play(
         "max_separation": 0.0,
         "throw_t": None,
         "throw_distance": None,
+        "throw_arc": None,
+        "target_z": None,
         "sack": False,
         "qb_calls": 0,
         "qb_parse_errors": 0,
@@ -273,6 +279,7 @@ def run_play(
     ball_total_eta: float | None = None
     cb_intent: str = "play_man"
     intent_decided: bool = False
+    lane_contest_done: bool = False
 
     # WR call-for-ball state (delayed one step to QB)
     wr_call_pending: bool = False     # WR just called this step — QB sees it next step
@@ -405,18 +412,29 @@ def run_play(
 
                 if qb_action["action"] == "throw":
                     tc = qb_action["target_coord"]
-                    mph = qb_action["ball_speed_mph"]
-                    max_mph = MIN_BALL_MPH + (attrs["QB"].throw_power / 99.0) * (MAX_BALL_MPH - MIN_BALL_MPH)
-                    mph = max(MIN_BALL_MPH, min(max_mph, mph))
-                    ball = throw_ball(ball, states["QB"].x, states["QB"].y, tc[0], tc[1], mph)
-                    ball_total_eta = ball.eta
-                    dist = math.hypot(tc[0] - states["QB"].x, tc[1] - states["QB"].y)
-                    events.append({"type": "THROW", "target": tc, "mph": round(mph, 1),
-                                   "eta": round(ball.eta, 2), "dist": round(dist, 1)})
-                    telemetry["throw_t"] = t
-                    telemetry["throw_distance"] = round(dist, 1)
-                    phase = PlayPhase.BALL_IN_AIR
-                    actions["QB"] = {"action": "hold", "reasoning": "ball in air"}
+                    arc = qb_action.get("arc", "bullet")
+                    target_z = qb_action.get("target_z", DEFAULT_TARGET_Z)
+                    new_ball = throw_ball(ball, states["QB"].x, states["QB"].y,
+                                          tc[0], tc[1], arc, attrs["QB"].throw_power,
+                                          target_z=target_z)
+                    if new_ball is None:
+                        print(f"  t={t:.1f}  [THROW IMPOSSIBLE] {arc} to {tc} exceeds arm strength — treating as hold")
+                        events.append({"type": "THROW_IMPOSSIBLE", "target": tc, "arc": arc})
+                        actions["QB"] = {"action": "hold", "reasoning": "throw out of range"}
+                    else:
+                        ball = new_ball
+                        ball_total_eta = ball.eta
+                        dist = math.hypot(tc[0] - states["QB"].x, tc[1] - states["QB"].y)
+                        events.append({"type": "THROW", "target": tc, "arc": arc,
+                                       "target_z": round(ball.landing_z, 2),
+                                       "mph": round(ball.speed_yd_s * YD_S_TO_MPH, 1),
+                                       "eta": round(ball.eta, 2), "dist": round(dist, 1)})
+                        telemetry["throw_t"] = t
+                        telemetry["throw_distance"] = round(dist, 1)
+                        telemetry["throw_arc"] = arc
+                        telemetry["target_z"] = round(ball.landing_z, 2)
+                        phase = PlayPhase.BALL_IN_AIR
+                        actions["QB"] = {"action": "hold", "reasoning": "ball in air"}
 
             # ── CB movement (A2 mode) ────────────────────────────────────
             if cb_agent is not None and "CB1" in states and t >= 0.0:
@@ -475,6 +493,41 @@ def run_play(
                 actions["WR1"] = {**wr_decision, "action": "run_route"}
 
             ball = advance_ball(ball, DT)
+
+            # ── Mid-flight lane contest ───────────────────────────────────
+            # A ball flying past the CB at a reachable height can be tipped or
+            # picked before it ever reaches the WR. One roll per flight; only
+            # away from the catch point (resolution owns the contest there);
+            # only if the CB can see the ball (facing within the cone).
+            if (not lane_contest_done and "CB1" in states and ball.state == "in_air"
+                    and ball.eta > 0.0):
+                cb_s = states["CB1"]
+                dist_to_landing = math.hypot(ball.x - ball.landing_x, ball.y - ball.landing_y)
+                ball_dist_to_cb = math.hypot(cb_s.x - ball.x, cb_s.y - ball.y)
+                if (dist_to_landing > LANE_CONTEST_MIN_DIST_TO_LANDING
+                        and ball_dist_to_cb <= LANE_CONTEST_RADIUS
+                        and ball.z <= CB_VERTICAL_REACH):
+                    bearing_to_ball = math.degrees(math.atan2(ball.x - cb_s.x, ball.y - cb_s.y)) % 360.0
+                    facing_off = abs((bearing_to_ball - cb_s.facing + 180.0) % 360.0 - 180.0)
+                    if facing_off <= CB_FACING_CONE + 40.0:
+                        lane_contest_done = True
+                        bs = (attrs["CB1"].ball_skills / 99.0)
+                        r_lane = rng.random()
+                        if r_lane < bs * 0.15:
+                            outcome = "INTERCEPTION"
+                            events.append({"type": "LANE_PICK", "ball_z": round(ball.z, 2),
+                                           "cb_pos": [round(cb_s.x, 1), round(cb_s.y, 1)]})
+                        elif r_lane < bs * 0.45:
+                            outcome = "PBU"
+                            events.append({"type": "LANE_TIP", "ball_z": round(ball.z, 2),
+                                           "cb_pos": [round(cb_s.x, 1), round(cb_s.y, 1)]})
+                        if outcome is not None:
+                            recorder.record_step(t, "END", sack_clock,
+                                [_player_snap(p, states[p], actions[p]) for p in states],
+                                _ball_snap(ball), events)
+                            print(f"\n  t={t:.1f}  LANE CONTEST -> {outcome}  ball_z={ball.z:.1f}")
+                            break
+
             if ball.eta <= 0.0:
                 cb_state = states.get("CB1")
                 cb_attrs_val = attrs.get("CB1")
@@ -486,13 +539,14 @@ def run_play(
                     rng,
                     qb_x=states["QB"].x,
                     qb_y=states["QB"].y,
+                    ball=ball,
                 )
                 outcome = result["outcome"]
                 events.append({"type": "RESOLUTION", **result})
                 recorder.record_step(t, "END", sack_clock,
                     [_player_snap(p, states[p], actions[p]) for p in states],
                     _ball_snap(ball), events)
-                print(f"\n  t={t:.1f}  RESOLUTION -> {outcome}  sep={result.get('separation', '?')}yd")
+                print(f"\n  t={t:.1f}  RESOLUTION -> {outcome}  sep={result.get('separation', '?')}yd  z={result.get('landing_z', '?')}")
                 break
 
         # ── Move all players ─────────────────────────────────────────────
