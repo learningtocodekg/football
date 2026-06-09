@@ -2,55 +2,54 @@
 Date: 2026-06-08
 
 ## What We Worked On
-Focused session on the slant route: separation geometry redesign, WR call-timing improvement, QB CB-at-arrival projection, and parse error fixes. Goal was to get the slant to produce a CATCH.
+WR observation quality session. The WR was reading a vague, poorly-ordered observation that buried the route description mid-prompt and used loose timing/yardage numbers. Goal: make the WR observation concrete, well-structured, and give the WR what it needs to know WHEN to call for the ball.
+
+Also created `show_wr_obs.py` — a diagnostic script that renders the exact text the WR reads at any step with synthetic data, so we can debug the observation without running the full sim.
 
 ## What Got Done
 
-### Separation geometry redesign
-- Added `PLAYER_RADIUS = 0.5` yd to `engine/physics.py`
-- Redefined "open" as **1.5 yd edge-to-edge body gap** (= 2.5 yd center-to-center). Old threshold was 3.0 yd c-to-c — too conservative.
-- `engine/resolution.py`: `eff_sep = max(0, sep - 2*PLAYER_RADIUS)`, sigmoid shifted to `mid=0.5, k=0.5` on edge-to-edge distance. `PBU_PROXIMITY` raised 1.0 → 1.5 yd.
-- `agents/observation.py`: WR obs shows 4-tier body_gap system (VERY OPEN/OPEN/CONTESTED/CONTACT). QB and CB obs show body gap alongside center distance.
-- `qb_system.txt`: thresholds updated to `>2.5 yd = open, 1.5–2.5 = contested, <1.5 = contact`.
+### Observation restructure (`agents/observation.py`)
+- **Route description moved to top** — first thing WR reads, always. Route description was previously buried after play state / CB data; WR was reading its own position before knowing what it was supposed to do.
+- **Phase X of Y removed** — replaced with `YOUR HEADING NOW: Xdeg — [final break / ~Xs remaining, then cut to Ydeg]`. Cleaner and unambiguous.
+- **SNAP POSITION** added — WR always sees `(x, y)` from t=0 as a reference for gauging how far into the route it is.
+- **History window: 10 steps → 20 steps** (1s → 2s of context).
+- **`rec` legend added** to move log header: `free=full burst available; Nrec=hip turned, N more steps until full burst returns`.
+- **`_phase_instruction()` helper** — generates specific mechanics text dynamically from `route_phases`: "Head 0° for ~14 yards (~2.0s). Around t=2.0s — when you feel a 45° cut would give you enough separation — cut to 45° and continue through the catch."
+- **`_est_yards()` helper** — physics-accurate yardage estimate from route phase duration (accounts for acceleration from rest for phase 1, max speed for subsequent phases).
+- **`wr_start` parameter** — passed from `runner.py` to `build_wr_observation`.
+- **"max separation" → "enough separation (body gap >= 1.5 yd)"** — corrects the signal: WR doesn't need 5 yards, just 1.5.
+- Removed Δ/°/² Unicode characters from move log (Windows terminal compat).
 
-### Collision enforcement
-- `sim/runner.py`: After CB `apply_decision`, if CB-WR distance < 1.0 yd (2×PLAYER_RADIUS), CB is pushed out to minimum 1.0 yd. WR has right of way (pushing WR = penalty in NFL).
+### Route timings fixed (`agents/scripted.py`)
+Old timings were wrong vs real football routes. New:
+- slant: 2.0s / ~14 yd / 45°
+- post: 4.0s / ~31 yd / 30°
+- curl: 2.5s / ~19 yd / 180°
+- in: 2.0s / ~14 yd / 90°
+- drag: 1.0s / ~6 yd / 90°
+- zig: 1.0s stem + 0.5s jab (270°) + break (90°)
+- ROUTE_DESCRIPTIONS cleaned up — removed timing numbers from text (now generated dynamically), kept "why it works" context.
 
-### QB CB-at-arrival projection
-- `agents/qb_agent.py` `_build_options`: now accepts `cb_heading`, `cb_speed`, projects CB forward by ETA. Options table shows `WR at arrival | CB at arrival | sep@arr | [cb_context]`.
-- `qb_pass2.txt`: rewrote with 3-step throw placement rule — (1) lead WR, (2) aim away from CB's projected position, (3) stay within 1.3 yd catch radius.
+### WR prompt rewrite (`agents/prompts/wr_live_free.txt`)
+- **Strategic framework block at top**: 6-point checklist (field position, CB position, current phase, deception frequency, 1.5yd sufficiency, call timing).
+- **Note format standardized**: `[deception: done/needed/not needed yet] | [current action] | [next plan]`.
+- **Call timing updated**: signal when you expect enough separation in next 0.1-0.3s — either just before or just after the final cut.
+- Removed duplicate "DECEPTION SERVES YOUR FINAL CUT" block (was repeated twice).
+- Deception mechanics consolidated.
 
-### WR deception clarity
-- `wr_live_free.txt`: Added "DECEPTION SERVES YOUR FINAL CUT" block — fakes have ONE purpose, creating misdirection for the specific FINAL break direction.
+### runner.py
+- Captures `wr_start_pos` before the game loop and passes it to both `build_wr_observation` calls (LIVE and BALL_IN_AIR phases).
 
-### WR call-timing fix
-- Added "CALL TIMING" note to `wr_live_free.txt` explaining the math: QB takes 1 step to process + ball flight. Calling at CB rec=3 → ball arrives at CB rec≈0. Waiting for visual confirmation the gap grew → ball arrives after window closes.
-- Added "CRITICAL: CB rec > 0 after your final cut IS clear separation — do not wait to see the gap grow visually."
-- Updated good note examples to show calling at CB rec=3 as correct behavior.
-
-### QB parse error fix
-- `agents/schema.py` `parse_qb_pass2`: added fallback for model generating old `target_coord/ball_speed_mph` format instead of `option: "<label>"`. Three missed throw windows per run were caused by this.
-- `agents/qb_agent.py`: parse error logging now prints full raw (not truncated 120 chars).
-
-### Result
-Slant route: **CATCH at sep=2.07 yd**, 0 parse errors. WR called at t=1.8 (CB in recovery), QB threw at t=1.9, ball arrived with CB going for swat but not reaching.
+### Diagnostic tool
+- `show_wr_obs.py` — renders two snapshots (stem phase + break phase) of the slant route with synthetic data. Run with `.venv\Scripts\python show_wr_obs.py` to see the exact WR observation without running the full sim.
 
 ## What's Open / Broken
 
-### Carried forward from Round 9 (still open)
-- **WR ignores per-step phase schedule (CRITICAL)**: NEXT FIX from last session. Still not done. Inject real-time "PHASE CHECK: t=X → Phase N, expected Y°, your heading Z°. [ON TRACK / OFF COURSE]" into `build_wr_observation()`.
-- **max_sep=5.02 on all routes**: Pre-snap gap is still the maximum on every run. WR isn't creating dynamic separation beyond the pre-snap cushion.
-- **N4 — WR phantom CB rec trigger**: WR references "CB rec > 0" which is computed from the move log. Need to verify the move log shows CB rec correctly so WR can use it.
-- **W1/W2 — WR premature call on other routes**: Slant fixed; curl/post_corner still likely to call early or wrong heading.
-- **N7 — CB over-commits to fake**, **N8 — CB geometric hallucinations**
-
-### New findings this session
-- The slant improvements haven't been tested on other routes — need a full run to see if they regress or help.
-- WR "DECEPTION IS FOR THE FINAL CUT" appears twice in wr_live_free.txt (lines 39-45 and 47-54) — duplicate from earlier session, harmless but messy.
+### Carried forward
+- **WR still hasn't been run** with the new observation structure — no empirical results yet. This entire session was scaffolding improvements.
+- **Core problem unresolved**: WR tends to run 0° the entire play, never executing route phases. With the route description now at the top and the phase instruction immediately after, it should help — but unverified.
+- **PHASE CHECK not implemented**: The NEXT FIX from Round 9 (inject real-time "you are at (x,y), route expects you at (x', y'), you are ON/OFF COURSE") was deprioritized in favor of the observation restructure. Still open.
+- All other issues from Round 10 prep (W1/W2 premature calls on curl/post_corner, N7 CB over-commits, N8 CB hallucinations) still open.
 
 ## NEXT STEP
-Two options (pick one):
-1. **Run all routes** (`run_all_routes.py`) to see if slant improvements hold/regress across the full 10-route set — get a Round 10 score.
-2. **Implement PHASE CHECK** in `agents/observation.py` `build_wr_observation()` — the critical unfinished fix from Round 9.
-
-Recommended: **run all routes first** to get a baseline before the phase check change, then implement phase check and run again.
+**Run all routes** (`run_all_routes.py`) to get a baseline with the new observation structure. See if the WR actually executes route phases now. If WR still ignores phases, the next fix is the PHASE CHECK: inject per-step "you are at y=X, you should have traveled ~Y yards in this phase, you are [ON/OFF COURSE]" into `build_wr_observation`.

@@ -60,16 +60,14 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
 ## Known Issues
-- **WR ignores per-step phase schedule (CRITICAL)**: Route geometry + phase schedule injected in R9 but WR skips phases freely. Post_corner jumped to Phase 3 at t=0.1. NEXT FIX: inject real-time phase status "PHASE CHECK: t=X → Phase N, expected Y°, your heading Z°. [ON TRACK / OFF COURSE]" in `build_wr_observation()`.
-- **max_sep=5.02 on all routes**: Pre-snap gap is the max separation on every route — WR never creates dynamic separation. CB tracks with small heading adjustments that never trigger cut_recovery.
-- **N4 — WR phantom CB rec trigger**: WR uses "CB rec > 0" from move log — need to verify move log correctly surfaces CB rec each step.
-- **W1/W2 — WR premature/wrong-heading call**: Slant now calling correctly; curl/post_corner still likely to call early or at wrong heading.
+- **WR still ignores route phases (CRITICAL — unverified with new obs)**: Observation restructured this session (route desc at top, specific mechanics, snap position, cleaner phase instruction) but not yet tested in a full run. NEXT: run all routes and check if WR executes phases.
+- **PHASE CHECK not implemented**: Per-step "you are at y=X, should be at ~Y, ON/OFF COURSE" injection still open.
+- **max_sep=5.02 on all routes**: Pre-snap gap is the max separation — WR never creates dynamic separation. May improve with new observation.
+- **W1/W2 — WR premature/wrong-heading call**: Slant improved in R10; curl/post_corner still likely early-calling.
 - **N7 — CB over-commits to fake**: "Confirmed cut" declared after 2–3 steps, no hedge for double-move.
 - **N8 — CB geometric hallucinations**: Invents WR lateral drift that isn't in position data.
 - **S2 — CB template-lock**: Boilerplate hold reasoning every route.
 - **detected_cut_t**: Still misfires on jabs (P3).
-- **CB intent variety**: C3 not addressed.
-- **Duplicate deception section in wr_live_free.txt**: Lines 39-45 and 47-54 both contain "DECEPTION SERVES YOUR FINAL CUT" — harmless but messy.
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT

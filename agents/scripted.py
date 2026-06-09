@@ -20,31 +20,30 @@ from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff, h
 # Heading 0° = straight upfield, 90° = right, 180° = back toward QB, 270° = left.
 
 ROUTES: dict[str, list[tuple[float, float]]] = {
-    # Straight upfield, then sharp inside cut
-    "slant":       [(2.0, 0.0), (999, 40.0)],
-    # Straight upfield longer, then diagonal toward middle of field (post)
-    "post":        [(2.5, 0.0), (999, 45.0)],
-    # Straight upfield, then turn back toward QB
+    # Slant: ~14 yd upfield stem (2.0s), then diagonal inside cut at 45°
+    "slant":       [(2.0, 0.0), (999, 45.0)],
+    # Post: ~31 yd upfield stem (4.0s), then diagonal toward goalpost at 30°
+    "post":        [(4.0, 0.0), (999, 30.0)],
+    # Comeback: ~19 yd upfield stem (2.5s), then turn back toward QB at 180°
     "comeback":    [(2.5, 0.0), (999, 180.0)],
-    # Quick upfield burst, then cut outside toward sideline
+    # Out: upfield stem, then cut hard to the sideline
     "out":         [(1.8, 0.0), (999, 315.0)],
-    # No cut — straight vertical route, deception only through speed/subtle weaves
+    # Go: straight vertical fly route, no cuts
     "go":          [(999, 0.0)],
-    # Double move: stem upfield, fake right (first move), cut back upfield (real break)
+    # Double move: stem upfield, fake right (outside), snap back upfield
     "double_move": [(1.5, 0.0), (2.2, 90.0), (999, 0.0)],
-    # Curl: upfield stem, then sharp 180° turn back toward QB — timing-critical throw
-    "curl":        [(1.5, 0.0), (999, 180.0)],
-    # Zig: 3 yards up, jab left, cut hard right
-    "zig":         [(0.6, 0.0), (0.9, 270.0), (999, 90.0)],
-    # Drag: minimal upfield stem then drag horizontally across field
-    "drag":        [(0.7, 0.0), (999, 90.0)],
-    # Corner: deep upfield stem, diagonal cut toward outside corner of end zone
-    # 290° pushes the left-side WR (x≈16) hard toward the sideline, not 315° which barely drifts x
+    # Curl: ~19 yd upfield stem (2.5s), then hook back toward QB at 180°
+    "curl":        [(2.5, 0.0), (999, 180.0)],
+    # Zig: ~6 yd upfield (1.0s), jab left at 270° for ~4 yd (0.5s), snap right at 90°
+    "zig":         [(1.0, 0.0), (1.5, 270.0), (999, 90.0)],
+    # Drag: ~6 yd upfield stem (1.0s), then flat cross at 90°
+    "drag":        [(1.0, 0.0), (999, 90.0)],
+    # Corner: ~19 yd upfield stem (2.5s), then diagonal to corner of end zone at 290°
     "corner":      [(2.5, 0.0), (999, 290.0)],
-    # Post-corner: stem up, fake post cut inside, then flip to corner (outside)
+    # Post-corner: stem up, fake post inside at 45°, flip to corner outside at 315°
     "post_corner": [(2.0, 0.0), (2.4, 45.0), (999, 315.0)],
-    # In: upfield stem, sharp 90° cut toward middle of field
-    "in":          [(1.8, 0.0), (999, 90.0)],
+    # In (dig): ~14 yd upfield stem (2.0s), then hard inside cut at 90°
+    "in":          [(2.0, 0.0), (999, 90.0)],
 }
 
 # Per-route metadata for agents and observers.
@@ -54,6 +53,79 @@ ROUTE_META: dict[str, dict] = {
     # Curl: WR should call at ~270° (beginning of turn, one step before full 180°).
     # Raise tolerance to 135° so calling at 270° (135° off from 180°) is permitted.
     "curl": {"call_tolerance": 135.0},
+}
+
+# Plain-English route descriptions shown to the WR every step.
+# description: what the route looks like and the purpose of each phase.
+# phase_labels: short label for each phase (matches ROUTES phase order).
+ROUTE_DESCRIPTIONS: dict[str, dict] = {
+    "slant": {
+        "description": (
+            "The upfield stem pushes the CB into a backward lean. When you cut inside, "
+            "the CB must reverse his momentum — that reversal is your window. "
+            "Accelerate hard through the cut."
+        ),
+    },
+    "comeback": {
+        "description": (
+            "Drive the CB deep into a backpedal. The more backward momentum he builds, "
+            "the harder it is for him to reverse when you stop and come back. "
+            "Call as soon as you've turned."
+        ),
+    },
+    "go": {
+        "description": (
+            "Speed only — no cuts. Win by outrunning the CB vertically. "
+            "Call when you feel you have a step on him."
+        ),
+    },
+    "double_move": {
+        "description": (
+            "The outside fake must look real enough to move the CB's hips toward the sideline. "
+            "A weak drift won't commit him — go deep to ~90° and hold until his rec shows. "
+            "Then snap back upfield and go."
+        ),
+    },
+    "curl": {
+        "description": (
+            "The upfield push IS the deception — the CB backtracks and creates space underneath. "
+            "Do not add sideways fakes during the stem; they add recovery cost that kills your hook. "
+            "Hook back at 180° and call immediately."
+        ),
+    },
+    "zig": {
+        "description": (
+            "The leftward jab must reach ~270° and hold long enough to move the CB's hips left. "
+            "A shallow drift does nothing. Hold the jab until CB rec appears, then snap right."
+        ),
+    },
+    "drag": {
+        "description": (
+            "The brief upfield stem makes the CB think vertical and step back. "
+            "Your flat cross runs into the space he just vacated. Stay low and call when across."
+        ),
+    },
+    "corner": {
+        "description": (
+            "The long stem pushes the CB deep into a backpedal. "
+            "Your diagonal break to the corner forces him to change both direction and depth — "
+            "that transition is your window."
+        ),
+    },
+    "post_corner": {
+        "description": (
+            "The inside fake at 45° must look real enough to move the CB inside. "
+            "Then flip outside to 315°. If the CB doesn't bite on the inside fake, "
+            "you won't have a window on the outside break."
+        ),
+    },
+    "in": {
+        "description": (
+            "The upfield stem pulls the CB backward. When you cut across at 90°, "
+            "the CB must change from backpedaling to closing sideways — that transition is your window. "
+            "Don't flatten out early or the CB stays in position."
+        ),
+    },
 }
 
 

@@ -15,7 +15,7 @@ from replay.recorder import Recorder
 from agents.qb_agent import QBAgent
 from agents.cb_agent import CBAgent
 from agents.wr_agent import WRAgent
-from agents.scripted import ScriptedWR, ScriptedQB, ROUTES
+from agents.scripted import ScriptedWR, ScriptedQB, ROUTES, ROUTE_DESCRIPTIONS
 from agents.observation import (
     build_qb_observation,
     build_cb_pre_snap_observation,
@@ -176,6 +176,7 @@ def run_play(
     upfield_yards = cut_time * 5.0 if cut_time < 9.0 else 10.0
 
     multi_phase = len(route_phases) >= 3
+    route_desc_data = ROUTE_DESCRIPTIONS.get(route_name, {})
 
     if llm_wr:
         wr_model = scenario.get("wr_model", model)
@@ -235,6 +236,8 @@ def run_play(
         r = wr_pre_result.get("reasoning", "")
         plan = wr_pre_result['plan'][:80]
         print(f"  WR pre-snap plan: {plan}  | {r}")
+
+    wr_start_pos = (states["WR1"].x, states["WR1"].y)
 
     recorder = Recorder(header={"seed": seed, "scenario": scenario_path, "roster": roster_path,
                                 "down": down, "distance": distance})
@@ -329,6 +332,9 @@ def run_play(
                     route_phases=route_phases if multi_phase else None,
                     call_heading=wr_agent.call_heading,
                     wr_note=wr_agent.wr_note,
+                    route_description=route_desc_data,
+                    pre_snap_plan=wr_agent._pre_snap_plan,
+                    wr_start=wr_start_pos,
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=False, t=t)
                 r = wr_decision.get("reasoning", "")
@@ -459,6 +465,9 @@ def run_play(
                     route_phases=route_phases if multi_phase else None,
                     call_heading=wr_agent.call_heading,
                     wr_note=wr_agent.wr_note,
+                    route_description=route_desc_data,
+                    pre_snap_plan=wr_agent._pre_snap_plan,
+                    wr_start=wr_start_pos,
                 )
                 wr_decision = wr_agent.decide(wr_obs, ball_in_air=True, t=t)
                 r = wr_decision.get("reasoning", "")

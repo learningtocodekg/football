@@ -1,96 +1,77 @@
-﻿ROUTE RUNNING DECISION
+ROUTE RUNNING DECISION
 
-Read your observation carefully. You have:
-- Your note from last step (your scratchpad)
-- Your current position, speed, heading, and BURST status
-- steps_on_this_heading: how many consecutive steps your heading has been within ~20° of current (1 = just changed, 5 = held this direction for 5 steps)
-- The CB's position, speed, heading, and BURST status
-- The move log: both players' headings, speeds, and cut_recovery (rec) after each step
+=== STRATEGIC FRAMEWORK — think through this every step ===
 
-=== YOUR DECISION FRAMEWORK ===
+1. WHERE ARE YOU? Compare your current position to your snap position. How far into the route?
+   Where does the route description say you should be right now?
 
-STEP 1 — Read the burst status:
-  - "CB BURST: RECOVERING — X steps left" → The CB cannot accelerate freely RIGHT NOW. This is separation time. Explode on your break.
-  - "CB BURST: FULL burst available" → The CB is set and ready. Any route you run, they can match instantly. You need a fake first.
-  - "YOUR BURST: RECOVERING" → You just cut. Don't expect instant speed. Let it clear, then explode.
+2. WHERE IS THE CB? Upfield, behind, left, right of you? What heading is the CB running?
+   Is the CB's body already committed one direction?
 
-STEP 2 — Read the move log rec column:
-  - CB rec > 0 last step: your previous move cost the CB their burst. Keep the pressure on.
-  - CB rec = 0 every step: CB has not been forced to cut. Your fakes are not landing. Change approach.
-  - YOUR rec > 0: you just cut and are paying the price. Coast or brake, let it clear before another cut.
+3. WHAT DO YOU NEED TO DO NEXT? Check YOUR HEADING NOW in the observation.
+   Are you in the stem phase or already in the final break?
 
-STEP 3 — Decide your action:
-  - SELLING THE FAKE: Hold your fake direction. The CB's rec only triggers if THEY turn to match you.
-    Check: did CB heading change this step? If yes, their rec will show next step. Hold one more step, then snap.
-  - SNAPPING THE BREAK: Only snap when you see CB heading committed your fake direction AND CB rec > 0.
-    Then burst hard on your real break direction — you have the window, use it.
-  - SPEED FAKE: Brake for 2-3 steps. CB closes. Then burst — no recovery penalty since you were slow.
-  - STUTTER STEP: Brake briefly before the cut to kill your own recovery penalty. Plant, then explode.
+4. HOW MUCH DECEPTION DO YOU NEED?
+   - Short routes (~5 yards): the stem IS the deception. One window is enough.
+   - Longer routes (~10-12 yards): maybe one additional fake. No more.
+   - Once the CB's hips are committed the wrong way, STOP faking and execute the route.
+   - Constant deception wastes steps and costs you burst when you need it most.
 
-DECEPTION TAKES MULTIPLE STEPS:
-- A one-step heading change is noise. The CB recalculates every step and ignores it.
-- Only when the CB's BODY is moving the wrong direction (CB heading committed, CB rec > 0) have you actually fooled them.
-- Check the move log: if CB rec shows 0 after your fake, the CB did not commit. Hold longer.
-- FAKE DEPTH: If you want to fake left, your heading must reach approximately 270°. Right fake:
-  approximately 90°. A 10-30° drift off your stem is not a fake — it does nothing to the CB's rec.
-  Check the move log: if CB rec shows 0 after your "fake", the fake didn't work because it wasn't
-  deep enough.
+5. HOW MUCH SEPARATION IS ENOUGH?
+   Body gap >= 1.5 yards = high-probability catch. You do NOT need 5 yards.
+   The moment you can get 1.5 yards on your break, the route worked — call and run.
 
-DECEPTION SERVES YOUR FINAL CUT — NOT GENERAL CONFUSION:
-Every fake, jab, and direction change you make has ONE purpose: getting the CB's hips committed the
-wrong way specifically for your FINAL BREAK DIRECTION. Design your deception around the cut you are
-about to make. If your final break is 135°, fake toward ~315° first (opposite). If your final break
-is 40°, fake toward ~220° first. Faking aimlessly or "generally confusing the CB" wastes steps.
-Ask yourself each step: "Is what I'm doing right now going to make the CB's hips point the wrong
-way when I snap to my FINAL break heading?" If the answer is no, you are wasting a step.
+6. WHEN TO CALL FOR BALL:
+   Signal when you expect to be at MAX SEPARATION in the next 0.1-0.3 seconds.
+   - If you are ABOUT TO MAKE your final cut: call now if you're confident the cut will open space.
+   - If you JUST MADE your final cut: call as soon as you see the gap opening (CB rec > 0).
+   - Do not wait to watch the gap grow visually — by then it's already closing.
+   - The catch happens on or after the final cut. Never signal during the stem.
 
-DECEPTION IS FOR THE FINAL CUT — NOT GENERAL CONFUSION:
-Every fake, jab, and direction change you make should be deliberately aimed at setting up your
-FINAL BREAK DIRECTION. Ask yourself: "Is this move going to put the CB's hips pointing the wrong
-way when I snap to my real cut?" If your final break is 135° (back-left), your fake should go
-toward 45° or 0° — the opposite. Faking randomly, or faking in a direction unrelated to your real
-cut, wastes steps and leaves the CB free to react. Design each fake around the specific direction
-you are about to break to.
+=== HOW DECEPTION WORKS ===
 
-YOUR NOTE — one line, under ~120 chars, overwrite every step:
-  What you are doing NOW and what you plan NEXT. Not a history. Do not fabricate past actions.
-  Verify against the move log — if your note says "fake done" but CB rec was 0, the fake didn't work.
+BURST STATUS — read this first:
+  CB BURST "RECOVERING — X steps left" -> CB cannot accelerate freely. This is your window.
+  CB BURST "FULL burst available" -> CB is set and can match any move instantly. Earn a window first.
+  YOUR BURST "RECOVERING" -> you just cut and are paying the cost. Do not snap again yet.
 
-  NOTE GROUNDING RULE: Your wr_note must be consistent with the move log above. If the move log has
-  no rows yet, you have taken ZERO actions — do not reference any past fakes, jabs, or direction
-  changes. Start fresh. If your note from last step claims you "jabbed left" but the move log shows
-  your heading never left 0°, the note is wrong — correct it. The note describes what you ARE doing
-  this step and what you plan NEXT — never invent history that the move log does not show.
+MOVE LOG — read the rec column:
+  CB rec > 0 last step: your previous move cost the CB their burst. You have a window.
+  CB rec = 0 every step: your fakes are not landing. Fake wasn't deep enough, or CB isn't reacting.
+  YOUR rec > 0: you just cut. Let it clear before another cut.
 
-Good note examples:
-  "fake left 3steps CB hdg 270° rec0 — not committed yet, hold one more step"
-  "CB rec=3 after my cut — snapping right NOW, CB stuck for 0.3s"
-  "speed fake: braking 2/3 steps, CB closing — burst next step"
-  "on break 40°, CB just entered rec=3 — calling NOW, waiting = ball arrives after window"
-  "on break 40°, CB rec=1 remaining — already called last step, accelerating to catch point"
+FAKE DEPTH:
+  A 10-30 degree drift is noise — the CB ignores it. A real fake must reach ~270deg (left) or
+  ~90deg (right). Check the move log: if CB rec stayed 0 after your "fake," it wasn't deep enough.
 
-Call for the ball only when ALL are true:
-1. You have COMPLETED the final cut — you have already executed the heading change and are NOW RUNNING
-   IN the break direction. Mid-cut (body still turning) and pre-cut (still on stem heading) are both
-   invalid call states.
-2. A longitudinal gap (CB is yards behind you on the y-axis while you run upfield) does NOT mean you
-   are open on a breaking route. Being upfield of the CB while heading 0° means a throw goes straight
-   into the CB when you break. You are only open if the CB is off your break heading path.
-3. The CB is clearly behind you or the gap is growing. If CB rec > 0 after your cut, that gap is
-   about to grow — factor that in.
+FAKE PURPOSE:
+  Every fake has ONE goal: commit the CB's hips the WRONG way for your FINAL break direction.
+  If your final break is 45deg, fake toward ~225deg (opposite) first.
+  Faking aimlessly wastes steps and leaves the CB free to react.
 
-After completing your final cut, your goal shifts: stop trying to create more separation and call. The
-separation has been created by the route. Now run the break cleanly and signal.
-CALL TIMING: You cannot gain meaningful extra separation within the recovery window AND still complete
-a throw. The math is fixed: QB takes 1 step (0.1s) to process your call, then ball flight takes
-another 0.2-0.5s. Total: ~3-6 steps from your call to ball arrival. If CB rec=3 when you call, ball
-arrives when CB rec≈0 — barely in time. If you wait one step (CB rec=2), ball arrives after recovery,
-into a closing CB. The right moment to call is the step CB enters recovery, not after watching the
-gap grow.
+=== YOUR NOTE ===
 
-CRITICAL: "CB rec > 0 after your final cut" IS your signal of clear separation — you do not need to
-see the gap grow visually first. Waiting for visual confirmation that the gap has opened means the
-recovery is already ending and the CB is closing again. Call the step you see CB rec appear.
+One line, under ~120 chars. Required content: deception status + current action + next plan.
+
+Format: "[deception: done/needed/not needed yet] | [what you are doing NOW] | [what you plan NEXT]"
+
+Examples:
+  "deception: not needed yet (t=0.4, early stem) | running 0deg | holding stem until ~t=1.0 then break"
+  "deception: done at t=0.9 (CB rec=3 after jab) | on final break 45deg | calling now, gap peaks in ~0.2s"
+  "deception: needed — CB rec=0 after fake, fake didn't land | going deeper to 270deg | snap break next step if CB commits"
+  "deception: done | called at t=1.1 | accelerating to catch point on 45deg heading"
+
+NOTE GROUNDING: your note must be consistent with the move log. If the log has no rows yet,
+you have taken zero actions — start fresh. If the log shows your heading never left 0deg but
+your note says "jabbed left," the note is wrong — correct it.
+
+=== CALL RULES ===
+
+Call when you expect enough separation (body gap >= 1.5 yd) in the next 0.1-0.3 seconds. This means either:
+  - You are one step away from making your final cut and confident it will open space, OR
+  - You just made your final cut and CB rec > 0 (gap is peaking now)
+
+The catch happens on or after the final cut — never during the stem.
 
 Respond with JSON only:
 {"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "wr_note": "...", "reasoning": "..."}

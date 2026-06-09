@@ -8,7 +8,7 @@ from engine.resolution import CB_ARM_REACH, CB_HALF_REACH
 
 FIELD_WIDTH = 53.3   # yards sideline to sideline
 OOB_WARN_DIST = 3.0  # yards from sideline to trigger OOB warning in WR observation
-WR_HISTORY_WINDOW = 10
+WR_HISTORY_WINDOW = 20
 
 MAX_BALL_SPEED_MPH = 60.0
 MIN_BALL_SPEED_MPH = 20.0
@@ -504,6 +504,47 @@ _ROUTE_GEOMETRY: dict[str, str] = {
 }
 
 
+def _est_yards(threshold: float, from_rest: bool = True, max_speed: float = 8.5, accel: float = 14.0) -> int:
+    """Estimate yards traveled over `threshold` seconds."""
+    if from_rest:
+        t_max = max_speed / accel
+        if threshold <= t_max:
+            return round(0.5 * accel * threshold ** 2)
+        return round(0.5 * accel * t_max ** 2 + max_speed * (threshold - t_max))
+    return round(max_speed * threshold)
+
+
+def _phase_instruction(route_phases: list[tuple[float, float]], cut_time: float, cut_heading: float) -> str:
+    """Generate a concrete, specific one-paragraph route instruction from the phase schedule."""
+    if not route_phases:
+        return f"Run {cut_heading:.0f}° ({_heading_label(cut_heading)}) the entire play."
+    if len(route_phases) == 1 and route_phases[0][0] >= 999:
+        h = route_phases[0][1]
+        return f"Run {h:.0f}° ({_heading_label(h)}) the entire play — no cuts."
+
+    parts = []
+    for i, (threshold, heading) in enumerate(route_phases):
+        label = _heading_label(heading)
+        is_final = threshold >= 999
+        if i == 0:
+            if is_final:
+                parts.append(f"Run {heading:.0f}° ({label}) the entire play.")
+            else:
+                yards = _est_yards(threshold, from_rest=True)
+                parts.append(f"Head {heading:.0f}° ({label}) for ~{yards} yards (~{threshold:.1f}s).")
+        elif is_final:
+            parts.append(
+                f"Around t={cut_time:.1f}s — when you feel a {heading:.0f}° cut would give "
+                f"you enough separation — cut to {heading:.0f}° ({label}) and continue through the catch."
+            )
+        else:
+            prev_t = route_phases[i - 1][0]
+            dt = threshold - prev_t
+            yards = _est_yards(dt, from_rest=False)
+            parts.append(f"Then head {heading:.0f}° ({label}) for ~{yards} yards (~{dt:.1f}s).")
+    return " ".join(parts)
+
+
 def build_wr_pre_snap_observation(
     wr: PlayerState,
     wr_attrs: PlayerAttrs,
@@ -584,9 +625,10 @@ def build_wr_observation(
     route_phases: list[tuple[float, float]] | None = None,
     call_heading: float | None = None,
     wr_note: str = "",
+    route_description: dict | None = None,
+    pre_snap_plan: str = "",
+    wr_start: tuple[float, float] | None = None,
 ) -> str:
-    time_to_cut = cut_time - t
-
     wr_accel_str = _accel_status(wr.cut_recovery)
 
     steps_on_current_heading = 1
@@ -598,15 +640,64 @@ def build_wr_observation(
             else:
                 break
 
-    lines = [
-        f"=== WR OBSERVATION  t={t:.1f}s ===",
+    all_phases = route_phases if route_phases else (
+        [(cut_time, 0.0), (999, cut_heading)] if cut_time < 9.0 else [(999, cut_heading)]
+    )
+
+    # ── Header ───────────────────────────────────────────────────────────────
+    lines = [f"=== WR OBSERVATION  t={t:.1f}s ===", ""]
+
+    # ── Snap position reference ───────────────────────────────────────────────
+    if wr_start:
+        lines += [
+            f"SNAP POSITION: ({wr_start[0]:.1f}, {wr_start[1]:.1f})  — use this to gauge how far into the route you are",
+            "",
+        ]
+
+    # ── Route description (always first) ─────────────────────────────────────
+    mech = _phase_instruction(all_phases, cut_time, cut_heading)
+    ctx = (route_description.get("description", "") if route_description else "")
+    lines += [f"ROUTE: {route}", f"  {mech}"]
+    if ctx:
+        lines.append(f"  WHY: {ctx}")
+    lines.append("")
+
+    # ── Current heading instruction (only while route is free / not committed) ─
+    if not wr_called_for_ball and not broken_play and ball.state != "in_air":
+        current_phase_idx = len(all_phases) - 1
+        for i, (threshold, _) in enumerate(all_phases):
+            if t < threshold:
+                current_phase_idx = i
+                break
+        phase_thresh, phase_heading = all_phases[current_phase_idx]
+        is_final = phase_thresh >= 999
+        if is_final:
+            lines += [
+                f"YOUR HEADING NOW: {phase_heading:.0f}° ({_heading_label(phase_heading)}) — this is your final break. Run it.",
+                "",
+            ]
+        else:
+            time_left = phase_thresh - t
+            next_heading = all_phases[current_phase_idx + 1][1] if current_phase_idx + 1 < len(all_phases) else phase_heading
+            lines += [
+                f"YOUR HEADING NOW: {phase_heading:.0f}° ({_heading_label(phase_heading)}) | ~{time_left:.1f}s remaining, then cut to {next_heading:.0f}°",
+                "",
+            ]
+
+    # ── Pre-snap plan + note ──────────────────────────────────────────────────
+    lines += [
+        f"PRE-SNAP READ: {pre_snap_plan if pre_snap_plan else '(none)'}",
+        f"YOUR NOTE: {wr_note if wr_note else '(none yet)'}",
         "",
-        f"YOUR NOTE (from last step): {wr_note if wr_note else '(none yet)'}",
-        "",
+    ]
+
+    # ── WR position ───────────────────────────────────────────────────────────
+    lines += [
         f"YOU (WR): pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°  steps_on_this_heading={steps_on_current_heading}",
         f"  YOUR BURST: {wr_accel_str}",
     ]
 
+    # ── CB ────────────────────────────────────────────────────────────────────
     if cb is not None:
         sep = math.hypot(wr.x - cb.x, wr.y - cb.y)
         dx = cb.x - wr.x
@@ -626,17 +717,17 @@ def build_wr_observation(
             )
         body_gap = max(0.0, sep - 2 * PLAYER_RADIUS)
         if body_gap > 2.5:
-            lines.append(f"  VERY OPEN — {body_gap:.1f} yd air gap. CB is far away.")
+            lines.append(f"  VERY OPEN — {body_gap:.1f} yd body gap. CB is far away.")
         elif body_gap > 1.5:
-            lines.append(f"  OPEN — {body_gap:.1f} yd air gap. 1.5+ yd gap = high-probability catch if you face the ball.")
+            lines.append(f"  OPEN — {body_gap:.1f} yd body gap. 1.5+ yd = high-probability catch.")
         elif body_gap > 0.5:
-            lines.append(f"  CONTESTED — {body_gap:.1f} yd air gap. CB can reach the ball from here.")
+            lines.append(f"  CONTESTED — {body_gap:.1f} yd body gap. CB can reach from here.")
         else:
-            lines.append(f"  CONTACT — {body_gap:.1f} yd air gap. CB is right on you.")
+            lines.append(f"  CONTACT — {body_gap:.1f} yd body gap. CB is right on you.")
     else:
         lines.append("CB: no CB on field this play.")
 
-    # Sideline proximity warning
+    # ── Sideline warning ──────────────────────────────────────────────────────
     dist_left = wr.x
     dist_right = FIELD_WIDTH - wr.x
     near_side = min(dist_left, dist_right)
@@ -645,10 +736,10 @@ def build_wr_observation(
         lines += [
             "",
             f"!! SIDELINE WARNING: you are {near_side:.1f} yd from the {side_name}.",
-            f"   If your heading takes you out of bounds, cut back in-bounds, call for the ball, and commit to that path.",
+            f"   Cut back in-bounds, call for the ball, and commit to that path.",
         ]
 
-    # Play state
+    # ── Play state ────────────────────────────────────────────────────────────
     lines += [""]
     if broken_play:
         lines += [
@@ -656,92 +747,74 @@ def build_wr_observation(
             "Find open space, avoid going out of bounds. Call for the ball when you are open.",
         ]
     elif wr_called_for_ball:
+        msg = (
+            f"SIGNAL SENT: you called for the ball at t={call_t:.1f}s heading {call_heading:.0f}° ({_heading_label(call_heading)})."
+            if call_t is not None and call_heading is not None
+            else "SIGNAL SENT: you called for the ball."
+        )
         lines += [
-            f"SIGNAL SENT: you called for the ball at t={call_t:.1f}s heading {call_heading:.0f}° ({_heading_label(call_heading)})." if call_t is not None and call_heading is not None else "SIGNAL SENT: you called for the ball.",
-            "QB threw to where you were going — he bet you hold this heading. Cutting now will likely cause a miss.",
+            msg,
+            "QB threw to where you were going — hold this heading. Cutting now will cause a miss.",
         ]
-    elif cut_time >= 9.0:
-        lines += [
-            f"Route: {route} — straight vertical, no prescribed cut.",
-            "Call for the ball when you judge you have separation.",
-        ]
-    elif route_phases and len(route_phases) >= 3:
-        lines.append(f"ROUTE SCHEDULE ({route}):")
-        for i, (threshold, heading) in enumerate(route_phases):
-            prev_t = route_phases[i-1][0] if i > 0 else 0.0
-            if threshold >= 999:
-                entry = f"  Phase {i+1} ({prev_t:.1f}s+): run {heading:.0f}° ({_heading_label(heading)})"
-            else:
-                entry = f"  Phase {i+1} ({prev_t:.1f}–{threshold:.1f}s): run {heading:.0f}° ({_heading_label(heading)})"
-            if i == len(route_phases) - 1:
-                entry += "  ← final break (call for ball when open)"
-            lines.append(entry)
-        lines.append(f"Current time: t={t:.1f}s. The schedule is a guideline — timing is yours to feel.")
-        lines.append(f"IMPORTANT: only call for the ball when your heading is near the final break direction ({cut_heading:.0f}°). The QB throws to your heading at call-time — calling while going a different direction means the ball goes the wrong way.")
     else:
         lines += [
-            f"Route: {route}  |  Break: ~{cut_heading:.0f}° ({_heading_label(cut_heading)}) around t≈{cut_time:.1f}s",
-            f"Current time: t={t:.1f}s. Timing is yours — read the coverage and execute when it feels right.",
-            f"IMPORTANT: only call for the ball when your heading is near {cut_heading:.0f}°. The QB throws to your heading at call-time.",
+            f"CALL FOR BALL: signal when you expect enough separation (body gap >= 1.5 yd) in the next 0.1-0.3s.",
+            f"  Usually just before or just after your final {cut_heading:.0f}° cut.",
+            f"  The catch should happen on or after the final cut — not during the stem.",
         ]
 
-    # Ball state
+    # ── Ball in air ───────────────────────────────────────────────────────────
     if ball.state == "in_air":
         if ball_total_eta and ball_total_eta > 0:
             fuzz = max(0.25, 4.0 * (ball.eta / ball_total_eta))
         else:
             fuzz = 4.0
         dist_to_land = math.hypot(wr.x - ball.landing_x, wr.y - ball.landing_y)
-        bearing_to_ball = math.degrees(math.atan2(
-            ball.landing_x - wr.x, ball.landing_y - wr.y
-        )) % 360.0
-        bearing_to_qb = math.degrees(math.atan2(
-            qb.x - wr.x, qb.y - wr.y
-        )) % 360.0
+        bearing_to_qb = math.degrees(math.atan2(qb.x - wr.x, qb.y - wr.y)) % 360.0
         facing_label, _ = _wr_facing_modifier(wr, qb)
         lines += [
             "",
             f"BALL IN AIR — ETA: {ball.eta:.2f}s",
-            f"  Landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  ±{fuzz:.1f} yd",
+            f"  Landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  +/-{fuzz:.1f} yd",
             f"  Your distance to landing zone: {dist_to_land:.1f} yd",
-            f"  FACING INSTRUCTION: Set facing={bearing_to_qb:.0f} exactly. This is the computed bearing from your position to the QB — the direction the ball is coming from. Do NOT estimate this number; use {bearing_to_qb:.0f} directly.",
+            f"  FACING: set facing={bearing_to_qb:.0f} exactly (bearing from you to QB). Do NOT estimate.",
             f"  Your current facing: {wr.facing:.0f}° — {facing_label}",
-            f"  YOUR HEADING: {wr.heading:.0f}° — do not change this.",
+            f"  YOUR HEADING: {wr.heading:.0f}° — do not change.",
         ]
 
-    # Side-by-side WR move + CB reaction log
+    # ── Move log (last 2s) ────────────────────────────────────────────────────
     if wr_history:
         recent = wr_history[-WR_HISTORY_WINDOW:]
         lines += [
             "",
-            "MOVE LOG — your moves vs CB reaction (key: rec=cut_recovery steps remaining after that move):",
-            f"  {'t':>5}  {'WR hdg':>7}  {'WR spd':>7}  {'WR rec':>7}  {'CB hdg':>7}  {'CB spd':>7}  {'CB rec':>7}  {'CB Δhdg':>8}",
+            "MOVE LOG (last 2s) — your moves vs CB reaction",
+            "  (rec: free=full burst available; Nrec=hip turned, N more steps until full burst returns)",
+            f"  {'t':>5}  {'WR hdg':>7}  {'WR spd':>7}  {'WR rec':>7}  {'CB hdg':>7}  {'CB spd':>7}  {'CB rec':>7}  {'CB dhdg':>9}",
         ]
         prev_cb_hdg: float | None = None
         for h in recent:
             cb_hdg = h.get("cb_hdg")
-            cb_mode = h.get("cb_mode", "")
             cb_spd = h.get("cb_spd", 0.0)
             cb_cut = h.get("cb_cut_rec", 0)
             wr_cut = h.get("wr_cut_rec", 0)
             if cb_hdg is not None and prev_cb_hdg is not None:
                 delta = abs((cb_hdg - prev_cb_hdg + 180.0) % 360.0 - 180.0)
-                delta_str = f"{delta:+.0f}°" if delta >= 1.0 else "   0°"
+                delta_str = f"+{delta:.0f}deg" if delta >= 1.0 else "     0deg"
             else:
-                delta_str = "   --"
-            cb_hdg_str = f"{cb_hdg:.0f}°" if cb_hdg is not None else "  --"
+                delta_str = "       --"
+            cb_hdg_str = f"{cb_hdg:.0f}deg" if cb_hdg is not None else "    --"
             wr_rec_str = f"{wr_cut}rec" if wr_cut > 0 else "free"
             cb_rec_str = f"{cb_cut}rec" if cb_cut > 0 else "free"
             lines.append(
-                f"  {h['t']:>5.1f}  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}  {wr_rec_str:>7}"
-                f"  {cb_hdg_str:>7}  {cb_spd:>6.1f}  {cb_rec_str:>7}  {delta_str:>8}"
+                f"  {h['t']:>5.1f}  {h['wr_hdg']:>6.0f}deg  {h.get('wr_spd', 0.0):>6.1f}  {wr_rec_str:>7}"
+                f"  {cb_hdg_str:>7}  {cb_spd:>6.1f}  {cb_rec_str:>7}  {delta_str:>9}"
             )
             if cb_hdg is not None:
                 prev_cb_hdg = cb_hdg
 
     lines += [
         "",
-        f"YOUR MAX SPEED: {wr_attrs.max_speed:.1f} yd/s  peak_accel={wr_attrs.acceleration:.1f} yd/s² (tapers as you near top speed)",
+        f"YOUR MAX SPEED: {wr_attrs.max_speed:.1f} yd/s  peak_accel={wr_attrs.acceleration:.1f} yd/s²",
     ]
     return "\n".join(lines)
 

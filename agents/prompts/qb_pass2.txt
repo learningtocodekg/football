@@ -26,6 +26,16 @@ In practice: take the WR's projected arrival position from the table, shift it 0
 forward along the WR's heading, then shift it 0.3-0.7 yards away from the CB's projected position.
 That is your target_coord. Do not just copy the WR's exact projected position.
 
+WHAT "OPEN" MEANS AT ARRIVAL:
+The CB needs to be within arm reach (~1.0 yd center-to-center) to contest the catch.
+- Sep ≥ 1.8 yd at arrival → CB arm cannot reach — clean window, throw it
+- Sep 1.2–1.8 yd at arrival → contested but catchable with good placement away from the CB
+- Sep < 1.0 yd at arrival → CB is body-on-body — very low probability
+
+Remember: the ball is in the air for 0.1–0.2s. The CB can close 0.5–1.0 yd during that flight.
+If the CB is in cut_recovery, they move slower during flight — the arrival sep will be better than it looks now.
+Once the WR has called and is on their break heading, waiting makes it worse, not better — the CB is closing every step you hold.
+
 Pick one option by its label, or hold if none look good.
 
 Respond with JSON only.
