@@ -1,7 +1,7 @@
 import math
 from engine.physics import (
     PlayerState, PlayerAttrs, BACKPEDAL_SPEED_FRACTION,
-    CUT_RECOVERY_BASE_STEPS, CUT_ANGLE_THRESHOLD,
+    CUT_RECOVERY_BASE_STEPS, CUT_ANGLE_THRESHOLD, PLAYER_RADIUS,
 )
 from engine.ball import BallState
 from engine.resolution import CB_ARM_REACH, CB_HALF_REACH
@@ -87,7 +87,7 @@ def build_qb_observation(
         lines += [
             f"CB1 NOW:   pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°",
             f"  CB BURST: {cb_accel_str}",
-            f"Current WR-CB separation: {current_sep:.2f} yd  (>3 yd = open, 1.5–3 yd = contested, <1.5 yd = tight)",
+            f"Current WR-CB separation: {current_sep:.2f} yd  body gap: {max(0.0, current_sep - 2*PLAYER_RADIUS):.1f} yd  (>2.5 yd = open/>1.5 yd gap, 1.5–2.5 yd = contested, <1.5 yd = contact)",
         ]
         if cb.cut_recovery >= 2:
             lines.append(
@@ -288,7 +288,7 @@ def _cb_situation(cb: PlayerState, wr: PlayerState, cb_attrs: PlayerAttrs) -> li
 
     return [
         "GEOMETRY:",
-        f"  Separation: {sep:.1f} yd  |  Bearing from you to WR: {bearing_to_wr:.0f}°",
+        f"  Separation: {sep:.1f} yd (body gap: {max(0.0, sep - 2*PLAYER_RADIUS):.1f} yd)  |  Bearing from you to WR: {bearing_to_wr:.0f}°",
         f"  WR projected pos in 0.5s: ({proj_x:.1f}, {proj_y:.1f})",
         f"  Bearing to reach WR's projected position: {intercept_hdg:.0f}°",
     ]
@@ -624,12 +624,15 @@ def build_wr_observation(
                 f"  !! CB HIP-TURNED — {cb.cut_recovery} recovery steps left. "
                 f"CB cannot accelerate freely. THIS IS YOUR WINDOW — explode now."
             )
-        if sep > 4.0:
-            lines.append("  CB is giving you a big cushion — consider cutting early to exploit it.")
-        elif sep < 1.5:
-            lines.append("  CB is tight on you — you need a sharp move to create separation.")
+        body_gap = max(0.0, sep - 2 * PLAYER_RADIUS)
+        if body_gap > 2.5:
+            lines.append(f"  VERY OPEN — {body_gap:.1f} yd air gap. CB is far away.")
+        elif body_gap > 1.5:
+            lines.append(f"  OPEN — {body_gap:.1f} yd air gap. 1.5+ yd gap = high-probability catch if you face the ball.")
+        elif body_gap > 0.5:
+            lines.append(f"  CONTESTED — {body_gap:.1f} yd air gap. CB can reach the ball from here.")
         else:
-            lines.append("  CB is in moderate coverage.")
+            lines.append(f"  CONTACT — {body_gap:.1f} yd air gap. CB is right on you.")
     else:
         lines.append("CB: no CB on field this play.")
 

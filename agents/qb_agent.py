@@ -33,6 +33,8 @@ def _build_options(
     wr_max_speed: float = 9.5,
     cb_x: float | None = None,
     cb_y: float | None = None,
+    cb_heading: float | None = None,
+    cb_speed: float | None = None,
 ) -> tuple[list[dict], str]:
     """Generate throw options at the target, showing where the WR will actually be at arrival."""
     tx, ty = target
@@ -76,16 +78,24 @@ def _build_options(
             opt["wr_at_arrival_recovered"] = [round(rec_proj_x, 1), round(rec_proj_y, 1)]
             opt["wr_offset_recovered"] = round(math.hypot(tx - rec_proj_x, ty - rec_proj_y), 1)
 
-        # ── CB context relative to the landing zone ──────────────────────────
+        # ── CB projected position at arrival ─────────────────────────────────
         if cb_x is not None and cb_y is not None:
-            cb_to_land = math.hypot(tx - cb_x, ty - cb_y)
-            wr_to_land = wr_offset
+            if cb_heading is not None and cb_speed is not None:
+                cb_proj_x = cb_x + math.sin(math.radians(cb_heading)) * cb_speed * eta
+                cb_proj_y = cb_y + math.cos(math.radians(cb_heading)) * cb_speed * eta
+            else:
+                cb_proj_x, cb_proj_y = cb_x, cb_y
+            sep_at_arrival = math.hypot(wr_proj_x - cb_proj_x, wr_proj_y - cb_proj_y)
+            opt["cb_at_arrival"] = [round(cb_proj_x, 1), round(cb_proj_y, 1)]
+            opt["sep_at_arrival"] = round(sep_at_arrival, 1)
             if cb_y > ty + 1.0:
                 opt["cb_context"] = "CB in throw lane"
-            elif cb_to_land < wr_to_land:
-                opt["cb_context"] = "CB may contest"
+            elif sep_at_arrival < 1.5:
+                opt["cb_context"] = "CB arrives tight"
+            elif sep_at_arrival < 2.5:
+                opt["cb_context"] = "CB contested"
             else:
-                opt["cb_context"] = "CB behind WR"
+                opt["cb_context"] = "CB clear"
 
         options.append(opt)
 
@@ -93,24 +103,36 @@ def _build_options(
     show_cb = cb_x is not None and cb_y is not None
 
     lines = [
+        "  label     land at         mph    flight   WR at arrival        CB at arrival     sep@arr",
+        "  ------    -----------     ---    ------   -------------------  ---------------   -------",
+    ] if show_cb else [
         "  label     land at         mph    flight   WR will be at arrival    offset from ball",
         "  ------    -----------     ---    ------   --------------------     ----------------",
     ]
     for o in options:
         catchable = "CATCHABLE" if o["wr_offset"] <= 1.3 else f"MISS by {o['wr_offset']}yd"
-        lines.append(
-            f"  {o['label']:<8}  ({o['target'][0]:.1f},{o['target'][1]:.1f})    "
-            f"{o['mph']:.0f} mph   {o['eta']:.2f}s   "
-            f"({o['wr_at_arrival'][0]:.1f},{o['wr_at_arrival'][1]:.1f})   {catchable}"
-        )
+        if show_cb:
+            sep = o.get("sep_at_arrival", "?")
+            cb_arr = o.get("cb_at_arrival", ["?", "?"])
+            sep_str = f"{sep:.1f}yd" if isinstance(sep, float) else "?"
+            lines.append(
+                f"  {o['label']:<8}  ({o['target'][0]:.1f},{o['target'][1]:.1f})    "
+                f"{o['mph']:.0f} mph   {o['eta']:.2f}s   "
+                f"({o['wr_at_arrival'][0]:.1f},{o['wr_at_arrival'][1]:.1f})  "
+                f"({cb_arr[0]:.1f},{cb_arr[1]:.1f})   {sep_str}  [{o.get('cb_context','')}]"
+            )
+        else:
+            lines.append(
+                f"  {o['label']:<8}  ({o['target'][0]:.1f},{o['target'][1]:.1f})    "
+                f"{o['mph']:.0f} mph   {o['eta']:.2f}s   "
+                f"({o['wr_at_arrival'][0]:.1f},{o['wr_at_arrival'][1]:.1f})   {catchable}"
+            )
         if show_recovery:
             rec = o["wr_at_arrival_recovered"]
             rec_catchable = "CATCHABLE" if o["wr_offset_recovered"] <= 1.3 else f"MISS by {o['wr_offset_recovered']}yd"
             lines.append(
                 f"            w/ accel (recovery): WR at ({rec[0]:.1f},{rec[1]:.1f})   {rec_catchable}"
             )
-        if show_cb:
-            lines.append(f"            CB_CONTEXT: {o['cb_context']}")
     lines.append("")
     if show_recovery:
         if recovery_time > 0:
@@ -124,9 +146,12 @@ def _build_options(
         lines.append("NOTE: WR projection uses current heading/speed — if a cut is pending, actual position will differ.")
     if show_cb:
         lines.append(
-            "CB_CONTEXT: 'CB in throw lane' = CB body is between QB and landing zone (a flat throw risks a tip — "
-            "use more arc or a different target). 'CB may contest' = CB is closer to the landing spot than the WR. "
-            "'CB behind WR' = throw hard and fast, the CB cannot catch up."
+            "CB at arrival = projected CB position when ball lands (constant-speed estimate). "
+            "sep@arr = projected WR-CB separation at arrival. "
+            ">2.5 yd = open (high prob catch). 1.5-2.5 yd = contested. <1.5 yd = tight, expect PBU. "
+            "'CB in throw lane' = CB is between QB and landing zone — risk of tip. "
+            "AIM AWAY FROM CB: pick a target_coord within 1.3 yd of the WR's projected position, "
+            "on the side AWAY from where the CB will be."
         )
     return options, "\n".join(lines)
 
@@ -153,7 +178,8 @@ class QBAgent:
                wr_x: float = 0.0, wr_y: float = 0.0,
                wr_heading: float = 0.0, wr_speed: float = 0.0,
                wr_cut_recovery: int = 0, wr_max_speed: float = 9.5,
-               cb_x: float | None = None, cb_y: float | None = None) -> dict:
+               cb_x: float | None = None, cb_y: float | None = None,
+               cb_heading: float | None = None, cb_speed: float | None = None) -> dict:
         system = _SYSTEM_PROMPT
 
         # ── Pass 1: read the field ───────────────────────────────────────
@@ -163,7 +189,7 @@ class QBAgent:
         p1 = parse_qb_pass1(raw1)
         if p1 is None:
             self.parse_errors += 1
-            print(f"  [QB pass1 parse error] raw={raw1[:120]!r}")
+            print(f"  [QB pass1 parse error] raw=\n{raw1}")
             return {"action": "hold", "reasoning": "parse_error", "pass1": None}
 
         if p1["action"] == "hold":
@@ -179,6 +205,7 @@ class QBAgent:
             self.min_mph, self.max_mph,
             wr_cut_recovery=wr_cut_recovery, wr_max_speed=wr_max_speed,
             cb_x=cb_x, cb_y=cb_y,
+            cb_heading=cb_heading, cb_speed=cb_speed,
         )
         pass2_prompt = _PASS2_TEMPLATE.replace("{options_block}", options_text)
         raw2 = call_llm(system, observation + "\n\n" + pass2_prompt,
@@ -186,7 +213,7 @@ class QBAgent:
         p2 = parse_qb_pass2(raw2, options)
         if p2 is None:
             self.parse_errors += 1
-            print(f"  [QB pass2 parse error] raw={raw2[:120]!r}")
+            print(f"  [QB pass2 parse error] raw=\n{raw2}")
             return {"action": "hold", "reasoning": "parse_error", "pass1": p1}
 
         if p2["action"] == "hold":

@@ -2,6 +2,7 @@ import math
 from dataclasses import dataclass, field
 
 BACKPEDAL_SPEED_FRACTION = 0.75  # CB max speed when backpedaling
+PLAYER_RADIUS = 0.5  # yards — body radius for collision and separation geometry
 
 # A cut >= this angle at speed >= CUT_SPEED_THRESHOLD triggers hip-turn recovery
 CUT_ANGLE_THRESHOLD = 35.0   # degrees

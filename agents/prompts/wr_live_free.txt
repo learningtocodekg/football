@@ -36,6 +36,22 @@ DECEPTION TAKES MULTIPLE STEPS:
   Check the move log: if CB rec shows 0 after your "fake", the fake didn't work because it wasn't
   deep enough.
 
+DECEPTION SERVES YOUR FINAL CUT — NOT GENERAL CONFUSION:
+Every fake, jab, and direction change you make has ONE purpose: getting the CB's hips committed the
+wrong way specifically for your FINAL BREAK DIRECTION. Design your deception around the cut you are
+about to make. If your final break is 135°, fake toward ~315° first (opposite). If your final break
+is 40°, fake toward ~220° first. Faking aimlessly or "generally confusing the CB" wastes steps.
+Ask yourself each step: "Is what I'm doing right now going to make the CB's hips point the wrong
+way when I snap to my FINAL break heading?" If the answer is no, you are wasting a step.
+
+DECEPTION IS FOR THE FINAL CUT — NOT GENERAL CONFUSION:
+Every fake, jab, and direction change you make should be deliberately aimed at setting up your
+FINAL BREAK DIRECTION. Ask yourself: "Is this move going to put the CB's hips pointing the wrong
+way when I snap to my real cut?" If your final break is 135° (back-left), your fake should go
+toward 45° or 0° — the opposite. Faking randomly, or faking in a direction unrelated to your real
+cut, wastes steps and leaves the CB free to react. Design each fake around the specific direction
+you are about to break to.
+
 YOUR NOTE — one line, under ~120 chars, overwrite every step:
   What you are doing NOW and what you plan NEXT. Not a history. Do not fabricate past actions.
   Verify against the move log — if your note says "fake done" but CB rec was 0, the fake didn't work.
@@ -50,7 +66,8 @@ Good note examples:
   "fake left 3steps CB hdg 270° rec0 — not committed yet, hold one more step"
   "CB rec=3 after my cut — snapping right NOW, CB stuck for 0.3s"
   "speed fake: braking 2/3 steps, CB closing — burst next step"
-  "on break 40°, sep=3.2yd CB rec=0 growing — calling"
+  "on break 40°, CB just entered rec=3 — calling NOW, waiting = ball arrives after window"
+  "on break 40°, CB rec=1 remaining — already called last step, accelerating to catch point"
 
 Call for the ball only when ALL are true:
 1. You have COMPLETED the final cut — you have already executed the heading change and are NOW RUNNING
@@ -59,10 +76,21 @@ Call for the ball only when ALL are true:
 2. A longitudinal gap (CB is yards behind you on the y-axis while you run upfield) does NOT mean you
    are open on a breaking route. Being upfield of the CB while heading 0° means a throw goes straight
    into the CB when you break. You are only open if the CB is off your break heading path.
-3. The CB is clearly behind you or the gap is growing. If CB rec > 2, that gap is about to grow —
-   factor that in.
+3. The CB is clearly behind you or the gap is growing. If CB rec > 0 after your cut, that gap is
+   about to grow — factor that in.
+
 After completing your final cut, your goal shifts: stop trying to create more separation and call. The
 separation has been created by the route. Now run the break cleanly and signal.
+CALL TIMING: You cannot gain meaningful extra separation within the recovery window AND still complete
+a throw. The math is fixed: QB takes 1 step (0.1s) to process your call, then ball flight takes
+another 0.2-0.5s. Total: ~3-6 steps from your call to ball arrival. If CB rec=3 when you call, ball
+arrives when CB rec≈0 — barely in time. If you wait one step (CB rec=2), ball arrives after recovery,
+into a closing CB. The right moment to call is the step CB enters recovery, not after watching the
+gap grow.
+
+CRITICAL: "CB rec > 0 after your final cut" IS your signal of clear separation — you do not need to
+see the gap grow visually first. Waiting for visual confirmation that the gap has opened means the
+recovery is already ending and the CB is closing again. Call the step you see CB rec appear.
 
 Respond with JSON only:
 {"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "wr_note": "...", "reasoning": "..."}

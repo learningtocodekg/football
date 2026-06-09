@@ -185,6 +185,19 @@ class GridironRenderer:
             # Small dot on holder
             pygame.draw.circle(self.screen, BALL_CLR, (sx, sy), 4)
 
+    def _wrap(self, text: str, max_chars: int) -> list[str]:
+        words = text.split()
+        lines, cur = [], ""
+        for w in words:
+            if cur and len(cur) + 1 + len(w) > max_chars:
+                lines.append(cur)
+                cur = w
+            else:
+                cur = (cur + " " + w).strip()
+        if cur:
+            lines.append(cur)
+        return lines
+
     def draw_sidebar(self):
         x0 = self.fw
         pygame.draw.rect(self.screen, SIDEBAR_BG, (x0, 0, SIDEBAR_W, self.win_h))
@@ -215,15 +228,32 @@ class GridironRenderer:
             elif et == "SACK":
                 line("► SACK", color=OUTCOME_CLR["SACK"], font=self.font_lg)
 
+        # Per-player reasoning panel
+        y += 4
+        line("── REASONING ──", color=GRAY)
+        PLAYER_COLORS = {"QB": (100, 200, 255), "WR1": (30, 144, 255), "CB1": (220, 80, 80)}
+        wrap_chars = (SIDEBAR_W - 20) // self.font_sm.size("x")[0]
+        for p in step["players"]:
+            reasoning = p.get("reasoning", "").strip()
+            if not reasoning:
+                continue
+            pid = p["id"]
+            action = p.get("action", "")
+            pcol = PLAYER_COLORS.get(pid, WHITE)
+            line(f"{pid} [{action}]", color=pcol, font=self.font_sm)
+            for wl in self._wrap(reasoning, wrap_chars):
+                line(wl, color=REASON_CLR, font=self.font_sm)
+            y += 3
+
         y += 8
         line("CONTROLS", color=GRAY)
         line("SPACE  play/pause",  color=GRAY)
         line("← →    step frame",  color=GRAY)
         line("+/-    fps",         color=GRAY)
-        line("R      reasoning",   color=GRAY)
+        line("R      field text",  color=GRAY)
         line("Q/Esc  quit",        color=GRAY)
         y += 8
-        line(f"fps={self.fps}  reasoning={'ON' if self.show_reasoning else 'off'}", color=GRAY)
+        line(f"fps={self.fps}  field_text={'ON' if self.show_reasoning else 'off'}", color=GRAY)
 
         # Footer
         footer = self.footer

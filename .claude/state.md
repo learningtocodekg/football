@@ -61,15 +61,15 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 
 ## Known Issues
 - **WR ignores per-step phase schedule (CRITICAL)**: Route geometry + phase schedule injected in R9 but WR skips phases freely. Post_corner jumped to Phase 3 at t=0.1. NEXT FIX: inject real-time phase status "PHASE CHECK: t=X → Phase N, expected Y°, your heading Z°. [ON TRACK / OFF COURSE]" in `build_wr_observation()`.
-- **max_sep=5.02 on 8/10 routes**: Pre-snap gap is the max separation on nearly every route. WR creating zero dynamic separation — CB never has to commit hips.
-- **N4 — WR phantom CB rec trigger**: Still referencing "CB rec > 0" (unobservable). Replace with CB Δhdg proxy from move log.
-- **W1/W2 — WR premature/wrong-heading call**: Curl called at heading=0°; post_corner called at t=0.8s during Phase 1. QB bearing injection fixed ball-in-air facing; call-time heading validation still missing.
+- **max_sep=5.02 on all routes**: Pre-snap gap is the max separation on every route — WR never creates dynamic separation. CB tracks with small heading adjustments that never trigger cut_recovery.
+- **N4 — WR phantom CB rec trigger**: WR uses "CB rec > 0" from move log — need to verify move log correctly surfaces CB rec each step.
+- **W1/W2 — WR premature/wrong-heading call**: Slant now calling correctly; curl/post_corner still likely to call early or at wrong heading.
 - **N7 — CB over-commits to fake**: "Confirmed cut" declared after 2–3 steps, no hedge for double-move.
 - **N8 — CB geometric hallucinations**: Invents WR lateral drift that isn't in position data.
-- **QB pass1 truncation (slant)**: 3 parse errors from truncated (not malformed) JSON — token limit issue on pass1, not fixed by JSON system-prompt enforcement.
 - **S2 — CB template-lock**: Boilerplate hold reasoning every route.
 - **detected_cut_t**: Still misfires on jabs (P3).
 - **CB intent variety**: C3 not addressed.
+- **Duplicate deception section in wr_live_free.txt**: Lines 39-45 and 47-54 both contain "DECEPTION SERVES YOUR FINAL CUT" — harmless but messy.
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT
@@ -81,6 +81,7 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - Round 7 (post physics overhaul, gpt-5-nano): 3C/1D/3PBU/1INC/1INT/1SACK — down from Round 5
 - Round 8 (Ollama qwen3:8b, 6 of 10 new; 4 errored): **1C/2D/3PBU** (new routes); 3C/2D/4PBU/1INT (all 10)
 - Round 9 (GPT-5-nano, all 10 routes, post-encoding+JSON+geometry fixes): **2C/3D/4PBU/1INT** — comeback+in converted; post_corner regressed
+- Slant-only focused session (post-separation-redesign + call-timing + parse fix): slant_42 → **CATCH sep=2.07 yd**, 0 parse errors
 
 ## Not Started
 B–E phases

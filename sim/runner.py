@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff
+from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff, PLAYER_RADIUS
 from engine.ball import BallState, throw_ball, advance_ball
 from engine.resolution import resolve
 from engine.state_machine import PlayPhase
@@ -386,6 +386,8 @@ def run_play(
                         wr_max_speed=attrs["WR1"].max_speed,
                         cb_x=states["CB1"].x if "CB1" in states else None,
                         cb_y=states["CB1"].y if "CB1" in states else None,
+                        cb_heading=states["CB1"].heading if "CB1" in states else None,
+                        cb_speed=states["CB1"].speed if "CB1" in states else None,
                     )
                 actions["QB"] = qb_action
                 p1 = qb_action.get("pass1")
@@ -516,6 +518,24 @@ def run_play(
         # CB movement (A2 mode)
         if cb_agent is not None and "CB1" in states and "heading" in actions.get("CB1", {}):
             states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT)
+
+        # WR has right of way — push CB out if it enters WR's body space
+        if "CB1" in states:
+            _dx = states["CB1"].x - states["WR1"].x
+            _dy = states["CB1"].y - states["WR1"].y
+            _d = math.hypot(_dx, _dy)
+            _min_d = 2 * PLAYER_RADIUS
+            if 0.001 < _d < _min_d:
+                _scale = _min_d / _d
+                states["CB1"] = PlayerState(
+                    x=states["WR1"].x + _dx * _scale,
+                    y=states["WR1"].y + _dy * _scale,
+                    speed=states["CB1"].speed,
+                    heading=states["CB1"].heading,
+                    facing=states["CB1"].facing,
+                    mode=states["CB1"].mode,
+                    cut_recovery=states["CB1"].cut_recovery,
+                )
 
         # ── cut_recovery transition logging (move_history[-1] = prev step) ──
         if states["WR1"].cut_recovery > 0 and (not move_history or move_history[-1].get("wr_cut_rec", 0) == 0):

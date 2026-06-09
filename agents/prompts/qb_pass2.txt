@@ -1,12 +1,30 @@
 STEP 2 OF 2 — COMMIT OR HOLD.
 
-Based on your read, here are concrete throw options near your target area. Each shows exactly where the ball will land, the speed, and how long it will be in the air.
+Based on your read, here are concrete throw options near your target area. Each shows the landing
+spot, ball speed, flight time, where the WR will be at arrival, where the CB will be at arrival,
+and the projected WR-CB separation at arrival.
 
 {options_block}
 
-When cut_recovery shows the WR is in recovery: the 'with recovery' projection is more accurate for longer flights. The 'current speed' projection is more accurate for very fast throws.
+When cut_recovery shows the WR is in recovery: the 'with recovery' projection is more accurate for
+longer flights. The 'current speed' projection is more accurate for very fast throws.
 
-CB context: 'CB in throw lane' means the CB's body is between the QB and the landing zone — a fast, flat throw risks being tipped. Consider a slightly higher arc or different target. 'CB behind WR' means throw hard and fast — the CB cannot catch up.
+THROW TARGET PLACEMENT — READ THIS:
+The landing spot (target_coord) does not need to be exactly at the WR's center. The WR can catch
+any ball within 1.3 yards of their projected position. Use that catch circle deliberately:
+
+1. LEAD the WR: shift the target ahead of the WR in their movement direction. They are running
+   toward the ball — place it where they will be in 0.1-0.2s, not where they are.
+2. AWAY from the CB: the CB will be at the position shown in the table. Place the target on the
+   OPPOSITE side of the WR from the CB. The WR's body becomes the screen between the ball and the
+   defender. If the CB is to the left of the WR's path, throw slightly right of center. If the CB
+   is closing from behind, throw slightly ahead and away.
+3. Within the catch radius: your adjusted target_coord must still be within ~1.3 yards of the WR's
+   projected arrival position — otherwise it's a miss regardless.
+
+In practice: take the WR's projected arrival position from the table, shift it 0.5-1.0 yards
+forward along the WR's heading, then shift it 0.3-0.7 yards away from the CB's projected position.
+That is your target_coord. Do not just copy the WR's exact projected position.
 
 Pick one option by its label, or hold if none look good.
 

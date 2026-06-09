@@ -1,9 +1,9 @@
 import math
 import random
-from .physics import PlayerState, PlayerAttrs
+from .physics import PlayerState, PlayerAttrs, PLAYER_RADIUS
 
 CATCH_RADIUS = 1.3    # yards — ball must land within this of WR
-PBU_PROXIMITY = 1.0   # yards — CB must be this close to WR for a PBU to be possible
+PBU_PROXIMITY = 1.5   # yards — CB must be within this center-to-center for a PBU attempt
 PBU_LANE_RANGE = 1.5  # yards — CB within this of the ball's flight path counts as contesting
 
 CB_ARM_REACH = 1.0    # yards — full arm reach for PBU (swat)
@@ -11,7 +11,7 @@ CB_HALF_REACH = 0.5   # yards — half arm reach for INT (go_for_pick)
 CB_FACING_CONE = 60.0 # degrees — CB must face within this of ball direction for PBU/INT
 
 
-def _sigmoid(x: float, mid: float = 2.5, k: float = 1.2) -> float:
+def _sigmoid(x: float, mid: float = 0.5, k: float = 0.5) -> float:
     return 1.0 / (1.0 + math.exp(-(x - mid) / k))
 
 
@@ -124,7 +124,8 @@ def resolve(
 
     # Base catch probability: smooth sigmoid over separation
     floor_prob = 0.15
-    p_raw = floor_prob + (1 - floor_prob) * _sigmoid(separation)
+    eff_sep = max(0.0, separation - 2 * PLAYER_RADIUS)  # edge-to-edge air gap between bodies
+    p_raw = floor_prob + (1 - floor_prob) * _sigmoid(eff_sep)
     catch_factor = wr_attrs.catch / 99.0
     coverage_suppression = (cb_attrs.coverage / 99.0) * 0.30 if (cb_can_contest and cb_attrs) else 0.0
     wr_facing_mult = _wr_facing_multiplier(wr, qb_x, qb_y)

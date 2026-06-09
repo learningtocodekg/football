@@ -133,12 +133,23 @@ def parse_qb_pass2(raw: str, options: list[dict]) -> dict | None:
     if act == "throw":
         label = obj.get("option", "").strip().lower()
         matched = next((o for o in options if o["label"] == label), None)
-        if matched is None:
-            return None
-        return {
-            "action": "throw",
-            "target_coord": matched["target"],
-            "ball_speed_mph": matched["mph"],
-            "reasoning": reasoning,
-        }
+        if matched is not None:
+            return {
+                "action": "throw",
+                "target_coord": matched["target"],
+                "ball_speed_mph": matched["mph"],
+                "reasoning": reasoning,
+            }
+        # Fallback: model used old format with target_coord/ball_speed_mph directly
+        tc = obj.get("target_coord")
+        mph = obj.get("ball_speed_mph")
+        if isinstance(tc, list) and len(tc) == 2 and mph is not None:
+            print(f"  [QB pass2 fallback] model used target_coord directly (no option label) — accepted")
+            return {
+                "action": "throw",
+                "target_coord": [float(tc[0]), float(tc[1])],
+                "ball_speed_mph": float(mph),
+                "reasoning": reasoning,
+            }
+        return None
     return None
