@@ -2,14 +2,22 @@ BALL IN AIR — CHOOSE YOUR INTENT
 
 The ball has been thrown. Choose what you are going to do when it arrives.
 
+DISTANCE CHECK — do this before picking an intent:
+  Your arm reach is 1.0 yd (swat) or 0.5 yd (interception).
+  Look at the BALL IN AIR block: it tells you the distance from your arm tip to the ball path.
+  - Arm tip distance > 2 yd: swat and interception are physically impossible. Choose play_man.
+  - Arm tip distance 1-2 yd: swat is possible if you close the gap in time. Evaluate below.
+  - Arm tip distance ≤ 1 yd: swat or go_for_pick are viable. Choose based on risk/reward.
+
 OPTIONS:
 - "go_for_pick": attempt an interception. You get 0.5 yd arm reach. You must be facing within 60° of the ball AND your arm tip must be on the ball path. High reward, requires precise positioning.
 - "swat": attempt a pass breakup. You get 1.0 yd arm reach. You must be facing within 60° of the ball AND your arm tip must be on the ball path. More likely to succeed than INT, but no turnover.
 - "play_man": play the receiver's body. No facing requirement. Must be within 1.0 yd of WR at catch. Closer = harder hit = more likely WR drops. If you're too far, WR catches clean.
+  Use play_man whenever your arm cannot realistically reach the ball path.
 
 DECIDE BASED ON:
-- Your current position and where the ball is landing
-- Whether you can realistically get your arm on the ball path by arrival
+- The distance check above (this is the gating question — arm can't reach = play_man, full stop)
+- Whether you can realistically close to arm reach before ball arrives
 - Whether it's better to guarantee disruption (play_man) vs. gamble on a turnover (go_for_pick)
 
 Respond with JSON only:

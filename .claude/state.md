@@ -59,18 +59,20 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - `_cb_situation()` emits a lean `GEOMETRY:` block: separation, bearing, WR projected pos in 0.5s, intercept bearing
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
-## Known Issues (post-Round 12 full run)
+## Known Issues (post-Round 12 + CB prompt overhaul)
 
 ### WR — mostly fixed
 - **post_corner INCOMPLETE**: Window A fires before terminal 315° break. WR calls at intermediate 45° heading, heading locks, terminal break never executes. Window A should only fire when no more cuts remain.
 - **curl INCOMPLETE**: WR correct (called heading=180° after full stem). QB targeting bug — throws to y=68.4 behind a WR already at y≈67.5 running back toward QB (heading=180° = decreasing y). QB misprojects 180° heading as increasing y.
 - **slant PBU**: Full stem (t=2.2), CB still swats at 1.08 yd. Likely irreducible geometry.
 
-### CB — BROKEN (critical)
-- **Always swat intent** (10/10 routes). Repeatedly admits arm tip is 3-5 yd from ball path, still picks swat. Never picks play_man even at close range. CB is a passive observer during ball flight.
-- **Always 5 yd off-coverage** pre-snap. Never presses regardless of route type.
-- **Self-induces recovery** from minor tracking adjustments (2-4 times per route), killing closing burst at the worst moments.
-- **Patience doctrine → passivity**: CB was broken before but masked by WR failures. WR now executes clean routes → CB weaknesses fully exposed.
+### CB — prompt overhaul done, Round 13 not yet run
+CB had 6 confirmed failure modes across all 10 routes (Round 12 replays). Prompt overhaul completed in cb_system.txt, cb_pass1.txt, cb_pass2.txt. Curl-only test shows massive improvement (sep 9.41→2.58 yd, no self-induced recovery during stem, play_man correctly chosen).
+
+**Residual issues post-overhaul:**
+- **Bearing vs heading confusion**: on curl break (WR→180°), CB said "WR cut to 270°" — confused bearing from its position to WR with WR's new heading. Self-corrected next step. May need explicit note in prompt.
+- **Pre-snap still 5 yd every route**: cb_pre_snap.txt example JSON hardcodes offset_yards=5. Not changed yet.
+- **180° flip always costs recovery**: curl/comeback-type routes require 180° CB reversal → cut_recovery=3 unavoidable. CB just needs to be closer at break time.
 
 ## Run History
 - Round 1 (Ollama qwen3:8b): 2C/5D/1INC/1INT
@@ -86,6 +88,7 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - Round 10 (GPT-5-nano, post obs overhaul): 4C/1INC/5PBU
 - Round 11 (Ollama qwen3:8b, post call-timing overhaul): **7C/3PBU**
 - Round 12 (GPT-5-nano, post CB-rec quality check + phase gate): **7C/1PBU/2INC** ← best GPT score
+- Round 13 (GPT-5-nano, post CB prompt overhaul): NOT YET RUN — curl-only test: CATCH sep=2.58 yd (was 9.41)
 
 ## Not Started
 B–E phases

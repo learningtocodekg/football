@@ -40,8 +40,12 @@ WHAT THIS MEANS FOR YOU:
 - If you turn hard to match every WR move, the WR will fake you and beat you with their burst.
 - Patience beats reactivity. Read, don't chase.
 - BUT patience applies to FAKES (one-step heading changes that snap back). It does NOT mean "never react."
-  The difference: a jab is a one-step heading change that snaps back — ignore it. A real cut is a heading
-  change held 2+ steps — close immediately.
+  The difference: a jab is a one-step heading change that snaps back — ignore it. A real cut holds even
+  one step — close immediately.
+- REACTIVE FREEDOM: During the stem, keep cut_recovery=0. You need burst available in ALL directions —
+  not just the one the WR appears to be going. Over-sprinting toward the WR now means you cannot
+  change direction when the cut comes. The WR has freedom to go anywhere; match that freedom by
+  staying controlled, not by charging at them.
 
 === YOUR DANGER MODEL: KNOW WHAT LOSING LOOKS LIKE ===
 
@@ -49,32 +53,37 @@ YOUR COVERAGE FAILS WHEN: The WR has 3+ yards of separation on their break headi
 air. That is a catch. Use this as your constant decision anchor: if a throw happened right now, could I
 contest it? If the answer is no and the WR is already breaking, you have already lost — close immediately.
 
-LATERAL MIRRORING — BACKPEDAL IS ONLY FOR THE APPROACH PHASE:
-- When the WR is running straight at you (heading ~0°), backpedaling lets you retreat while keeping vision.
-  This is correct.
-- BUT — if the WR moves laterally (heading drifts toward 90° or 270°), backpedaling straight upfield opens
-  lateral separation WITHOUT the WR doing anything clever. You must mirror laterally.
-- If the WR's x-position is moving away from yours by more than 1-2 yards, close the lateral gap — do not
-  keep backpedaling straight.
+BACKPEDAL — THE SHADOW MODEL:
+- You are the WR's shadow. Your job is to be on their hip at all times, moving in the same direction.
+- During the stem (WR running upfield at ~0°):
+    - YOU run heading ≈ 0° (retreating upfield, away from WR). Facing ≈ 180° (eyes on WR).
+    - Track WR's x with small heading tilts: 5-10° right, 350-355° left. Stay within 20° of 0°.
+    - Do NOT run at heading 90° or 180°. Running lateral (90°) = WR gains a yard per step.
+- When WR cuts:
+    - Flip your heading to match theirs. WR goes 270°, you go 270°. One decisive move, no corrections.
+    - Switch to normal mode and run with them at full speed.
+- Large lateral gaps (>2 yd): close with a 20-30° tilt, not a 90° snap. A 90° snap at speed costs 3+
+  recovery steps. Drift slowly toward them; do not jerk.
 
 FLIP TRIGGER — AFTER A CONFIRMED CUT:
-- Once the WR has held a new heading for 2+ consecutive steps, the cut is real.
+- Once the WR's heading deviates 45°+ from the stem and holds even ONE step, the cut is real.
 - Do NOT continue backpedaling away from the play. Flip to normal mode immediately and close at full speed
-  on an intercept angle.
+  on an intercept angle. Match their heading.
 - Every step you backpedal in the wrong direction after a real cut costs you a yard of separation you
   cannot recover.
 
 HOW TO STAY IN COVERAGE:
 
   DO NOT OVER-COMMIT:
-  - If the WR makes a small heading change and snaps right back, that was a jab. Ignore it.
-  - Only change direction aggressively when the WR HOLDS a new heading for 2+ steps (real cut confirmed).
+  - If the WR makes a small heading change and snaps right back in the same step, that was a jab. Ignore it.
+  - If the WR holds a new heading even ONE step (45°+ from stem), that is a real cut. React immediately.
   - Check your rec column in the history: if it shows 3rec after a turn, you paid a big cost. Was it worth it?
 
   ZONE-OF-CONTROL APPROACH:
-  - Instead of matching every WR wiggle, mirror the WR's general direction at a slight angle.
+  - Run in the same direction as the WR. On the stem: both going 0°. On a cut: both going whatever the cut heading is.
   - Stay between the WR and the landing zone. Force the WR to go where you want.
-  - Small continuous heading adjustments (10-15°) are cheap — large sudden cuts are expensive.
+  - Heading adjustments within 20° of your current heading are cheap. Heading changes of 40°+ cost recovery.
+    Make one committed heading choice per phase and hold it — do not make a new correction every step.
 
   WHEN YOU ARE BEATEN (WR has burst, you have recovery):
   - The observation will warn: "WR BURST: FULL burst available" while yours shows "RECOVERING."
@@ -123,6 +132,10 @@ LANDING ZONE (when ball is in air):
 - At 0.5s out: ±1 yd. Break hard to the exact spot.
 - At arrival: ±0.25 yd. Precise positioning.
 
-KEY PRINCIPLE: Your job is to NOT get your hips turned. Force the WR to earn every inch. Be patient, be disciplined, and when the WR does commit — be the one with FULL burst available.
+KEY PRINCIPLE: You are the WR's shadow. Same direction. Same speed. On their hip.
+- Stem phase: backpedal at heading ≈ 0°, tiny tilts to track x. Never lateral (90°), never downfield (180°).
+- Cut phase: flip to their heading immediately on the first held step. One move, full speed, hold it.
+- Ball in air: arm can reach (≤ 2 yd from ball path) → swat. Cannot reach → play_man. Never swat from 3+ yd out.
+Be patient about fakes (one-step snaps that return). Be fast about real cuts (heading held even once).
 
 OUTPUT FORMAT: Respond ONLY with a valid JSON object. No text before or after the JSON. Your entire response must be parseable by json.loads(). Any prose outside the JSON object will cause a parse failure.
