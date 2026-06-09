@@ -1,5 +1,12 @@
 # Future: 3D Viewer (Ursina) + Ball Arc Physics
 
+> **STATUS (2026-06-09): IMPLEMENTED** (commit fe02ef6) — with one deliberate deviation: the
+> peak-ratio arc model below was replaced by launch-angle arcs (bullet 15°/drive 25°/touch 35°/loft 45°)
+> because peak ratio + distance fully determines speed, making the planned speed tiers fake choices.
+> QB outputs option label + target_z. Vertical contests use STATIC REACH (3.0 yd, no jump action).
+> **Follow-up (user-approved, not yet designed): a jump-timing action for WR/CB** once the 3D baseline
+> is stable. This document is kept for historical context; see .claude/state.md for current truth.
+
 ## Change Log — What Has Changed Since This Plan Was Written
 
 This document was first written when the codebase was significantly simpler. Since then:

@@ -1,12 +1,13 @@
 # Build State
-Current phase: A4 in progress (all three agents live; physics overhaul added dynamic acceleration + hip-turn recovery; CB freed from prescriptions; WR gets CB reaction MOVE LOG with rec columns; 10 routes run 3x — Ollama + OpenAI; new physics untested end-to-end)
+Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef6; tests pass; live slant smoke OK; full 10-route 3D baseline NOT yet run)
 
 ## Built
 - engine/physics.py — PlayerState (+ cut_recovery field), apply_action (dynamic burst, cut recovery, speed shed), cut_recovery_steps(), BACKPEDAL_SPEED_FRACTION=0.75, CUT_RECOVERY_BASE_STEPS=4, CUT_ANGLE_THRESHOLD=35°, CUT_SPEED_THRESHOLD=3.0
-- engine/ball.py, field.py, resolution.py, state_machine.py
-- engine/resolution.py — facing+arm-reach geometry for PBU/INT; CB_ARM_REACH=1.0, CB_HALF_REACH=0.5, CB_FACING_CONE=60°; play_man proximity bonus; WR facing multiplier (x1.15/x1.0/x0.80); optional CB (None in A3)
-- replay/recorder.py
-- agents/qb_agent.py (two-pass: hold/thinking → concrete options)
+- engine/ball.py — 3D projectile physics: ARC_ANGLES {bullet 15°, drive 25°, touch 35°, loft 45°}, solve_arc() (t_flight, required speed, peak), max_ball_speed(throw_power), max_range(), throw_ball(arc, target_z) → None if infeasible, advance_ball (closed-form z, final-step snap to landing), ball_z_at_xy(); G=10.7 yd/s², RELEASE_Z=2.2, target_z clamp [0.3, 3.0]. (Old 2D MPH_TO_YDS was mph→ft/s — ball was 3× too fast all of Phase A.)
+- engine/field.py, state_machine.py
+- engine/resolution.py — facing+arm-reach geometry for PBU/INT; CB_ARM_REACH=1.0, CB_HALF_REACH=0.5, CB_FACING_CONE=60°; play_man proximity bonus; WR facing multiplier (x1.15/x1.0/x0.80); optional CB (None in A3); 3D: WR/CB_VERTICAL_REACH=3.0, catch-height multipliers (chest 1.0, <0.9 ×0.85, >2.4 ×0.78), HIGH_BALL_Z=2.4 cuts CB swat/pick ×0.6, lane checks require ball z ≤ reach (via ball_z_at_xy)
+- replay/recorder.py — ball snapshots now 3-elem pos [x,y,z], landing [x,y,z], arc field
+- agents/qb_agent.py (two-pass: hold/thinking → arc options table: per feasible arc t_flight/mph/peak_z/WR+CB@arrival/lane note; outputs option label + target_z; takes throw_power)
 - agents/cb_agent.py (three-pass: pre_snap / decide_movement / decide_intent)
 - agents/wr_agent.py (three-pass: pre_snap / decide / ball_in_air; call-for-ball state machine; locked heading; broken play)
 - agents/scripted.py — ScriptedWR (4 routes), ScriptedCB (legacy), ScriptedQB (route-aware lead throw)
@@ -14,13 +15,14 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - agents/schema.py — QB parsers + CB parsers + WR parsers (parse_wr_pre_snap, parse_wr_live)
 - agents/llm_client.py (OpenAI + Ollama)
 - agents/prompts/ — qb_system (physics/burst/recovery scenarios), qb_pass1, qb_pass2, cb_system (physics + patience doctrine), cb_pre_snap, cb_pass1 (burst-aware decision framework), cb_pass2, wr_system (physics + three deception patterns), wr_pre_snap, wr_live_free (burst-aware framework), wr_live_committed, wr_live_broken, wr_ball_in_air
-- sim/runner.py — A2 + A3 + A4 modes; WR pre-snap; per-step WR decide; call-for-ball one-step delay; OOB broken play trigger; heading lock; cut_recovery in move_history entries
+- sim/runner.py — A2 + A3 + A4 modes; WR pre-snap; per-step WR decide; call-for-ball one-step delay; OOB broken play trigger; heading lock; cut_recovery in move_history entries; 3D throw path (arc/target_z, infeasible→hold); mid-flight lane contest (ball ≤0.75yd from CB at z≤3.0, CB facing → tip/pick roll, once per flight, >3yd from catch point)
 - sim/seeds.py, rosters/default.yaml
 - sim/scenarios/ — a1_*, a2_cb_slant, a3_wr_slant, a3_wr_comeback, a4_wr_{slant,comeback,curl,go,zig,drag,corner,in,double_move,post_corner}
 - run_all_routes.py — runs all 10 A4 scenarios; --ollama / --model flags for Ollama provider
-- render/renderer_pygame.py
+- render/renderer_pygame.py — top-down + ball shadow/z + synchronized side-elevation panel (arc vs reach lines)
+- render/renderer_ursina.py — 3D Madden-cam viewer (ursina; code-checked, not yet visually verified)
 - main.py
-- tests/test_e2e.py
+- tests/test_e2e.py (3D assertions), tests/test_ball3d.py (arc physics unit suite)
 - article.md
 
 ## Architecture
@@ -32,9 +34,14 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - Recovery reduces burst: `burst *= max(0.1, 1.0 - recovery_fraction * 0.75)`
 - Braking clears recovery (plant-and-go footwork)
 
+**Ball (3D):**
+- Throw = (target [x,y], arc, target_z). Arc fixes launch angle; physics derives t_flight + required speed; speed validated vs throw_power (infeasible arcs not offered)
+- Flight times real now: 30yd bullet 1.28s / drive 1.66s / touch 2.01s / loft 2.40s; power-85 ranges: bullet ~35yd, loft ~67yd
+- Mid-flight lane contest + height-aware resolution (see Built). Vertical model is STATIC REACH (3.0 yd, no jump action — jump is a planned follow-up)
+
 **QB agent (two-pass):**
-- Pass 1: read field → hold or thinking+rough_target
-- Pass 2: concrete options at target (bullet/hard/medium/soft/lob), WR projected at arrival
+- Pass 1: read field → hold or thinking+rough_target (2D ground spot)
+- Pass 2: arc options table (bullet/drive/touch/loft) with t_flight/peak_z/WR+CB@arrival/lane-height note; picks option label + target_z
 
 **CB agent (three-pass):**
 - Pre-snap: choose offset_yards + side
@@ -59,7 +66,15 @@ Current phase: A4 in progress (all three agents live; physics overhaul added dyn
 - `_cb_situation()` emits a lean `GEOMETRY:` block: separation, bearing, WR projected pos in 0.5s, intercept bearing
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
-## Known Issues (post-Round 12 + CB prompt overhaul)
+## Known Issues (post-3D transformation)
+
+### 3D-specific (from slant smoke test, pre-Round-14)
+- **QB arc choice untested at scale**: nano picked loft on a quick slant (2.4s hang → CB closed → INCOMPLETE). Prompt says "flattest arc that clears the lane"; whether it follows is Round 14's question.
+- **Flight times 3× longer than all of Phase A** (2D unit bug fixed): every timing intuition the agents were tuned on has shifted. Expect catch-rate drop initially; that's the harder, realistic test, not regression.
+- Ursina viewer not visually verified yet.
+- gen_demo.py still emits legacy ball_speed_mph format.
+
+## Known Issues carried from 2D (post-Round 12 + CB prompt overhaul)
 
 ### WR — mostly fixed
 - **post_corner INCOMPLETE**: Window A fires before terminal 315° break. WR calls at intermediate 45° heading, heading locks, terminal break never executes. Window A should only fire when no more cuts remain.
@@ -87,6 +102,7 @@ Shadow model working: play_man on 8/10 routes, doom loop eliminated, sep at thro
 - Round 11 (Ollama qwen3:8b, post call-timing overhaul): **7C/3PBU**
 - Round 12 (GPT-5-nano, post CB-rec quality check + phase gate): **7C/1PBU/2INC** ← best GPT score
 - Round 13 (GPT-5-nano, post CB prompt overhaul): **7C/2PBU/1DROP** — CB play_man 8/10, doom loop eliminated, sep at throw 2–4 yd (was 9+ yd)
+- 3D transformation (commit fe02ef6): physics/e2e/A4-mock tests pass; live slant smoke = INCOMPLETE (QB loft, 2.4s hang, WR called pre-cut). Round 14 (full 10-route 3D baseline) pending
 
 ## Not Started
 B–E phases
