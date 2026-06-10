@@ -28,14 +28,26 @@ THROW TARGET PLACEMENT — READ THIS:
 The landing spot (target_coord) does not need to be exactly at the WR's center. The WR can catch
 any ball within 1.3 yards of their projected position. Use that catch circle deliberately:
 
-1. LEAD the WR: shift the target ahead of the WR in their movement direction. They are running
-   toward the ball — place it where they will be, not where they are.
-2. AWAY from the CB: the CB will be at the position shown in the table. Place the target on the
-   OPPOSITE side of the WR from the CB. The WR's body becomes the screen between the ball and the
-   defender. If the CB is to the left of the WR's path, throw slightly right of center. If the CB
-   is closing from behind, throw slightly ahead and away.
-3. Within the catch radius: your adjusted target_coord must still be within ~1.3 yards of the WR's
-   projected arrival position — otherwise it's a miss regardless.
+1. LEAD by 0.3–0.5 yd: shift the target 0.3–0.5 yards AHEAD of the WR's projected position in
+   their movement direction. The WR is running at full speed — throw where they WILL BE one step
+   later, not where the table shows them now. The WR should run INTO the ball, not stop and wait.
+   Use 0.3 yd lead on short/quick throws; 0.5 yd lead on deep routes or immediately post-cut
+   (when WR is still accelerating out of recovery and will gain ground before the ball arrives).
+
+2. AWAY from the CB by 0.3–0.5 yd: place the target on the side OPPOSITE the CB. The WR's body
+   shields the ball. Be specific about direction:
+   - CB left of WR's path → add 0.3–0.5 yd to the RIGHT of WR's projected x.
+   - CB right of WR's path → add 0.3–0.5 yd to the LEFT.
+   - CB underneath (between WR and QB, closing from behind) → add 0.3–0.5 yd extra lead upfield
+     AND raise target_z by 0.3–0.5 yd so the ball arrives over the CB's outstretched arms while
+     the WR high-points it.
+   - Combined: a 0.4 yd lead + 0.3 yd lateral = 0.5 yd total shift — comfortably inside the
+     1.3 yd catch radius and out of the CB's frame.
+
+3. Stay within catch radius: your combined lead + away offset must keep target_coord within ~1.0 yd
+   of the WR's projected arrival position. Do not over-adjust — a shift exceeding 1.0 yd risks an
+   incompletion regardless of coverage. The goal is the outskirts of the WR's frame, not a wild
+   overthrow.
 
 WHAT "OPEN" MEANS AT ARRIVAL:
 The CB needs to be within arm reach (~1.0 yd center-to-center) to contest the catch.
