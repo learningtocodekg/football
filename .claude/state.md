@@ -1,5 +1,5 @@
 # Build State
-Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef6; tests pass; live slant smoke OK; full 10-route 3D baseline NOT yet run)
+Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef6; first live 3D slant = CATCH; all three viewers 3D-ready and human-verified; full 10-route 3D baseline NOT yet run — going route-by-route)
 
 ## Built
 - engine/physics.py — PlayerState (+ cut_recovery field), apply_action (dynamic burst, cut recovery, speed shed), cut_recovery_steps(), BACKPEDAL_SPEED_FRACTION=0.75, CUT_RECOVERY_BASE_STEPS=4, CUT_ANGLE_THRESHOLD=35°, CUT_SPEED_THRESHOLD=3.0
@@ -20,7 +20,8 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 - sim/scenarios/ — a1_*, a2_cb_slant, a3_wr_slant, a3_wr_comeback, a4_wr_{slant,comeback,curl,go,zig,drag,corner,in,double_move,post_corner}
 - run_all_routes.py — runs all 10 A4 scenarios; --ollama / --model flags for Ollama provider
 - render/renderer_pygame.py — top-down + ball shadow/z + synchronized side-elevation panel (arc vs reach lines)
-- render/renderer_ursina.py — 3D Madden-cam viewer (ursina; code-checked, not yet visually verified)
+- render/renderer_ursina.py — 3D Madden-cam viewer (human-verified; ursina 8.x: use color.rgb32 not rgb, camera.look_at is unreliable → explicit pitch, camera anchored behind QB snap pos, ASCII-sanitized reasoning)
+- viewer/debug_viewer.py — decision-log viewer with replay dropdown; 3D-aware ball draw (shadow + z label), handles legacy 2D replays
 - main.py
 - tests/test_e2e.py (3D assertions), tests/test_ball3d.py (arc physics unit suite)
 - article.md
@@ -68,10 +69,11 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 
 ## Known Issues (post-3D transformation)
 
-### 3D-specific (from slant smoke test, pre-Round-14)
-- **QB arc choice untested at scale**: nano picked loft on a quick slant (2.4s hang → CB closed → INCOMPLETE). Prompt says "flattest arc that clears the lane"; whether it follows is Round 14's question.
+### 3D-specific
+- **QB arc choice is high-variance**: smoke test picked loft on a quick slant (INCOMPLETE); identical re-run picked bullet with correct reasoning (CATCH). One sample each way — single runs can't distinguish prompt effects from model variance.
+- **CB flip-flops cut detection during long flights** (new failure mode): on the 1.2s slant flight, reasoning alternated "real cut to 45°" ↔ "still in stem" on consecutive steps; heading whipsawed, 3 self-induced recoveries, no contest. Stateless per-step re-derivation of an already-established fact. (Runner computes detected_cut_t; CB obs doesn't expose it.)
 - **Flight times 3× longer than all of Phase A** (2D unit bug fixed): every timing intuition the agents were tuned on has shifted. Expect catch-rate drop initially; that's the harder, realistic test, not regression.
-- Ursina viewer not visually verified yet.
+- 9 of 10 replays/<route>_42.json are stale pre-3D runs (flat ball); only slant_42 is 3D until Round 14 overwrites them.
 - gen_demo.py still emits legacy ball_speed_mph format.
 
 ## Known Issues carried from 2D (post-Round 12 + CB prompt overhaul)
@@ -103,6 +105,7 @@ Shadow model working: play_man on 8/10 routes, doom loop eliminated, sep at thro
 - Round 12 (GPT-5-nano, post CB-rec quality check + phase gate): **7C/1PBU/2INC** ← best GPT score
 - Round 13 (GPT-5-nano, post CB prompt overhaul): **7C/2PBU/1DROP** — CB play_man 8/10, doom loop eliminated, sep at throw 2–4 yd (was 9+ yd)
 - 3D transformation (commit fe02ef6): physics/e2e/A4-mock tests pass; live slant smoke = INCOMPLETE (QB loft, 2.4s hang, WR called pre-cut). Round 14 (full 10-route 3D baseline) pending
+- 3D slant re-run (GPT-5-nano, seed 42): **CATCH sep=3.94** — QB bullet @ z=1.5 (correct flattest-arc reasoning), WR called at cut t=2.0 + clean ETA management in flight, CB flip-flopped cut detection and never contested. 0 parse errors
 
 ## Not Started
 B–E phases

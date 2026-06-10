@@ -28,23 +28,30 @@ python gen_demo.py 42       # custom seed
 ```
 The mock QB waits for the slant to open, then throws with realistic reasoning text.
 
-### 4. Watch a replay
-```
-python -m render.renderer_pygame replays/demo_7.json
-```
-**Controls:** `SPACE` play/pause · `← →` step frame · `R` toggle reasoning overlay · `+/-` speed · `Q/Esc` quit
+### 4. View replays
 
-### 5. Open the debug viewer
+Replays from `run_all_routes.py` are saved as `replays/<route>_<seed>.json` (e.g. `replays/slant_42.json`).
+
+**View a specific route** (debug viewer — decision log per player, reasoning at every step):
 ```
-python -m viewer.debug_viewer              # loads all replays from replays/
+python -m viewer.debug_viewer replays/slant_42.json
+```
+
+**Browse all routes in one viewer** — launch with no file (or a directory), then **click the replay name in the header** to open a dropdown and switch between routes:
+```
+python -m viewer.debug_viewer              # loads everything in replays/
 python -m viewer.debug_viewer replays/     # explicit directory
-python -m viewer.debug_viewer replays/play_42.json   # single file
 ```
 **Controls:** `SPACE` play/pause · `← →` step frame · `↑ ↓` scroll decision log · `Tab` switch player tab (QB / WR1 / CB1) · `+/-` playback speed · `R` reload replay list · `Q/Esc` quit
 
-Click the replay name in the header to open a dropdown and switch between replays.
+**Other viewers:**
+```
+python -m render.renderer_pygame replays/slant_42.json   # top-down + side-elevation arc panel
+python -m render.renderer_ursina replays/slant_42.json   # 3D Madden-cam viewer
+```
+**Controls (both):** `SPACE` play/pause · `← →` step frame · `R` toggle reasoning overlay · `+/-` speed · `Q/Esc` quit
 
-### 6. Run a live LLM play (requires OpenAI API key)
+### 5. Run a live LLM play (requires OpenAI API key)
 ```
 set OPENAI_API_KEY=sk-...
 python main.py --seed 42
@@ -122,7 +129,7 @@ python main.py --local --scenario sim/scenarios/a4_wr_zig.yaml          --seed 4
 python main.py --local --scenario sim/scenarios/a4_wr_double_move.yaml  --seed 42   # Double move
 ```
 
-### 7. Run with a local model via Ollama (no API key needed)
+### 6. Run with a local model via Ollama (no API key needed)
 
 Install [Ollama](https://ollama.com), then pull a model and run it:
 ```

@@ -17,6 +17,7 @@ Controls:
     Q / Esc    quit
 """
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -27,10 +28,11 @@ from ursina import (
 FIELD_W = 53.3
 FIELD_L = 120.0
 
-OFFENSE_COLOR = color.rgb(30, 144, 255)
-DEFENSE_COLOR = color.rgb(220, 50, 50)
-BALL_COLOR = color.rgb(139, 69, 19)
-ARC_COLOR = color.rgb(255, 215, 0)
+# NOTE: ursina 8.x color.rgb() takes 0-1 floats; rgb32() takes 0-255 ints.
+OFFENSE_COLOR = color.rgb32(30, 144, 255)
+DEFENSE_COLOR = color.rgb32(220, 50, 50)
+BALL_COLOR = color.rgb32(170, 90, 30)
+ARC_COLOR = color.rgb32(255, 215, 0)
 
 
 class UrsinaReplay:
@@ -58,40 +60,43 @@ class UrsinaReplay:
     def _build_field(self):
         Entity(model="plane", scale=(FIELD_W, 1, FIELD_L),
                position=Vec3(FIELD_W / 2, 0, FIELD_L / 2),
-               color=color.rgb(34, 139, 34))
+               color=color.rgb32(34, 139, 34))
         # End zones
         for z0 in (5.0, FIELD_L - 5.0):
             Entity(model="plane", scale=(FIELD_W, 1, 10),
                    position=Vec3(FIELD_W / 2, 0.01, z0),
-                   color=color.rgb(0, 100, 0))
+                   color=color.rgb32(0, 100, 0))
         # Yard lines
         for yd in range(10, 111, 5):
             major = yd % 10 == 0
             Entity(model="cube",
                    scale=(FIELD_W, 0.02, 0.12 if major else 0.06),
                    position=Vec3(FIELD_W / 2, 0.02, yd),
-                   color=color.white if major else color.rgb(160, 160, 160))
+                   color=color.white if major else color.rgb32(160, 160, 160))
         # Hash marks
         for yd in range(10, 111):
             for hx in (18.5, 34.8):
                 Entity(model="cube", scale=(0.5, 0.02, 0.08),
                        position=Vec3(hx, 0.02, yd),
-                       color=color.rgb(220, 220, 220))
+                       color=color.rgb32(220, 220, 220))
         # Sidelines
         for sx in (0.0, FIELD_W):
             Entity(model="cube", scale=(0.15, 0.02, FIELD_L),
                    position=Vec3(sx, 0.02, FIELD_L / 2), color=color.white)
 
     def _build_players(self):
+        # Each player is an UNSCALED holder entity (so the billboard label is not
+        # distorted by the body cube's non-uniform scale), with the body as a child.
         self.player_entities: dict[str, Entity] = {}
         self.player_labels: dict[str, Text] = {}
         for p in self.steps[0]["players"]:
             pid = p["id"]
             clr = OFFENSE_COLOR if pid in ("QB", "WR1") else DEFENSE_COLOR
-            ent = Entity(model="cube", scale=(0.8, 2.0, 0.5), color=clr,
-                         position=Vec3(p["pos"][0], 1.0, p["pos"][1]))
-            self.player_entities[pid] = ent
-            label = Text(text=pid, parent=ent, y=1.4, scale=18,
+            holder = Entity(position=Vec3(p["pos"][0], 0.0, p["pos"][1]))
+            Entity(model="cube", scale=(0.8, 2.0, 0.5), color=clr,
+                   parent=holder, y=1.0)
+            self.player_entities[pid] = holder
+            label = Text(text=pid, parent=holder, y=2.6, scale=14,
                          billboard=True, origin=(0, 0), color=color.white)
             self.player_labels[pid] = label
 
@@ -107,12 +112,18 @@ class UrsinaReplay:
     def _build_hud(self):
         self.hud = Text(text="", position=(-0.86, 0.47), scale=0.8, color=color.yellow)
         self.reason_text = Text(text="", position=(-0.86, 0.40), scale=0.65,
-                                color=color.rgb(255, 255, 150))
+                                color=color.rgb32(255, 255, 150))
 
     def _set_camera(self):
-        # Madden cam: behind the offense, looking upfield
-        camera.position = Vec3(FIELD_W / 2, 14, 32)
-        camera.look_at(Vec3(FIELD_W / 2, 0, 75))
+        # Madden cam: behind the QB's snap position, pitched down at the action.
+        # (Explicit rotation — camera.look_at proved unreliable here.)
+        qb = next((p for p in self.steps[0]["players"] if p["id"] == "QB"), None)
+        qx = qb["pos"][0] if qb else FIELD_W / 2
+        qy = qb["pos"][1] if qb else 50.0
+        cam_h, cam_back, look_ahead = 11.0, 17.0, 20.0
+        camera.position = Vec3(qx, cam_h, qy - cam_back)
+        pitch = math.degrees(math.atan2(cam_h - 1.0, cam_back + look_ahead))
+        camera.rotation = Vec3(pitch, 0, 0)
         camera.fov = 70
 
     # ── Per-frame state ───────────────────────────────────────────────────────
@@ -144,7 +155,7 @@ class UrsinaReplay:
             ent = self.player_entities.get(p["id"])
             if ent is None:
                 continue
-            ent.position = Vec3(p["pos"][0], 1.0, p["pos"][1])
+            ent.position = Vec3(p["pos"][0], 0.0, p["pos"][1])
             ent.rotation_y = p.get("heading", 0.0)
 
         ball = step["ball"]
@@ -153,10 +164,10 @@ class UrsinaReplay:
         if ball["state"] == "in_air":
             self.ball_entity.position = Vec3(bp[0], max(bz, 0.25), bp[1])
         else:
-            # sit the ball on its holder
+            # sit the ball on its holder (holder origin is at ground level)
             holder = self.player_entities.get(ball.get("holder", "QB"))
-            base = holder.position if holder is not None else Vec3(bp[0], 1.0, bp[1])
-            self.ball_entity.position = base + Vec3(0.5, 0.2, 0)
+            base = holder.position if holder is not None else Vec3(bp[0], 0.0, bp[1])
+            self.ball_entity.position = base + Vec3(0.5, 1.2, 0)
 
         # Arc dots
         pts = self._flight_points()
@@ -185,6 +196,8 @@ class UrsinaReplay:
             lines = []
             for p in step["players"]:
                 r = (p.get("reasoning") or "").strip()
+                # Font lacks non-ASCII glyphs (model reasoning is occasionally non-English)
+                r = r.encode("ascii", "ignore").decode()
                 if r:
                     lines.append(f"{p['id']}: {r[:90]}")
             self.reason_text.text = "\n".join(lines)
@@ -228,7 +241,12 @@ def main():
         sys.exit(1)
 
     app = Ursina(title=f"Gridiron Minds 3D — {Path(sys.argv[1]).name}")
-    window.color = color.rgb(10, 10, 20)
+    window.color = color.rgb32(60, 120, 180)  # sky
+    for counter in ("fps_counter", "entity_counter", "collider_counter", "cog_button"):
+        try:
+            getattr(window, counter).enabled = False
+        except AttributeError:
+            pass
     viewer = UrsinaReplay(sys.argv[1])
 
     from ursina import time as ursina_time

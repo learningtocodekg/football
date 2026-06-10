@@ -275,12 +275,18 @@ class DebugViewer:
         self._txt(pid, (sx + 9, sy - 6), color=WHITE, font=self.font_sm)
 
     def draw_ball(self, ball: dict):
-        bx, by = ball["pos"]
+        bx, by = ball["pos"][0], ball["pos"][1]
+        bz = ball["pos"][2] if len(ball["pos"]) > 2 else 0.0
         sx, sy = self._fs(bx, by)
         if ball["state"] == "in_air":
-            pygame.draw.circle(self.screen, BALL_CLR, (sx, sy), 5)
+            # Ground shadow + ball drawn larger when higher
+            pygame.draw.circle(self.screen, DARK_GRAY, (sx, sy), 3)
+            rad = 5 + min(4, int(bz * 0.6))
+            pygame.draw.circle(self.screen, BALL_CLR, (sx, sy - int(bz * 2)), rad)
+            if bz > 0.1:
+                self._txt(f"z={bz:.1f}", (sx + 8, sy - 18), color=ARC_CLR, font=self.font_sm)
             if "landing" in ball:
-                lx, ly = ball["landing"]
+                lx, ly = ball["landing"][0], ball["landing"][1]
                 lsx, lsy = self._fs(lx, ly)
                 pygame.draw.line(self.screen, ARC_CLR, (sx, sy), (lsx, lsy), 1)
                 pygame.draw.circle(self.screen, ARC_CLR, (lsx, lsy), 4, 1)
