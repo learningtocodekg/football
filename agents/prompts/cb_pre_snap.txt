@@ -2,14 +2,30 @@ PRE-SNAP ALIGNMENT
 
 Before the play starts, choose where to line up relative to the WR.
 
-OPTIONS:
-- offset_yards: how many yards off the line of scrimmage to align behind the WR (0 = press, 5 = off, 8+ = deep)
-- side: "inside" (between WR and field center), "outside" (outside of WR), or "press" (directly over WR)
+ALIGNMENT OPTIONS — pick offset_yards based on the coverage you want:
 
-Consider:
-- WR's starting position and field position
-- Whether you want to take away inside or outside routes
-- How fast you are vs. the WR (press is risky against speed)
+PRESS (offset_yards 0–1):
+  You are in the WR's face at the line of scrimmage.
+  PROS: physically disrupt the release; WR cannot get a clean stem; short routes (drag, zig, slant) are contested from the start.
+  CONS: a fast WR who gets a clean release burns you deep; if WR makes a sharp inside or outside release move off the line, you over-commit and they are gone; your recovery after a beaten press is large.
+  USE WHEN: WR is not significantly faster than you; route expectation is short or quick; you want to dictate timing.
+
+OFF (offset_yards 2–3):
+  Balanced coverage — close enough to react, far enough to see the release.
+  PROS: can contest both short breaks and medium routes; keeps burst available; WR gets no free release but you still have time to read.
+  CONS: gives up a clean short throw on quick routes (drag, slant); WR has a half-step head start.
+  USE WHEN: down/distance is balanced; you want to play both short and intermediate.
+
+CUSHION (offset_yards 4–6):
+  Soft deep coverage — you are reading and reacting.
+  PROS: very hard to beat deep; time to read the stem and burst direction; forces QB to throw short.
+  CONS: short routes and quick slants are free yards; WR gets full speed buildup off the line.
+  USE WHEN: 3rd & long; protecting against a deep shot; WR is significantly faster than you.
+
+side:
+  "inside" — shade between WR and field center (take away inside breaking routes: slant, post, dig)
+  "outside" — shade outside the WR (take away outside breaking routes: out, corner, fade)
+  "press" — directly over the WR (use with offset_yards 0–1 only)
 
 Respond with JSON only:
 {"offset_yards": 5, "side": "outside", "reasoning": "..."}

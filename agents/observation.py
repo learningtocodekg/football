@@ -322,6 +322,7 @@ def build_cb_observation(
     wr_history: list[dict] | None = None,
     ball_total_eta: float | None = None,
     cb_intent: str = "play_man",
+    detected_cut_t: float | None = None,
 ) -> str:
     """Observation for the CB's per-step movement decision (LIVE and BALL_IN_AIR phases)."""
     sep = _dist(cb, wr)
@@ -439,6 +440,12 @@ def build_cb_observation(
                     f"  {h['t']:>5.1f}  {h['cb_hdg']:>5.0f}°  {h.get('cb_spd', 0.0):>5.1f}  {rec_str:>6}  {h.get('cb_mode', ''):<10}"
                 )
 
+    if detected_cut_t is not None:
+        lines += [
+            "",
+            f"CUT CONFIRMED: WR made a real heading change at t={detected_cut_t:.1f}s. This is established — do not re-derive it each step.",
+        ]
+
     return "\n".join(lines)
 
 
@@ -492,6 +499,7 @@ def build_cb_intent_observation(
         f"  PBU arm tip ({CB_ARM_REACH:.1f}yd reach): ({arm_tip_pbu_x:.1f},{arm_tip_pbu_y:.1f})  dist to zone={arm_pbu_dist:.1f}yd",
         f"  INT arm tip ({CB_HALF_REACH:.1f}yd reach): ({arm_tip_int_x:.1f},{arm_tip_int_y:.1f})  dist to zone={arm_int_dist:.1f}yd",
         f"  Distance to zone center: {dist_to_zone:.1f}yd",
+        f"  Your top speed: {cb_attrs.max_speed:.1f}yd/s → sprint time to zone: {dist_to_zone/cb_attrs.max_speed:.2f}s  vs  ball ETA: {ball.eta:.2f}s",
         "",
         "CHOOSE: 'go_for_pick', 'swat', or 'play_man'",
         "  go_for_pick: INT attempt (0.5yd reach, must be facing ball, arm on path) — risky, high reward",
@@ -620,12 +628,21 @@ def build_wr_pre_snap_observation(
         dy = cb.y - wr.y
         cb_side = "to your RIGHT" if dx > 0.3 else ("to your LEFT" if dx < -0.3 else "directly across from you")
         cb_depth = f"{abs(dy):.1f} yd {'UPFIELD' if dy > 0 else 'behind'} you"
+        press_note = ""
+        if sep <= 1.5:
+            press_note = (
+                "  PRESS COVERAGE: CB is in your face. Expect a physical jam off the line for the first ~0.3s. "
+                "An aggressive release move (attack inside or outside hard on your first step) can help you shed "
+                "the jam faster and get into your stem."
+            )
         lines += [
             "",
             "CB ALIGNMENT:",
             f"  CB pos: ({cb.x:.1f}, {cb.y:.1f})  separation: {sep:.1f} yd",
             f"  CB is {cb_side}, {cb_depth}",
         ]
+        if press_note:
+            lines.append(press_note)
     lines += [
         "",
         "Decide your pre-snap plan.",

@@ -1,33 +1,52 @@
 # Left Off
-Date: 2026-06-09 (second session today — post-3D-transformation polish)
+Date: 2026-06-10
 
 ## What We Worked On
-First live 3D route test, replay viewer fixes (debug viewer 3D crash + Ursina viewer visual overhaul), README replay-viewing docs, replays/ cleanup.
+Route analysis (corner + go), QB lead prompt fix, full Round 14 3D baseline, CB overhaul (press coverage, break-on-ball, cut detection stabilization, jam mechanic).
 
 ## What Got Done
 
-### First 3D slant (GPT-5-nano, seed 42) → CATCH
-- `python run_all_routes.py --seed 42 --routes slant` → **CATCH, sep=3.94 yd**, 0 parse errors (73 LLM calls).
-- QB picked **bullet** this time ("bullet arc minimizes CB time to close") — the smoke test's loft choice did NOT replicate on an identical run. Single-run conclusions are provisional; model variance is real.
-- WR ball-in-air was excellent: per-step ETA arithmetic, accelerate/coast to hit the landing spot without overshoot. This DID replicate from the smoke test.
-- CB flip-flopped cut detection during the 1.2s flight ("real cut to 45°" ↔ "still in stem, no cut") — heading whipsawed, 3 self-induced cut recoveries, never contested. New 3D-era CB failure mode: stateless re-derivation of the cut every step. Note: runner already computes `detected_cut_t`; CB observation doesn't expose it.
-- Quirk: one QB pass2 reasoning came out in Chinese (parsed fine).
+### Route analysis: corner INCOMPLETE → root cause isolated
+- **corner_42**: INCOMPLETE — ball_offset > 1.3 yd (WR arrived ~0.1s late). sep=2.32 yd, CB irrelevant. Root: QB projected arrival using constant WR speed but WR was in 3-step cut recovery immediately after the 290° break — arrived ~1.4 yd short of the catch spot.
+- **go_42** (before lead fix): CATCH, sep=2.4 yd, 33.3 yd bullet. Clean isolation: same arc, longer distance, no cut, no recovery → CATCH. Corner missed only because of recovery drag. QB lead math was the bug.
 
-### Viewers
-- **viewer/debug_viewer.py crashed on 3D replays** (`ValueError` unpacking 3-elem ball pos) — fixed; now draws ground shadow + height-offset ball + z label. Headless-verified on both 3D and legacy 2D replays.
-- **render/renderer_ursina.py was visually broken** (white void, field as horizon sliver, no players). Root causes: ursina 8.x `color.rgb()` takes 0–1 floats (all colors clamped to white) → switched to `color.rgb32()`; `camera.look_at()` silently no-ops → explicit pitch rotation, camera anchored behind QB's snap position from the replay; player labels distorted by parent cube scale → unscaled holder entities; non-ASCII reasoning caused glyph spam → ASCII sanitize; debug counters disabled. **User confirmed it works visually now.**
+### QB lead prompt fix
+- `qb_pass2.txt` / `qb_system.txt`: replaced vague "lead the WR" with concrete **0.3–0.5 yd ahead in movement direction** + **0.3–0.5 yd opposite the CB**, with per-case examples (CB left → throw right of WR center; CB underneath → add lead AND raise z; WR runs INTO the ball, not waits for it).
 
-### Housekeeping
-- README: new "View replays" section — view one route (`python -m viewer.debug_viewer replays/slant_42.json`), browse all with header-click dropdown (`python -m viewer.debug_viewer`), pygame side-view + ursina 3D commands. Sections renumbered.
-- replays/ cleaned: deleted 10 junk JSONs (a4_* old naming, demo, play_42, test_*). Remaining: exactly the 10 route files + run11_log.txt.
-- **NOTE: 9 of the 10 route replays are stale 2D runs** (flat ball, no arc) from before the 3D commit — only slant_42.json is 3D. Round 14 will overwrite them.
+### Round 14 — 8C / 2 INCOMPLETE (first full 3D baseline)
+```
+slant    CATCH  sep=4.77  corner  CATCH  sep=5.34 ← was INCOMPLETE, now fixed
+go       INCOMPLETE (WR called at t=3.7, model variance late call)
+comeback INCOMPLETE (pre-existing: WR calls heading=0° before 180° break, heading locks wrong)
+double_move CATCH sep=9.33   curl  CATCH   zig  CATCH   drag  CATCH
+post_corner CATCH             in   CATCH
+```
+Corner fix confirmed. Go regression = WR model variance (called at t=2.2 last run, t=3.7 this run — WR on go route doesn't have a "cut/rec>0" trigger, just pure speed separation). Comeback is a pre-existing WR bug.
+
+### CB overhaul (code + prompts, smoke-tested on slant)
+Four changes, all landed and verified:
+
+1. **`cb_pre_snap.txt`** — real PRESS/OFF/CUSHION alignment with explicit tradeoffs. CB no longer defaults to 5 yd every play.
+
+2. **`cb_pass2.txt`** — replaced hard "arm tip > 2 yd → play_man, full stop" gate with sprint-time-vs-ETA check. CB now computes `dist_to_zone / max_speed` vs `ball_ETA` and chooses to race to the landing spot (swat/pick) when it can get there in time. Smoke test line 85: CB correctly printed "sprint_time 1.26s > ball_ETA 1.17s → play_man" — math working.
+
+3. **`observation.py`** — three additions:
+   - `build_cb_intent_observation`: added `max_speed` + sprint ETA line so CB has the numbers for the sprint check
+   - `build_cb_observation`: added `detected_cut_t` param; emits "CUT CONFIRMED at t=X" in live phase — CB no longer re-derives the cut each step
+   - `build_wr_pre_snap_observation`: press warning when CB sep ≤ 1.5 yd ("expect physical jam, release move helps")
+
+4. **`runner.py`** — two additions:
+   - Pass `detected_cut_t` to both LIVE and BALL_IN_AIR `build_cb_observation` calls
+   - **Jam mechanic**: if CB chose press (offset ≤ 1 yd), WR throttle capped at "coast" for 3 steps (0.3s); reduced to 1 step if WR's first heading diverges ≥45° from CB press facing (release beat press). Prints `[PRESS RELEASE]` or `[JAM CLEARED]` log lines.
 
 ## What's Open / Known Issues
-1. **Round 14 (full 10-route 3D suite) still not run** — only slant, which was a CATCH. User wants to go route-by-route / start small rather than all 10 at once.
-2. CB cut-detection flip-flop during long flights (see above) — likely the first 3D-era prompt/observation target. Freedom philosophy: consider exposing already-computed facts (detected_cut_t) in the observation rather than rules.
-3. Jump action (WR/CB vertical timing) deliberately deferred.
-4. gen_demo.py still emits legacy ball_speed_mph format.
-5. Carried from 2D: cb_pre_snap 5yd hardcode, bearing-vs-heading 1-step confusion, post_corner Window A.
+1. **Full 10-route run with CB changes NOT yet done** — only smoke tested slant. Need a full run to see if press coverage fires and if sprint-on-ball produces swat attempts.
+2. **CB flip-flop partially fixed** — CUT CONFIRMED in observation helps, but cb_pass1 stem-check logic can still override it on later steps. May need the stem-phase check to stop applying once detected_cut_t is set.
+3. **Comeback WR bug**: WR calls at heading=0° before executing the 180° break → heading locks wrong direction. Pre-existing.
+4. **Go route call timing**: WR doesn't know when to call on a no-cut vertical (no "CB rec>0" trigger). High variance.
+5. Jump action (WR/CB vertical timing) deferred.
+6. gen_demo.py legacy ball_speed_mph format.
 
 ## NEXT STEP
-Continue Round 14 route-by-route with GPT-5-nano: `python run_all_routes.py --seed 42 --routes <route>` (e.g. go or corner next to stress arc range/choice on deep routes). Read QB arc choice + target_z reasoning, CB flight-phase behavior, lane-contest events. After a few singles look sane, run the full 10.
+Run the full 10-route suite with the new CB changes: `python run_all_routes.py --seed 42`
+Look for: (a) CB choosing press on short routes, (b) sprint-on-ball producing swat intents on longer flights, (c) jam fires (look for `[JAM CLEARED]` in log), (d) whether the 8C baseline holds or CB improvements cause regressions.

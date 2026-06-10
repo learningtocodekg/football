@@ -1,24 +1,46 @@
 BALL IN AIR — CHOOSE YOUR INTENT
 
-The ball has been thrown. Choose what you are going to do when it arrives.
+The ball has been thrown. You have a limited window before it lands. Your observation shows the
+landing zone, ball ETA, and your distance to the zone.
 
-DISTANCE CHECK — do this before picking an intent:
-  Your arm reach is 1.0 yd (swat) or 0.5 yd (interception).
-  Look at the BALL IN AIR block: it tells you the distance from your arm tip to the ball path.
-  - Arm tip distance > 2 yd: swat and interception are physically impossible. Choose play_man.
-  - Arm tip distance 1-2 yd: swat is possible if you close the gap in time. Evaluate below.
-  - Arm tip distance ≤ 1 yd: swat or go_for_pick are viable. Choose based on risk/reward.
+STEP 1 — CAN YOU RACE TO THE LANDING ZONE?
 
-OPTIONS:
-- "go_for_pick": attempt an interception. You get 0.5 yd arm reach. You must be facing within 60° of the ball AND your arm tip must be on the ball path. High reward, requires precise positioning.
-- "swat": attempt a pass breakup. You get 1.0 yd arm reach. You must be facing within 60° of the ball AND your arm tip must be on the ball path. More likely to succeed than INT, but no turnover.
-- "play_man": play the receiver's body. No facing requirement. Must be within 1.0 yd of WR at catch. Closer = harder hit = more likely WR drops. If you're too far, WR catches clean.
-  Use play_man whenever your arm cannot realistically reach the ball path.
+Your observation shows:
+  - Distance to landing zone (yards)
+  - Your top sprint speed (yd/s)
+  - Ball ETA (seconds)
 
-DECIDE BASED ON:
-- The distance check above (this is the gating question — arm can't reach = play_man, full stop)
-- Whether you can realistically close to arm reach before ball arrives
-- Whether it's better to guarantee disruption (play_man) vs. gamble on a turnover (go_for_pick)
+Compute: sprint_time = distance_to_zone / your_max_speed
+
+If sprint_time < ball_ETA (or close): YOU CAN GET THERE. Break for the ball.
+  Sprint hard toward the landing zone (heading = bearing shown in observation).
+  Face the landing zone so your arm is live when you arrive.
+  Choose swat or go_for_pick — you will contest the ball at the zone, not the WR's body.
+  This is the correct NFL CB play on any throw where you can physically beat the ball to the spot.
+
+If sprint_time > ball_ETA: you cannot reach the zone in time. Go to STEP 2.
+
+STEP 2 — CURRENT ARM REACH (if already close to ball path):
+
+  - Your arm tip (swat, 1.0 yd reach) distance to zone shown in observation.
+  - Your arm tip (INT, 0.5 yd reach) distance to zone shown in observation.
+  - You must be facing within 60° of the landing zone for swat/INT.
+
+  - Arm tip ≤ 1 yd from zone AND facing OK: swat viable.
+  - Arm tip ≤ 0.5 yd from zone AND facing OK: go_for_pick viable.
+
+STEP 3 — PLAY MAN (fallback):
+
+  Use this when you cannot reach the zone AND your arm is not in range.
+  - No facing requirement.
+  - You must be within 1.0 yd of the WR at catch for any effect.
+  - If you are 2+ yd from the WR when the ball arrives: WR catches clean. play_man does nothing.
+  - Closer body hit = more likely drop.
+
+OPTIONS SUMMARY:
+  "go_for_pick" — sprint to zone or INT from current position (0.5 yd reach, must face ball). High reward.
+  "swat"        — sprint to zone or PBU from current position (1.0 yd reach, must face ball). Reliable disruption.
+  "play_man"    — shadow WR's body, no ball attempt. Only works within 1.0 yd of WR at catch.
 
 Respond with JSON only:
 {"intent": "swat", "reasoning": "..."}

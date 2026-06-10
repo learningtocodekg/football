@@ -221,12 +221,19 @@ def run_play(
     expected_open_t = scenario.get("expected_open_t", cut_time + 0.3)
 
     # ── CB pre-snap (A2 + A4) ───────────────────────────────────────────
+    cb_pressed = False
+    jam_steps_remaining = 0
+    cb_press_facing: float | None = None
     if cb_agent is not None and "CB1" in states:
         pre_snap_obs = build_cb_pre_snap_observation(states["CB1"], attrs["CB1"], states["WR1"])
         pre_snap_result = cb_agent.pre_snap(pre_snap_obs)
         r = pre_snap_result.get("reasoning", "")
         print(f"  CB pre-snap -> offset={pre_snap_result['offset_yards']:.1f}yd  side={pre_snap_result['side']}  | {r}")
         states["CB1"] = _apply_cb_pre_snap(states["CB1"], states["WR1"], pre_snap_result)
+        if pre_snap_result["offset_yards"] <= 1.0:
+            cb_pressed = True
+            jam_steps_remaining = 3
+            cb_press_facing = states["CB1"].facing
 
     # ── WR pre-snap ──────────────────────────────────────────────────────
     if isinstance(wr_agent, WRAgent):
@@ -441,6 +448,7 @@ def run_play(
                 cb_obs = build_cb_observation(
                     t, states["CB1"], attrs["CB1"], states["WR1"], ball,
                     wr_history=move_history, ball_total_eta=ball_total_eta,
+                    detected_cut_t=detected_cut_t,
                 )
                 cb_move = cb_agent.decide_movement(cb_obs)
                 r = cb_move.get("reasoning", "")
@@ -465,6 +473,7 @@ def run_play(
                     t, states["CB1"], attrs["CB1"], states["WR1"], ball,
                     wr_history=move_history, ball_total_eta=ball_total_eta,
                     cb_intent=cb_intent,
+                    detected_cut_t=detected_cut_t,
                 )
                 cb_move = cb_agent.decide_movement(cb_obs)
                 r = cb_move.get("reasoning", "")
@@ -552,6 +561,20 @@ def run_play(
         # ── Move all players ─────────────────────────────────────────────
         if isinstance(wr_agent, WRAgent):
             wr_decision_this_step = actions.get("WR1", {})
+            # Jam mechanic: CB press caps WR throttle for first jam_steps_remaining steps.
+            # On the first jam step, a release move (heading ≥45° from CB press facing) cuts the jam to 1 step.
+            if jam_steps_remaining > 0:
+                if jam_steps_remaining == 3 and cb_press_facing is not None:
+                    wr_hdg = wr_decision_this_step.get("heading", states["WR1"].heading)
+                    diff = abs((wr_hdg - cb_press_facing + 180) % 360 - 180)
+                    if diff >= 45.0:
+                        jam_steps_remaining = 1
+                        print(f"  t={t:.1f}  [PRESS RELEASE] WR beat press hdg={wr_hdg:.0f}°, jam = 1 step")
+                if wr_decision_this_step.get("throttle") == "accelerate":
+                    wr_decision_this_step = {**wr_decision_this_step, "throttle": "coast"}
+                jam_steps_remaining -= 1
+                if jam_steps_remaining == 0:
+                    print(f"  t={t:.1f}  [JAM CLEARED] WR free")
             states["WR1"] = wr_agent.apply_decision(
                 wr_decision_this_step, states["WR1"], attrs["WR1"], DT,
                 ball_in_air=ball_in_air,

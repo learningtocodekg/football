@@ -67,14 +67,17 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 - `_cb_situation()` emits a lean `GEOMETRY:` block: separation, bearing, WR projected pos in 0.5s, intercept bearing
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
-## Known Issues (post-3D transformation)
+## Known Issues (post-Round 14 + CB overhaul)
 
 ### 3D-specific
 - **QB arc choice is high-variance**: smoke test picked loft on a quick slant (INCOMPLETE); identical re-run picked bullet with correct reasoning (CATCH). One sample each way — single runs can't distinguish prompt effects from model variance.
-- **CB flip-flops cut detection during long flights** (new failure mode): on the 1.2s slant flight, reasoning alternated "real cut to 45°" ↔ "still in stem" on consecutive steps; heading whipsawed, 3 self-induced recoveries, no contest. Stateless per-step re-derivation of an already-established fact. (Runner computes detected_cut_t; CB obs doesn't expose it.)
-- **Flight times 3× longer than all of Phase A** (2D unit bug fixed): every timing intuition the agents were tuned on has shifted. Expect catch-rate drop initially; that's the harder, realistic test, not regression.
-- 9 of 10 replays/<route>_42.json are stale pre-3D runs (flat ball); only slant_42 is 3D until Round 14 overwrites them.
+- **CB flip-flops cut detection — partially fixed**: detected_cut_t now exposed in CB observation; CB smoke test (slant) printed CUT CONFIRMED correctly. Stem-phase check in cb_pass1 may still override it on early steps — monitor in Round 15.
+- **Round 15 (full 10-route CB run) not yet done** — only smoke-tested slant. All CB prompt+code changes landed but untested at scale.
 - gen_demo.py still emits legacy ball_speed_mph format.
+
+### Route-specific
+- **Comeback WR bug**: WR calls at heading=0° before executing 180° break → heading locks wrong direction. Pre-existing, lowest priority.
+- **Go route call timing**: no cut trigger, pure speed separation — WR call timing has high variance. Seen at t=2.2 (CATCH) and t=3.7 (INCOMPLETE) on same seed.
 
 ## Known Issues carried from 2D (post-Round 12 + CB prompt overhaul)
 
@@ -106,6 +109,8 @@ Shadow model working: play_man on 8/10 routes, doom loop eliminated, sep at thro
 - Round 13 (GPT-5-nano, post CB prompt overhaul): **7C/2PBU/1DROP** — CB play_man 8/10, doom loop eliminated, sep at throw 2–4 yd (was 9+ yd)
 - 3D transformation (commit fe02ef6): physics/e2e/A4-mock tests pass; live slant smoke = INCOMPLETE (QB loft, 2.4s hang, WR called pre-cut). Round 14 (full 10-route 3D baseline) pending
 - 3D slant re-run (GPT-5-nano, seed 42): **CATCH sep=3.94** — QB bullet @ z=1.5 (correct flattest-arc reasoning), WR called at cut t=2.0 + clean ETA management in flight, CB flip-flopped cut detection and never contested. 0 parse errors
+- Round 14 (GPT-5-nano, seed 42, post QB lead fix): **8C/2INC** — slant CATCH sep=4.77, corner CATCH sep=5.34 (fixed from INCOMPLETE), go INCOMPLETE (WR late call t=3.7 model variance), comeback INCOMPLETE (pre-existing WR bug)
+- CB overhaul (this session, code+prompts, smoke tested): slant smoke CATCH sep=5.52 — CB correctly computed sprint_time > ETA → play_man. CUT CONFIRMED line working. Round 15 (full 10-route with CB changes) NOT yet run.
 
 ## Not Started
 B–E phases
