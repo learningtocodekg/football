@@ -38,13 +38,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem upfield to pull CB hips; final 45\u00b0 cut planned ~t=2.0s if CB commits"
+          "reasoning": "In stem phase (0\u00b0 heading), not yet final cut. CB is mirrored and tracking; wait for CB commitment before calling."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            55.0
+            16.63,
+            53.0
           ],
           "heading": 90.0,
           "facing": 180.0,
@@ -52,7 +52,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Maintain shadowing: stem phase, WR not yet committed. Stay on hip with backpedal to keep burst ready for real cut."
+          "reasoning": "Stem start: maintain cushion, shadow WR, backpedal upfield (heading ~0\u00b0) while facing WR (180\u00b0) to react to real cuts with full burst available"
         }
       ],
       "ball": {
@@ -97,13 +97,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "CB not committed yet; stem drags hips, prep final 45\u00b0 break to create separation"
+          "reasoning": "You are in stem phase; final cut at t~2.0s to 45deg. No separation window yet; CB hip commitment not established."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            55.18
+            16.63,
+            53.18
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -111,7 +111,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: WR at 0\u00b0, full burst; maintain cushion, backpedal to keep shadow on hip without committing to a chase."
+          "reasoning": "Maintain stem discipline: keep cushion, slight heading adjustment toward 0\u00b0 while eyes on WR. No real cut yet; mirror/stay patient with backpedal to preserve burst for a real commit."
         }
       ],
       "ball": {
@@ -156,13 +156,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem ongoing; CB not yet committed. Final cut at ~2.0s will aim to force hip commitment and create separation for a throw"
+          "reasoning": "In stem phase; CB hip commitment not yet; wait for stem to pull CB upfield before final cut."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            55.46
+            16.63,
+            53.46
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -170,7 +170,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: shadow the WR, maintain cushion, small lateral tracking to keep on hip without committing burst; WR hasn't cut yet."
+          "reasoning": "Stem phase: stay on WR's hip, backpedal ~0\u00b0 with eyes on WR; no real cut yet, maintain cushion and full burst available for both."
         }
       ],
       "ball": {
@@ -215,13 +215,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "CB not yet committed; waiting for final cut window before calling"
+          "reasoning": "Stem phase in progress; CB on your right shoulder, not yet committed. Maintain 0\u00b0 upfield, preserve full burst until ~t=2.0s when you plan final cut to 45\u00b0 for separation."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            55.81
+            16.63,
+            53.81
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -229,7 +229,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: WR still upfield with no real cut; maintain cushion, shadow the WR. No burst conversion yet."
+          "reasoning": "WR stem with no real cut yet; maintain cushion on hip, stay backpedaling to preserve burst for a later commit"
         }
       ],
       "ball": {
@@ -274,13 +274,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem will drag CB upfield; no commit yet, final cut at 2.0s creates window."
+          "reasoning": "in stem; final cut ~t=2.0s; CB rec not yet at final cut; deception not required yet; keep accelerate to maintain speed for the upcoming break"
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            56.23
+            16.63,
+            54.23
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -288,7 +288,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR stem phase; maintain cushion and stay on hip. No real cut yet; wait for commitment before matching heading."
+          "reasoning": "WR in stem, no real cut yet; maintain cushion, backpedal with small x-tracking to stay on hip without committing burst"
         }
       ],
       "ball": {
@@ -319,7 +319,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; CB is in full burst and the WR cut/recovery hints suggest waiting for the signal to avoid a contested window"
+          "reasoning": "WR has not signaled for the ball yet, and you should wait for the cut/drive window to develop before throwing."
         },
         {
           "id": "WR1",
@@ -333,13 +333,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem is ongoing; CB has not committed to a break yet (CB rec likely 0). Maintain stem to force hips upfield, then execute final 45\u00b0 cut when separation window opens around t~2.0s."
+          "reasoning": "Stem not committed yet; CB has not turned hips (CB rec=0). Maintain stem to pull CB upfield, then final cut to 45\u00b0 around t~2.0s for separation"
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            56.7
+            16.63,
+            54.7
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -347,7 +347,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR stem, maintain shadow, keep 0\u00b0 heading, do not close yet, WR has full burst"
+          "reasoning": "Maintain stem shadow with cushion; WR not committed yet, stay ready for a real cut without burning burst."
         }
       ],
       "ball": {
@@ -378,7 +378,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball and the route isn\u2019t developed yet; wait for the call to confirm the open window."
+          "reasoning": "WR has not called for the ball yet and CB is in full burst; better to wait for the WR to signal and a clearer window."
         },
         {
           "id": "WR1",
@@ -392,13 +392,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "CB not committed yet (CB rec=0); stem is ongoing. Plan final cut to 45deg around t~2.0s for separation; hold current heading and accelerate."
+          "reasoning": "Stem in progress; final cut not yet. Do not call; prepare to break to 45\u00b0 around t~1.0s per plan."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            57.2
+            16.63,
+            55.2
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -406,7 +406,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: maintain cushion, shadow the WR. WR at 0\u00b0 with full burst available; hold backpedal to preserve burst for a real cut."
+          "reasoning": "Maintain stem shadow: WR upfield with no real cut yet; preserve cushion and keep burst ready for a real cut."
         }
       ],
       "ball": {
@@ -437,7 +437,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; hold to let the route develop and their signal before attempting a throw."
+          "reasoning": "WR has not called for the ball yet; the planned 2.0\u20132.3s cut will create the open window, so waiting prevents a low-percentage throw."
         },
         {
           "id": "WR1",
@@ -451,13 +451,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "In stem phase; CB has not committed hips yet (CB rec=0). No call yet; final cut at ~t=2.0s to 45deg after stem completes."
+          "reasoning": "We are in stem phase (~t=0.7). Deception not yet needed. Prepare final cut to 45\u00b0 around t~1.0s; maintain speed to pull CB upfield and create window at the break"
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            57.74
+            16.63,
+            55.74
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -465,7 +465,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: WR at 0\u00b0 upfield, maintain cushion on their hip. Stay backpedaling with slight x-tracking to stay within 20\u00b0 of 0\u00b0; no real cut yet."
+          "reasoning": "Stem phase: maintain cushion, shadow the WR with backpedal; no real cut yet, WR projected upfield ahead; keep eyes on WR."
         }
       ],
       "ball": {
@@ -496,7 +496,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet and the window will only open after his cut around t=2.0s; hold to wait for the signal."
+          "reasoning": "WR has not called for the ball yet; wait for his cue and opening window before throwing."
         },
         {
           "id": "WR1",
@@ -510,13 +510,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem in progress, no separation yet. Will hold speed and timing for final cut at ~t=2.0s to maximize CB hip commitment."
+          "reasoning": "CB not committed yet; stem to pull hips upfield for final 45\u00b0 break"
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            58.3
+            16.63,
+            56.3
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -524,7 +524,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: WR not yet cut. Maintain cushion, backpedal with eyes on WR; no rush to close, stay within 20\u00b0 tracking and keep burst for real cut."
+          "reasoning": "Stem: WR running upfield; maintain cushion, stay shadow without committing burst. No real cut yet."
         }
       ],
       "ball": {
@@ -555,7 +555,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; hold to wait for the route to develop and the WR\u2019s cue before throwing."
+          "reasoning": "WR hasn't called for the ball yet and CB is in full burst; wait for the cut/lead to develop before throwing"
         },
         {
           "id": "WR1",
@@ -569,13 +569,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "stem in progress; CB not committed yet, plan to hold stem until ~t=2.0s and then cut to 45deg for separation"
+          "reasoning": "Stem ride set up; final cut not yet. CB is mirrored; remaining window not yet opened."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            58.89
+            16.63,
+            56.89
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -583,7 +583,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR stem ongoing with no real cut yet; maintain cushion and mirror patience, staying on hip without committing burst"
+          "reasoning": "Stay on WR's hip in stem; no real cut yet, maintain cushion and backpedal to preserve burst for a real move"
         }
       ],
       "ball": {
@@ -614,7 +614,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR hasn\u2019t called for the ball yet; wait for the explicit call to ensure the window and timing align with the route."
+          "reasoning": "WR has not called for the ball yet; wait for the cut at t\u22482.0s to see the open window and projected arrival."
         },
         {
           "id": "WR1",
@@ -628,13 +628,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "In stem, CB rec remains 0 and final cut not yet; do not call. Plan is to hold stem, then cut to 45\u00b0 around t=2.0s for separation."
+          "reasoning": "stem to pull CB upfield; final break to 45deg will create window as CB hips commit"
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            59.49
+            16.63,
+            57.49
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -642,7 +642,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR splitting upfield stem; maintain cushion on hip, backpedal with eyes on WR; no real cut yet"
+          "reasoning": "Stem phase: mirror WR's upfield movement, maintain hip shadow with cushion; no real cut yet."
         }
       ],
       "ball": {
@@ -673,7 +673,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; wait for the cut/signal as the window will develop around t=2.0\u20132.3s."
+          "reasoning": "WR has not called for the ball yet; with CB in full burst and the route about to develop around t=2.0\u20132.3s, the window should open after the cut."
         },
         {
           "id": "WR1",
@@ -687,13 +687,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "In stem phase, CB not committed yet (CB rec=0). Waiting for final cut to generate true separation; call after cut or when CB rec>0 per rules."
+          "reasoning": "Stem is ongoing; final cut to 45\u00b0 is planned around 1.8s. No separation window yet; anticipation for CB hip commit comes after the stem."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            60.11
+            16.63,
+            58.11
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -701,7 +701,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: WR heading ~0\u00b0, no real cut yet. Maintain shadow on hip, cushion ~0\u00b0 tilt, keep rec=0 and wait for real commit."
+          "reasoning": "Stem phase: WR still at 0\u00b0 with full burst; maintain cushion, shadow on hip, wait for real cut before committing."
         }
       ],
       "ball": {
@@ -732,7 +732,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; wait for the planned cut around t\u22482.0s to see if separation opens."
+          "reasoning": "WR about to cut at ~t=2.3s; CB is in full pursuit and not yet open, so hold to let the route develop."
         },
         {
           "id": "WR1",
@@ -746,13 +746,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "CB rec=0 and not yet committed; using stem to drag CB upfield before final cut; wait for CB hips to commit (window around t=2.0s)"
+          "reasoning": "Still in stem; final cut ~1.8s. No CB hip commitment yet, so no call."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            60.74
+            16.63,
+            58.74
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -760,7 +760,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR still on stem with full burst; maintain shadow, cushion, and wait for a real cut before committing."
+          "reasoning": "WR has not committed to a cut; stay on hip with minimal tilt, maintain cushion and backpedal to keep vision on WR's route while preserving burst for a real cut"
         }
       ],
       "ball": {
@@ -791,7 +791,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; hold until the route develops and WR signals for the ball."
+          "reasoning": "WR has not called for the ball and the route will develop around t=2.0s; waiting reduces risk of a tight window or sack."
         },
         {
           "id": "WR1",
@@ -805,13 +805,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "In stem phase; deception not needed yet. Await final cut at ~t=2.0s to commit CB hips and explode into 45\u00b0 break"
+          "reasoning": "Still in stem; final 45\u00b0 cut not reached yet. CB is mirroring upfield; prepare to break at ~t=1.8s without calling yet."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            61.38
+            16.63,
+            59.38
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -819,7 +819,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem stable; shadow the WR, maintain cushion with no real cut yet. Prepare to mirror if a real cut occurs and watch for burst."
+          "reasoning": "Stem phase: maintain cushion, backpedal with eyes on WR; no real cut yet."
         }
       ],
       "ball": {
@@ -850,7 +850,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet; wait for the upcoming cut around t=2.0\u20132.3s to evaluate window before committing"
+          "reasoning": "WR has not called for the ball yet; wait for the cut and a clearer window before throwing."
         },
         {
           "id": "WR1",
@@ -864,13 +864,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "In stem now; no call yet. Wait for CB rec>0 after the cut to trigger a call."
+          "reasoning": "Stem still in progress; final cut to 45\u00b0 around t=2.0s per observation. CB not committed yet, maintain stem and accelerate toward top speed to maximize burst for the upcoming break."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            62.02
+            16.64,
+            60.03
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -878,7 +878,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR remains in stem with no real cut yet; maintain cushion, shadow the WR, keep burst available for a real cut or ball arrival."
+          "reasoning": "WR remains on stem; keep shadowing, stay on hip, maintain 0\u00b0 backpedal to preserve burst for later real cut"
         }
       ],
       "ball": {
@@ -909,7 +909,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is about to call for the ball at t=2.0s after the cut; throwing now would risk an over/under window as CB remains in close pursuit."
+          "reasoning": "WR has not called for the ball yet; wait for the cut and window to form before the throw."
         },
         {
           "id": "WR1",
@@ -923,13 +923,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "CB rec is 0 and has not committed; final cut at ~t=2.0s will be prepared by stem. Do not call yet; wait for the final cut when CB hips commit."
+          "reasoning": "Not yet in Window A (0.1-0.2s before final cut). Final cut planned to 45\u00b0 around t~1.8s; wait for CB commitment after stem before calling."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            62.67
+            16.76,
+            60.78
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -937,7 +937,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR shows no real cut yet; stay on hip, maintain cushion, backpedal with eyes on WR to preserve burst for a real cut"
+          "reasoning": "Maintain shadow, cushion, WR not yet cut; keep backpedal with small x-tilt to track (WR currently 0.6 yd to your right) while watching for a real cut."
         }
       ],
       "ball": {
@@ -968,27 +968,27 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR has not called for the ball yet and the route is still developing; wait for the WR to signal before throwing."
+          "reasoning": "WR has not called for the ball; wait for the 2.3s cut and anticipated window to develop before throwing."
         },
         {
           "id": "WR1",
           "pos": [
-            16.0,
-            61.02
+            16.49,
+            60.62
           ],
-          "heading": 0.0,
+          "heading": 45.0,
           "facing": 0.0,
-          "speed": 8.87,
-          "cut_recovery": 0,
+          "speed": 6.96,
+          "cut_recovery": 2,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem in progress; CB not yet committed; final cut at ~2.0s for 45deg cross. Call after cut; not now."
+          "reasoning": "Stem is about to commit to 45\u00b0 break; CB rec=0, window to commit hips as you cut"
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            63.33
+            16.8,
+            61.57
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -996,7 +996,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR in stem with no real cut yet; maintain shadow on hip, cushion off the line, ready to react to a real cut."
+          "reasoning": "WR still in stem, backpedal to shadow on hip; maintain cushion and avoid committing to any fake cuts."
         }
       ],
       "ball": {
@@ -1008,7 +1008,13 @@
         ],
         "holder": "QB"
       },
-      "events": []
+      "events": [
+        {
+          "type": "WR_CALL_FOR_BALL",
+          "t": 1.6,
+          "heading": 45.0
+        }
+      ]
     },
     {
       "t": 1.7,
@@ -1027,35 +1033,35 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is about to cut around t=2.0s; wait for the call to let the route develop and avoid throwing before the window is set."
+          "reasoning": "CB is in full burst while WR is still recovering, so the window will likely tighten before the WR reaches open position; wait for the next progression."
         },
         {
           "id": "WR1",
           "pos": [
-            16.0,
-            61.92
+            17.01,
+            61.14
           ],
-          "heading": 0.0,
+          "heading": 45.0,
           "facing": 0.0,
-          "speed": 8.96,
-          "cut_recovery": 0,
+          "speed": 7.26,
+          "cut_recovery": 1,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "CB not committed yet (CB rec=0). In stem, waiting for final cut to create true separation; call after cut if gap peaks."
+          "reasoning": "Separation is achieved on the break. The QB threw to the current heading; keep that heading to ensure catching the ball without deviating off the target landing zone."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            63.99
+            17.22,
+            62.11
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 6.59,
-          "cut_recovery": 0,
-          "mode": "backpedal",
+          "heading": 45.0,
+          "facing": 45.0,
+          "speed": 5.39,
+          "cut_recovery": 1,
+          "mode": "normal",
           "action": "cover",
-          "reasoning": "Stem phase: stay on the WR's hip, cushion as they run 0\u00b0, maintain backpedal with small x-tilt to track their position; WR has FULL burst available"
+          "reasoning": "WR real cut to 45\u00b0; switch from backpedal to normal and mirror their heading to close toward the intercept."
         }
       ],
       "ball": {
@@ -1086,35 +1092,35 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is about to call for the ball around t=2.0-2.3s; hold to wait for the signal and a clearer window."
+          "reasoning": "WR is about to cut and CB is still recovering; wait for the WR to establish separation after the 2.0s cut to give a clearer window."
         },
         {
           "id": "WR1",
           "pos": [
-            16.0,
-            62.82
+            17.54,
+            61.67
           ],
-          "heading": 0.0,
-          "facing": 0.0,
-          "speed": 9.04,
+          "heading": 45.0,
+          "facing": 60.0,
+          "speed": 7.59,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem is not yet committed; final cut planned at ~t=2.0s to 45\u00b0, CB rec remains 0. No call yet; wait for cut and CB commit window."
+          "reasoning": "Separation is established on the break. Do not change heading after the throw. Face toward landing to improve catch tracking while coasting to the catch point."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            64.65
+            17.65,
+            62.67
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 6.62,
+          "heading": 45.0,
+          "facing": 45.0,
+          "speed": 5.91,
           "cut_recovery": 0,
-          "mode": "backpedal",
+          "mode": "normal",
           "action": "cover",
-          "reasoning": "WR still on stem; maintain shadow with small 5-10\u00b0 tilt toward WR's x to track position while keeping cushion and full burst available"
+          "reasoning": "WR made a real cut; switch to normal mode and mirror their heading to close for an intercept."
         }
       ],
       "ball": {
@@ -1145,35 +1151,35 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR will call for the ball around t=2.3s; hold to see the route develop and avoid a risky throw into traffic"
+          "reasoning": "WR is in recovery and CB is closing; window is tightening, waiting for full break improves separation."
         },
         {
           "id": "WR1",
           "pos": [
-            16.0,
-            63.73
+            18.1,
+            62.23
           ],
-          "heading": 0.0,
-          "facing": 0.0,
-          "speed": 9.11,
+          "heading": 45.0,
+          "facing": 60.0,
+          "speed": 7.87,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "CB rec=0 and not committed yet; final cut at ~t=2.0s will create true separation. No call now; keep stem and accelerate toward top speed for the 45deg break"
+          "reasoning": "We should hold the assigned heading to align with the throw; adjust facing to track ball; accelerate to position for catch and maintain separation as CB recs evolve."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            65.31
+            18.1,
+            63.23
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 6.65,
+          "heading": 45.0,
+          "facing": 45.0,
+          "speed": 6.36,
           "cut_recovery": 0,
-          "mode": "backpedal",
+          "mode": "normal",
           "action": "cover",
-          "reasoning": "WR still in stem (no real cut). Maintain shadow on hip, cushion ~0-1 yd, stay ready to react to real cut while preserving burst."
+          "reasoning": "WR real cut established; flip to normal and close on intercept angle (mirror WR heading)"
         }
       ],
       "ball": {
@@ -1189,7 +1195,7 @@
     },
     {
       "t": 2.0,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.0,
       "players": [
         {
@@ -1204,51 +1210,70 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR about to break at t=2.3s; no ball call yet, wait to see if separation improves before throwing"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
           "pos": [
-            16.51,
-            64.24
+            18.67,
+            62.8
           ],
           "heading": 45.0,
-          "facing": 0.0,
-          "speed": 7.2,
-          "cut_recovery": 2,
+          "facing": 60.0,
+          "speed": 8.11,
+          "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem completed; CB not committed yet. Prepare to hold 45deg and call once CB rec>0 or gap peaks"
+          "reasoning": "You already called; keep path fixed to ensure QB throw lands on your route. Rotate facing to track ball landing (~60\u00b0). Accelerate to close distance and reach landing spot without deviating from break."
         },
         {
           "id": "CB1",
           "pos": [
-            15.71,
-            65.95
+            18.57,
+            63.8
           ],
-          "heading": 7.0,
+          "heading": 45.0,
           "facing": 180.0,
-          "speed": 6.46,
+          "speed": 6.74,
           "cut_recovery": 0,
-          "mode": "backpedal",
+          "mode": "normal",
           "action": "cover",
-          "reasoning": "WR stem holding 0\u00b0 upfield; stay on hip with small 5-10\u00b0 tilt to track WR's x position (0.4 yd to your right). No real cut yet; maintain cushion and full burst available for when WR commits."
+          "reasoning": "WR made a real cut to 45\u00b0; switch to normal and mirror their heading to close for an intercept."
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
           26.65,
           48.0,
-          0.0
+          2.2
         ],
-        "holder": "QB"
+        "landing": [
+          25.1,
+          69.2,
+          1.5
+        ],
+        "eta": 1.093,
+        "arc": "bullet"
       },
-      "events": []
+      "events": [
+        {
+          "type": "THROW",
+          "target": [
+            25.1,
+            69.2
+          ],
+          "arc": "bullet",
+          "target_z": 1.5,
+          "mph": 41.2,
+          "eta": 1.09,
+          "dist": 21.3
+        }
+      ]
     },
     {
       "t": 2.1,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 2.9,
       "players": [
         {
@@ -1263,51 +1288,57 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR is still in recovery with 2 steps left and CB has full burst, so the window isn\u2019t safe yet; hold until WR signals."
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
           "pos": [
-            17.04,
-            64.77
+            19.26,
+            63.39
           ],
           "heading": 45.0,
-          "facing": 0.0,
-          "speed": 7.47,
-          "cut_recovery": 1,
+          "facing": 152.0,
+          "speed": 8.32,
+          "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "You are on the final break with 2rec on WR but CB rec is 0. No true separation window yet; wait for CB commitment or peak gap before calling."
+          "reasoning": "Keep 45\u00b0 heading to stay on catch path; set facing to 152\u00b0 to track QB; accelerate to close to landing zone (25.1,69.2) within 1.09s as ball arrives; maintain path without changing heading."
         },
         {
           "id": "CB1",
           "pos": [
-            15.35,
-            66.0
+            19.07,
+            64.38
           ],
-          "heading": 277.0,
-          "facing": 270.0,
-          "speed": 3.59,
-          "cut_recovery": 3,
+          "heading": 50.0,
+          "facing": 50.0,
+          "speed": 6.91,
+          "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR confirmed real cut to 270\u00b0; flip hips immediately and run with them at full speed to contest the ball."
+          "reasoning": "WR real cut established; stay on hip and angle toward landing zone to contest ball (mirror WR at 50\u00b0)"
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          26.51,
+          49.94,
+          2.67
         ],
-        "holder": "QB"
+        "landing": [
+          25.1,
+          69.2,
+          1.5
+        ],
+        "eta": 0.993,
+        "arc": "bullet"
       },
       "events": []
     },
     {
       "t": 2.2,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 2.8,
       "players": [
         {
@@ -1322,53 +1353,53 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "WR hasn\u2019t called for the ball and CB is in recovery with 3 steps, so the window isn\u2019t guaranteed and should be waited for the signal."
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
           "pos": [
-            17.59,
-            65.32
+            19.86,
+            63.99
           ],
           "heading": 45.0,
-          "facing": 0.0,
-          "speed": 7.77,
+          "facing": 154.0,
+          "speed": 8.49,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Stem completed; CB rec>0 indicates hips committed wrong. Final break 45deg active; call now as separation peaks."
+          "reasoning": "Ball is arriving at (25.1,69.2) in ~0.99s. You're already on the 45\u00b0 break path toward the landing zone; CB cannot close in time based on current speeds. Accelerating now ensures you reach the landing spot as the ball arrives while keeping the break heading unchanged."
         },
         {
           "id": "CB1",
           "pos": [
-            15.38,
-            66.24
+            19.55,
+            64.94
           ],
-          "heading": 7.0,
+          "heading": 45.0,
           "facing": 45.0,
-          "speed": 2.45,
-          "cut_recovery": 2,
+          "speed": 7.05,
+          "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR real cut to 45\u00b0; flip to match heading and pursue at full speed once burst allows (intercept angle)"
+          "reasoning": "WR real cut established; switch to normal and mirror WR heading (45\u00b0) to close on the intercept angle."
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          26.37,
+          51.88,
+          3.03
         ],
-        "holder": "QB"
+        "landing": [
+          25.1,
+          69.2,
+          1.5
+        ],
+        "eta": 0.893,
+        "arc": "bullet"
       },
-      "events": [
-        {
-          "type": "WR_CALL_FOR_BALL",
-          "t": 2.2,
-          "heading": 45.0
-        }
-      ]
+      "events": []
     },
     {
       "t": 2.3,
@@ -1392,61 +1423,48 @@
         {
           "id": "WR1",
           "pos": [
-            18.15,
-            65.88
+            20.47,
+            64.6
           ],
           "heading": 45.0,
-          "facing": 45.0,
-          "speed": 8.03,
+          "facing": 157.0,
+          "speed": 8.64,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Separation is established on final cut. Do not change heading after call. Increase speed to meet ball at landing zone and keep CB behind on break."
+          "reasoning": "You were on the final cut, ball thrown to projected spot. Maintain 45\u00b0 heading to run into landing zone; facing 157 aligns eyes with ball trajectory. With ball arriving in ~0.89s, current speed sustains required distance roughly at 7.4 yd away; no need to accelerate or brake. Hold heading to ensure catch at landing zone."
         },
         {
           "id": "CB1",
           "pos": [
-            15.58,
-            66.43
+            20.05,
+            65.51
           ],
-          "heading": 45.0,
-          "facing": 45.0,
-          "speed": 2.76,
-          "cut_recovery": 1,
+          "heading": 53.0,
+          "facing": 53.0,
+          "speed": 7.06,
+          "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR made a real cut at t=2.0s; switch to normal mode and mirror their heading (45\u00b0) to stay on hip and close for an intercept"
+          "reasoning": "WR real cut to 45\u00b0+; mirror their heading and close on an intercept angle. Align to ball path for potential swat as ball arrives."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          2.2
+          26.22,
+          53.82,
+          3.28
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
-        "eta": 1.173,
+        "eta": 0.793,
         "arc": "bullet"
       },
-      "events": [
-        {
-          "type": "THROW",
-          "target": [
-            25.0,
-            72.8
-          ],
-          "arc": "bullet",
-          "target_z": 1.5,
-          "mph": 44.9,
-          "eta": 1.17,
-          "dist": 24.9
-        }
-      ]
+      "events": []
     },
     {
       "t": 2.4,
@@ -1470,45 +1488,45 @@
         {
           "id": "WR1",
           "pos": [
-            18.74,
-            66.47
+            21.09,
+            65.22
           ],
           "heading": 45.0,
-          "facing": 155.0,
-          "speed": 8.24,
+          "facing": 160.0,
+          "speed": 8.77,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain 45\u00b0 break path toward landing zone; face the QB at 155\u00b0 to improve catch alignment while continuing full burst to reach the projected landing spot (25,72.8) as ball arrives in ~1.17s. Do not change heading to avoid missing the ball; call only when separation is secured."
+          "reasoning": "Maintain 45\u00b0 break path as planned; ball is on target; hold heading to reach landing zone. Facing adjusted to QB bearing (160) to ensure proper catch alignment. Accelerate to close distance to landing zone (6.5 yd away) before ball arrives."
         },
         {
           "id": "CB1",
           "pos": [
-            15.87,
-            66.63
+            20.52,
+            66.05
           ],
-          "heading": 56.0,
-          "facing": 102.0,
-          "speed": 3.52,
+          "heading": 45.0,
+          "facing": 45.0,
+          "speed": 7.07,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "Ball in air; WR real cut held. Move toward landing zone at 56\u00b0 while facing WR at 102\u00b0 to contest later; BURST recovering limits acceleration."
+          "reasoning": "WR made a real cut to 45\u00b0; switch to normal and mirror their heading to pursue the intercept."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          26.51,
-          50.11,
-          2.71
+          26.08,
+          55.76,
+          3.43
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
-        "eta": 1.073,
+        "eta": 0.693,
         "arc": "bullet"
       },
       "events": []
@@ -1535,45 +1553,45 @@
         {
           "id": "WR1",
           "pos": [
-            19.33,
-            67.06
+            21.72,
+            65.85
           ],
           "heading": 45.0,
-          "facing": 157.0,
-          "speed": 8.43,
+          "facing": 162.0,
+          "speed": 8.87,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain 45\u00b0 break toward diagonal upfield-right; ball arriving fast at landing zone. Use FULL burst to close distance and reach landing spot at catch height while keeping heading fixed."
+          "reasoning": "Ball arriving in 0.69s at landing zone (25.1,69.2). Current path from (21.1,65.2) to (25.1,69.2) is exactly along 45\u00b0, which matches your heading. With current speed ~8.8 yd/s, you will reach the landing spot in time. Maintain 45\u00b0 heading and eyes on the ball (facing ~162\u00b0) to catch at the target height."
         },
         {
           "id": "CB1",
           "pos": [
-            16.16,
-            66.92
+            21.03,
+            66.58
           ],
           "heading": 45.0,
-          "facing": 45.0,
-          "speed": 4.13,
+          "facing": 55.0,
+          "speed": 7.35,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR real cut to 45\u00b0; flip to match and close on intercept angle"
+          "reasoning": "WR real cut held to 45\u00b0. I flip to match and close at full speed; facing 55\u00b0 to contest the ball path at the landing zone."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          26.37,
-          52.23,
-          3.12
+          25.94,
+          57.69,
+          3.47
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
-        "eta": 0.973,
+        "eta": 0.593,
         "arc": "bullet"
       },
       "events": []
@@ -1600,45 +1618,45 @@
         {
           "id": "WR1",
           "pos": [
-            19.94,
-            67.67
+            22.35,
+            66.49
           ],
           "heading": 45.0,
-          "facing": 159.0,
-          "speed": 8.59,
+          "facing": 165.0,
+          "speed": 8.97,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "You are already on the final cut path with separation; ball will land at (25.0,72.8) in ~0.97s. Hold 45\u00b0 heading and accelerate to close distance to landing zone while eyeing the catch height. Face QB at 159\u00b0 to track the ball, and keep in bounds. Ball trajectory matches projected landing spot; catch should be clean with full burst to the ball."
+          "reasoning": "Ball is on its arc to landing spot; maintain current heading 45\u00b0 to stay aligned with projection. Facing adjusted to 165\u00b0 to look toward QB as the ball arrives; coast to meet landing zone in time."
         },
         {
           "id": "CB1",
           "pos": [
-            16.54,
-            67.18
+            21.52,
+            67.04
           ],
-          "heading": 56.0,
-          "facing": 87.0,
-          "speed": 4.61,
+          "heading": 57.0,
+          "facing": 57.0,
+          "speed": 7.17,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR real cut at 2.0s; switch to normal and close toward WR while ball lofts, aiming for intercept / PBU window"
+          "reasoning": "WR real cut to 45\u00b0; switch to normal and mirror, heading toward ball landing zone to contest as it descends"
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          26.23,
-          54.34,
-          3.42
+          25.8,
+          59.63,
+          3.4
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
-        "eta": 0.873,
+        "eta": 0.493,
         "arc": "bullet"
       },
       "events": []
@@ -1665,45 +1683,45 @@
         {
           "id": "WR1",
           "pos": [
-            20.56,
-            68.29
+            22.99,
+            67.13
           ],
           "heading": 45.0,
-          "facing": 161.0,
-          "speed": 8.72,
+          "facing": 167.0,
+          "speed": 9.05,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain 45\u00b0 break toward right sideline; facing 161\u00b0 to look toward QB. Ball arrives in ~0.87s; current speed/position allow reach landing zone with continued acceleration as needed. Do not change heading; ball is targeted to your projected spot; continue to race to landing zone."
+          "reasoning": "Ball is in flight; we must reach the landing zone (25.1,69.2) at ~0.49s. We are 3.9 yd from target with 9.0 yd/s speed. Accelerating toward top speed helps ensure we arrive at the exact catch spot as the ball descends while maintaining the current break heading."
         },
         {
           "id": "CB1",
           "pos": [
-            16.9,
-            67.53
+            22.05,
+            67.46
           ],
-          "heading": 45.0,
-          "facing": 56.0,
-          "speed": 5.01,
+          "heading": 59.0,
+          "facing": 59.0,
+          "speed": 7.37,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR made a real cut; switch to normal and mirror their heading to close on intercept while facing the ball path for a potential swat/pbu as the ball descends"
+          "reasoning": "WR real cut held; switch to normal and close at full speed toward projected ball landing zone (heading 59\u00b0) to contest the pass."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          26.09,
-          56.46,
-          3.62
+          25.66,
+          61.57,
+          3.23
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
-        "eta": 0.773,
+        "eta": 0.393,
         "arc": "bullet"
       },
       "events": []
@@ -1730,45 +1748,45 @@
         {
           "id": "WR1",
           "pos": [
-            21.18,
-            68.91
+            23.64,
+            67.77
           ],
           "heading": 45.0,
-          "facing": 163.0,
-          "speed": 8.84,
+          "facing": 169.0,
+          "speed": 9.11,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Ball on arc toward landing zone; QB threw to projected spot. Maintain 45\u00b0 break to stay on path; facing 163\u00b0 aligns eyes to QB while catching; accelerate to reach landing zone before ball arrives."
+          "reasoning": "Ball arriving in ~0.39s at (25.1,69.2); currently at (23.0,67.1) with 3.0 yd to landing. Maintain 45\u00b0 heading to run through the landing zone; accelerate to reach the spot in time while keeping eyes on QB bearing (169\u00b0) for catch."
         },
         {
           "id": "CB1",
           "pos": [
-            17.29,
-            67.93
+            22.55,
+            67.96
           ],
           "heading": 45.0,
-          "facing": 78.0,
-          "speed": 5.58,
+          "facing": 45.0,
+          "speed": 7.11,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR real cut to 45\u00b0; flip to match heading and close at full speed, maintain shadow position"
+          "reasoning": "CUT PHASE: WR real cut to 45\u00b0, flip hips immediately and match heading to run with them at full speed"
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          25.95,
-          58.57,
-          3.7
+          25.52,
+          63.51,
+          2.94
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
-        "eta": 0.673,
+        "eta": 0.293,
         "arc": "bullet"
       },
       "events": []
@@ -1795,45 +1813,45 @@
         {
           "id": "WR1",
           "pos": [
-            21.81,
-            69.54
+            24.13,
+            68.27
           ],
           "heading": 45.0,
-          "facing": 165.0,
-          "speed": 8.93,
+          "facing": 171.0,
+          "speed": 7.01,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain 45\u00b0 diagonal break toward landing zone. Facing set to QB bearing 165\u00b0. Ball arrives in ~0.67s; current speed ~8.8 yd/s toward landing (5.4 yd away). Coasting keeps you on target without overshooting; you\u2019ll reach landing zone around ball arrival and be in position for the catch."
+          "reasoning": "Ball arriving at 25.1,69.2 in 0.29s. With 2.0 yd to go and current speed 9.1 yd/s, need to reduce average speed to ~6.9 yd/s to land exactly. Brake now to slow into the landing zone without changing heading."
         },
         {
           "id": "CB1",
           "pos": [
-            17.72,
-            68.36
+            23.13,
+            68.26
           ],
-          "heading": 45.0,
-          "facing": 45.0,
-          "speed": 6.08,
+          "heading": 64.0,
+          "facing": 64.0,
+          "speed": 6.74,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR real cut to 45\u00b0 held; flip to match their heading and close at full speed to contest the catch and reach the projected ball zone"
+          "reasoning": "Align to arrival zone with 64\u00b0 to contest ball; ball arriving soon, use swat if path intersects within reach."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          25.81,
-          60.69,
-          3.68
+          25.37,
+          65.45,
+          2.55
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
-        "eta": 0.573,
+        "eta": 0.193,
         "arc": "bullet"
       },
       "events": []
@@ -1860,52 +1878,52 @@
         {
           "id": "WR1",
           "pos": [
-            22.45,
-            70.18
+            24.65,
+            68.79
           ],
           "heading": 45.0,
-          "facing": 167.0,
-          "speed": 9.02,
+          "facing": 173.0,
+          "speed": 7.38,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain 45\u00b0 break toward the 45\u00b0 diagonal; ball is targeted to landing spot (25.0,72.8). Stay locked on heading to ensure capture at the landing zone; accelerate to reach 4.6 yd gap by catch time."
+          "reasoning": "Ball is in flight toward projected landing spot; hold 45\u00b0 heading as instructed. Facing should remain at 173\u00b0 to align with ball direction. Accelerate to ensure reach at landing zone within ~0.19s, since separation is already established and we must be at the landing spot when the ball arrives."
         },
         {
           "id": "CB1",
           "pos": [
-            18.18,
-            68.82
+            23.68,
+            68.54
           ],
-          "heading": 45.0,
-          "facing": 59.0,
-          "speed": 6.5,
+          "heading": 64.0,
+          "facing": 64.0,
+          "speed": 7.07,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR real cut held; switch to normal and close toward ball's landing zone. Face ball path (59\u00b0) to contest on arrival"
+          "reasoning": "Ball in air, landing zone ahead; align to ball path (54\u00b0) within 60\u00b0, attempt swat with arm on path while staying on WR's hip."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          25.67,
-          62.8,
-          3.55
+          25.23,
+          67.39,
+          2.06
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
-        "eta": 0.473,
+        "eta": 0.093,
         "arc": "bullet"
       },
       "events": []
     },
     {
       "t": 3.1,
-      "phase": "BALL_IN_AIR",
+      "phase": "END",
       "sack_clock": 1.9,
       "players": [
         {
@@ -1925,302 +1943,42 @@
         {
           "id": "WR1",
           "pos": [
-            23.09,
-            70.82
-          ],
-          "heading": 45.0,
-          "facing": 169.0,
-          "speed": 9.09,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "run_route",
-          "reasoning": "Maintain 45\u00b0 break toward 45\u00b0 diagonal; QB threw to projected path. Hold heading to stay on catch spot. Facing 169 keeps eyes toward QB while turning to catch. Ball height 1.5, stay in zone; no further route change needed."
-        },
-        {
-          "id": "CB1",
-          "pos": [
-            18.67,
-            69.3
-          ],
-          "heading": 45.0,
-          "facing": 167.0,
-          "speed": 6.86,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "cover",
-          "reasoning": "WR cut confirmed; switch to normal mode and mirror WR heading to close on intercept."
-        }
-      ],
-      "ball": {
-        "state": "in_air",
-        "pos": [
-          25.52,
-          64.92,
-          3.32
-        ],
-        "landing": [
-          25.0,
-          72.8,
-          1.5
-        ],
-        "eta": 0.373,
-        "arc": "bullet"
-      },
-      "events": []
-    },
-    {
-      "t": 3.2,
-      "phase": "BALL_IN_AIR",
-      "sack_clock": 1.8,
-      "players": [
-        {
-          "id": "QB",
-          "pos": [
-            26.65,
-            48.0
-          ],
-          "heading": 0.0,
-          "facing": 0.0,
-          "speed": 0.0,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "hold",
-          "reasoning": "ball in air"
-        },
-        {
-          "id": "WR1",
-          "pos": [
-            23.74,
-            71.47
-          ],
-          "heading": 45.0,
-          "facing": 171.0,
-          "speed": 9.15,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "run_route",
-          "reasoning": "Maintain 45\u00b0 break heading as ball arrives. Ball height matches, keep speed steady to reach landing zone ~2.7 yd away in ~0.37s; do not alter heading to ensure catch alignment."
-        },
-        {
-          "id": "CB1",
-          "pos": [
-            19.17,
-            69.81
-          ],
-          "heading": 45.0,
-          "facing": 45.0,
-          "speed": 7.17,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "cover",
-          "reasoning": "Real cut detected: match WR heading (45\u00b0) and close at full speed; backpedal/hold would cost recovery"
-        }
-      ],
-      "ball": {
-        "state": "in_air",
-        "pos": [
-          25.38,
-          67.03,
-          2.98
-        ],
-        "landing": [
-          25.0,
-          72.8,
-          1.5
-        ],
-        "eta": 0.273,
-        "arc": "bullet"
-      },
-      "events": []
-    },
-    {
-      "t": 3.3,
-      "phase": "BALL_IN_AIR",
-      "sack_clock": 1.7,
-      "players": [
-        {
-          "id": "QB",
-          "pos": [
-            26.65,
-            48.0
-          ],
-          "heading": 0.0,
-          "facing": 0.0,
-          "speed": 0.0,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "hold",
-          "reasoning": "ball in air"
-        },
-        {
-          "id": "WR1",
-          "pos": [
-            24.39,
-            72.12
+            24.65,
+            68.79
           ],
           "heading": 45.0,
           "facing": 173.0,
-          "speed": 9.2,
+          "speed": 7.38,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain 45\u00b0 break toward the landing zone. Ball will land ~0.27s ahead at (25.0,72.8). Facing is fixed to QB bearing (173) for catch. With coast, we stay on path and reach the landing zone without overshooting; heading remains constant to align with ball trajectory."
+          "reasoning": "Ball will land at (25.1, 69.2) in ~0.09s; current position (24.7,68.8) is ~0.6 yd away along 45\u00b0. Holding heading maintains position to arrive at landing spot just as ball reaches chest height. Facing already set to QB bearing (175\u00b0) for catch alignment. No need to call again."
         },
         {
           "id": "CB1",
           "pos": [
-            19.45,
-            70.39
+            23.68,
+            68.54
           ],
-          "heading": 25.0,
-          "facing": 70.0,
-          "speed": 6.45,
-          "cut_recovery": 0,
-          "mode": "backpedal",
-          "action": "cover",
-          "reasoning": "Maintain shadow of WR; gap >2 yd requires a 20-30\u00b0 tilt. Backpedal to keep eyes on WR (facing 70\u00b0) while closing lane toward the projected ball zone."
-        }
-      ],
-      "ball": {
-        "state": "in_air",
-        "pos": [
-          25.24,
-          69.14,
-          2.53
-        ],
-        "landing": [
-          25.0,
-          72.8,
-          1.5
-        ],
-        "eta": 0.173,
-        "arc": "bullet"
-      },
-      "events": []
-    },
-    {
-      "t": 3.4,
-      "phase": "BALL_IN_AIR",
-      "sack_clock": 1.6,
-      "players": [
-        {
-          "id": "QB",
-          "pos": [
-            26.65,
-            48.0
-          ],
-          "heading": 0.0,
-          "facing": 0.0,
-          "speed": 0.0,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "hold",
-          "reasoning": "ball in air"
-        },
-        {
-          "id": "WR1",
-          "pos": [
-            25.05,
-            72.78
-          ],
-          "heading": 45.0,
-          "facing": 175.0,
-          "speed": 9.25,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "run_route",
-          "reasoning": "Ball arriving in ~0.17s at landing zone (25.0,72.8). Maintain current heading 45\u00b0 and facing ~175\u00b0 to track ball. Use coast to avoid overshooting the landing spot; prepare to adjust body height as the ball arrives but keep feet in bounds and ready to catch at the landing zone."
-        },
-        {
-          "id": "CB1",
-          "pos": [
-            19.88,
-            70.83
-          ],
-          "heading": 45.0,
-          "facing": 45.0,
-          "speed": 6.2,
+          "heading": 64.0,
+          "facing": 64.0,
+          "speed": 7.07,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "cover",
-          "reasoning": "WR real cut detected; switch to normal mode and mirror WR heading (45\u00b0) to close."
+          "reasoning": "Ball arriving soon; align with landing zone and swat with correct face direction to contest the ball"
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
           25.1,
-          71.26,
-          1.97
-        ],
-        "landing": [
-          25.0,
-          72.8,
-          1.5
-        ],
-        "eta": 0.073,
-        "arc": "bullet"
-      },
-      "events": []
-    },
-    {
-      "t": 3.5,
-      "phase": "END",
-      "sack_clock": 1.5,
-      "players": [
-        {
-          "id": "QB",
-          "pos": [
-            26.65,
-            48.0
-          ],
-          "heading": 0.0,
-          "facing": 0.0,
-          "speed": 0.0,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "hold",
-          "reasoning": "ball in air"
-        },
-        {
-          "id": "WR1",
-          "pos": [
-            25.05,
-            72.78
-          ],
-          "heading": 45.0,
-          "facing": 175.0,
-          "speed": 9.25,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "run_route",
-          "reasoning": "You are already in position at the landing zone (0.1 yd away). Maintain your 45\u00b0 heading to run the break and catch at the projected spot. Facing set to QB bearing (176\u00b0) to maximize catch chances as the ball arrives; no further route deviation needed."
-        },
-        {
-          "id": "CB1",
-          "pos": [
-            19.88,
-            70.83
-          ],
-          "heading": 45.0,
-          "facing": 45.0,
-          "speed": 6.2,
-          "cut_recovery": 0,
-          "mode": "normal",
-          "action": "cover",
-          "reasoning": "WR still in stem; maintain shadowing with a small 5\u00b0 tilt to close the 5.1 yd lateral gap while keeping eyes on WR (facing 69\u00b0)"
-        }
-      ],
-      "ball": {
-        "state": "in_air",
-        "pos": [
-          25.0,
-          72.8,
+          69.2,
           1.5
         ],
         "landing": [
-          25.0,
-          72.8,
+          25.1,
+          69.2,
           1.5
         ],
         "eta": 0.0,
@@ -2229,33 +1987,32 @@
       "events": [
         {
           "type": "RESOLUTION",
-          "outcome": "CATCH",
-          "separation": 5.52,
-          "p_catch": 0.97,
+          "outcome": "PBU",
+          "separation": 1.0,
           "landing_z": 1.5
         }
       ]
     }
   ],
   "footer": {
-    "outcome": "CATCH",
+    "outcome": "PBU",
     "telemetry": {
-      "max_separation": 5.52,
-      "throw_t": 2.3,
-      "throw_distance": 24.9,
+      "max_separation": 3.04,
+      "throw_t": 2.0,
+      "throw_distance": 21.3,
       "throw_arc": "bullet",
       "target_z": 1.5,
       "sack": false,
-      "qb_calls": 20,
+      "qb_calls": 18,
       "qb_parse_errors": 0,
-      "wr_calls": 37,
+      "wr_calls": 33,
       "wr_parse_errors": 0,
-      "cb_calls": 38,
+      "cb_calls": 34,
       "cb_parse_errors": 0,
-      "cb_intent": "play_man",
-      "wr_call_t": 2.2,
+      "cb_intent": "swat",
+      "wr_call_t": 1.6,
       "broken_play": false,
-      "detected_cut_t": 2.0
+      "detected_cut_t": 1.6
     }
   }
 }

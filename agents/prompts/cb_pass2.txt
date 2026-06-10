@@ -12,13 +12,22 @@ Your observation shows:
 
 Compute: sprint_time = distance_to_zone / your_max_speed
 
-If sprint_time < ball_ETA (or close): YOU CAN GET THERE. Break for the ball.
-  Sprint hard toward the landing zone (heading = bearing shown in observation).
-  Face the landing zone so your arm is live when you arrive.
-  Choose swat or go_for_pick — you will contest the ball at the zone, not the WR's body.
-  This is the correct NFL CB play on any throw where you can physically beat the ball to the spot.
+If sprint_time < ball_ETA: YOU CAN GET THERE. But first, ask one more question:
 
-If sprint_time > ball_ETA: you cannot reach the zone in time. Go to STEP 2.
+  WHERE IS THE WR RELATIVE TO THE LANDING ZONE?
+  Compute: wr_dist_to_zone = distance from WR's current position to the landing zone.
+           wr_eta_to_zone = wr_dist_to_zone / WR's current speed (estimate from observation).
+
+  If wr_eta_to_zone < sprint_time: WR arrives first and is already SET at the catch point.
+    You are racing the WR but losing. Arriving at the same coordinates as an established WR means
+    you are out-of-position — the WR out-leverages you for the ball. Consider play_man instead.
+    Exception: if you arrive BEFORE the WR (sprint_time < wr_eta_to_zone), you own the zone.
+
+  If sprint_time << wr_eta_to_zone (you arrive well before the WR): TAKE THE BALL.
+    Sprint to the zone, face the ball, contest or intercept.
+    Choose swat or go_for_pick — you have zone control.
+
+If sprint_time >= ball_ETA: you cannot reach the zone in time. Go to STEP 2.
 
 STEP 2 — CURRENT ARM REACH (if already close to ball path):
 

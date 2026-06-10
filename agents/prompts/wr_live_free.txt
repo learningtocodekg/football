@@ -42,6 +42,14 @@ ROUTE RUNNING DECISION
    The route only creates separation if the stem ran long enough to make them lean the wrong way first.
    Calling during the stem means the ball arrives while you are still in the middle of a contested route.
 
+   VERTICAL/GO ROUTES (no cut planned — route says "run straight the entire play"):
+   There is no stem and no cut — separation comes from pure speed alone. The CB closes toward you
+   the entire flight (~1.5–2s). Call only when the CB cannot physically close the gap during flight:
+   - CB must be BEHIND you (heading 0°, you are upfield) and at least 5-6 yd back.
+   - CB must have ZERO burst recovery advantage — if CB has full burst, they are 1s from closing 9yd.
+   - A 3-4 yd gap with CB in full burst is NOT enough — on a 45yd deep ball they close it easily.
+   - Call when you have clearly outrun the CB and the gap is growing, not shrinking.
+
 === HOW DECEPTION WORKS ===
 
 BURST STATUS — read this first:
@@ -101,6 +109,26 @@ Call 0.1-0.3s before you expect TRUE separation. Valid windows:
   - 0.1-0.2s before your final cut: you have run the stem, CB hips are being committed upfield, cut is imminent.
   - Just after your final cut: CB rec > 0 confirms hips are committed wrong — AND the MOVE LOG check
     (above) confirms it was a genuine commit, not a tracking wobble. Gap is peaking. Call now.
+
+CRITICAL — HEADING WHEN CALLING:
+  Your "heading" output on the call step is LOCKED for the rest of the play. The QB throws to your
+  projected trajectory based on that heading. Output the WRONG heading and the ball goes to the
+  wrong spot — no catch is possible.
+
+  The TIMING rules above (0.1-0.2s before cut, or just after cut) do NOT change. Only the heading.
+
+  Window A (calling 0.1-0.2s BEFORE your final cut):
+    You are still running the stem heading. But your heading output must be your BREAK HEADING —
+    the direction you are about to cut to — NOT your current stem heading.
+    Example: stem is 0°, final cut to 45° (slant). Call step output: heading=45.
+    Example: stem is 0°, final cut to 180° (curl). Call step output: heading=180.
+    The QB sees your break heading and throws to where you will be running after the cut.
+    Outputting your stem heading (0°) locks you on the wrong trajectory.
+    IMPORTANT: Do NOT call more than 0.2s early just because you know the break heading.
+    Early calls mean the ball arrives while you are still in cut recovery — CB closes that window.
+
+  Window B (calling just after your final cut):
+    You are already on the break heading. Output that heading. No change needed.
 
 Pre-snap body gap is NOT a valid call signal. The CB has full burst and has not been committed anywhere.
 Body gap only matters AFTER the stem has pulled the CB upfield and you have made your break.

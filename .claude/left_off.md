@@ -2,51 +2,39 @@
 Date: 2026-06-10
 
 ## What We Worked On
-Route analysis (corner + go), QB lead prompt fix, full Round 14 3D baseline, CB overhaul (press coverage, break-on-ball, cut detection stabilization, jam mechanic).
+Round 15 regression triage. R15 had scored 4C/1PBU/5INC vs R14's 8C/2INC. Traced root cause, fixed it, sanity-checked two routes. Did not re-run full suite.
 
 ## What Got Done
 
-### Route analysis: corner INCOMPLETE → root cause isolated
-- **corner_42**: INCOMPLETE — ball_offset > 1.3 yd (WR arrived ~0.1s late). sep=2.32 yd, CB irrelevant. Root: QB projected arrival using constant WR speed but WR was in 3-step cut recovery immediately after the 290° break — arrived ~1.4 yd short of the catch spot.
-- **go_42** (before lead fix): CATCH, sep=2.4 yd, 33.3 yd bullet. Clean isolation: same arc, longer distance, no cut, no recovery → CATCH. Corner missed only because of recovery drag. QB lead math was the bug.
+### Root cause found: Window A heading lock bug (all short-cut routes)
+When WR calls Window A (0.1-0.2s before the final cut), it was outputting its current **stem heading (0°)** instead of its upcoming **break heading** (45° for slant, 180° for curl, etc.). The heading output at the call step is mechanically locked by the runner for the rest of the play — so the QB projects WR trajectory on the wrong heading and throws to the wrong spot. 5 of 6 INC/PBU regressions in R15 traced back to this.
 
-### QB lead prompt fix
-- `qb_pass2.txt` / `qb_system.txt`: replaced vague "lead the WR" with concrete **0.3–0.5 yd ahead in movement direction** + **0.3–0.5 yd opposite the CB**, with per-case examples (CB left → throw right of WR center; CB underneath → add lead AND raise z; WR runs INTO the ball, not waits for it).
+**Fix**: Added `CRITICAL — HEADING WHEN CALLING` section to `wr_live_free.txt` near the bottom of CALL RULES:
+- Window A must output BREAK heading, not current stem heading
+- Added timing warning: "Do NOT call more than 0.2s early just because you know the break heading"
 
-### Round 14 — 8C / 2 INCOMPLETE (first full 3D baseline)
-```
-slant    CATCH  sep=4.77  corner  CATCH  sep=5.34 ← was INCOMPLETE, now fixed
-go       INCOMPLETE (WR called at t=3.7, model variance late call)
-comeback INCOMPLETE (pre-existing: WR calls heading=0° before 180° break, heading locks wrong)
-double_move CATCH sep=9.33   curl  CATCH   zig  CATCH   drag  CATCH
-post_corner CATCH             in   CATCH
-```
-Corner fix confirmed. Go regression = WR model variance (called at t=2.2 last run, t=3.7 this run — WR on go route doesn't have a "cut/rec>0" trigger, just pure speed separation). Comeback is a pre-existing WR bug.
+### WR ball-in-air brake guidance (go/curl overshoot)
+WR was arriving at the landing zone early and running through it at full speed. On go route (no cut), WR hit landing zone at 9.5 yd/s with 0.53s remaining.
 
-### CB overhaul (code + prompts, smoke-tested on slant)
-Four changes, all landed and verified:
+**Fix**: Added to `wr_ball_in_air.txt`: REQUIRED SPEED = dist_to_zone / ETA, with explicit BRAKE/COAST/ACCELERATE decision. Added current speed + required speed to `build_wr_observation` ball-in-air section in `observation.py`.
 
-1. **`cb_pre_snap.txt`** — real PRESS/OFF/CUSHION alignment with explicit tradeoffs. CB no longer defaults to 5 yd every play.
+### CB sprint-or-play-man decision (WR ETA check)
+CB was sprinting to the landing zone even when WR would arrive first and be set. Added WR ETA comparison to `cb_pass2.txt` and `build_cb_intent_observation` in `observation.py`. CB now computes wr_dist_to_zone/wr_speed and compares against sprint_time before committing to swat/pick.
 
-2. **`cb_pass2.txt`** — replaced hard "arm tip > 2 yd → play_man, full stop" gate with sprint-time-vs-ETA check. CB now computes `dist_to_zone / max_speed` vs `ball_ETA` and chooses to race to the landing spot (swat/pick) when it can get there in time. Smoke test line 85: CB correctly printed "sprint_time 1.26s > ball_ETA 1.17s → play_man" — math working.
+### Sanity check results
+- **slant_42**: INT → PBU (improvement; WR now calls heading=45°, but early at t=1.6 — timing warning added)
+- **curl_42**: still INCOMPLETE — WR correctly calls heading=180° and QB targets (15.5, 61.4), but WR arrives at landing zone y=61.5 at t=3.3 with ETA=0.48s at speed=6.8, ignores brake signal, overshoots to y=58.9. Pure LLM behavioral failure.
 
-3. **`observation.py`** — three additions:
-   - `build_cb_intent_observation`: added `max_speed` + sprint ETA line so CB has the numbers for the sprint check
-   - `build_cb_observation`: added `detected_cut_t` param; emits "CUT CONFIRMED at t=X" in live phase — CB no longer re-derives the cut each step
-   - `build_wr_pre_snap_observation`: press warning when CB sep ≤ 1.5 yd ("expect physical jam, release move helps")
-
-4. **`runner.py`** — two additions:
-   - Pass `detected_cut_t` to both LIVE and BALL_IN_AIR `build_cb_observation` calls
-   - **Jam mechanic**: if CB chose press (offset ≤ 1 yd), WR throttle capped at "coast" for 3 steps (0.3s); reduced to 1 step if WR's first heading diverges ≥45° from CB press facing (release beat press). Prints `[PRESS RELEASE]` or `[JAM CLEARED]` log lines.
+### QB crossing route note (REVERTED)
+Added note to `qb_pass2.txt` telling QB never to loft on crossing routes. User rejected: "that is the LLM proving it is not smart." Reverted. `qb_pass2.txt` unchanged from R14.
 
 ## What's Open / Known Issues
-1. **Full 10-route run with CB changes NOT yet done** — only smoke tested slant. Need a full run to see if press coverage fires and if sprint-on-ball produces swat attempts.
-2. **CB flip-flop partially fixed** — CUT CONFIRMED in observation helps, but cb_pass1 stem-check logic can still override it on later steps. May need the stem-phase check to stop applying once detected_cut_t is set.
-3. **Comeback WR bug**: WR calls at heading=0° before executing the 180° break → heading locks wrong direction. Pre-existing.
-4. **Go route call timing**: WR doesn't know when to call on a no-cut vertical (no "CB rec>0" trigger). High variance.
-5. Jump action (WR/CB vertical timing) deferred.
-6. gen_demo.py legacy ball_speed_mph format.
+1. **Full 10-route suite NOT run with R15 fixes** — next step is `python run_all_routes.py --seed 42`
+2. **Curl overshoot**: WR has correct required-speed info in observation but ignores brake guidance. Purely behavioral — may need stronger prompt language, or this is a model limit.
+3. **WR early call on slant (t=1.6 vs correct t=1.8)**: timing warning added; not re-tested.
+4. **Git push NOT done yet** — all fixes are staged.
 
 ## NEXT STEP
-Run the full 10-route suite with the new CB changes: `python run_all_routes.py --seed 42`
-Look for: (a) CB choosing press on short routes, (b) sprint-on-ball producing swat intents on longer flights, (c) jam fires (look for `[JAM CLEARED]` in log), (d) whether the 8C baseline holds or CB improvements cause regressions.
+Run the full 10-route suite: `python run_all_routes.py --seed 42`
+Look for: (a) heading lock fix closes the 5 R15 regressions, (b) CB WR-ETA check reduces go_for_pick on covered WRs, (c) brake guidance helps curl/go overshoot (skeptical), (d) new score vs R14 baseline of 8C/2INC.
+Then git push if results acceptable.

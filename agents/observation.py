@@ -483,6 +483,9 @@ def build_cb_intent_observation(
     facing_ok = "YES" if facing_diff <= 60.0 else f"NO (off by {facing_diff:.0f}°)"
 
     zone_dir = "UPFIELD of you" if zone_upfield else "DOWNFIELD of you (toward QB)"
+    wr_dist_to_zone = math.hypot(wr.x - ball.landing_x, wr.y - ball.landing_y)
+    wr_speed_for_eta = max(wr.speed, 1.0)
+    wr_eta_to_zone = wr_dist_to_zone / wr_speed_for_eta
     lines = [
         f"=== CB INTENT DECISION  t={t:.1f}s  ETA={ball.eta:.2f}s ===",
         "",
@@ -490,7 +493,8 @@ def build_cb_intent_observation(
         f"BALL arrives at height z={ball.landing_z:.1f} ({_height_label(ball.landing_z)}) — your vertical reach is {CB_VERTICAL_REACH:.1f} yd."
         + (" HIGH BALL: swat/pick only at full extension (reduced odds) — playing the man may be better." if ball.landing_z > HIGH_BALL_Z else ""),
         f"  To move toward ball: heading ≈ {bearing_to_ball:.0f}°",
-        f"WR pos: ({wr.x:.1f}, {wr.y:.1f})  sep from you: {sep:.2f}yd",
+        f"WR pos: ({wr.x:.1f}, {wr.y:.1f})  sep from you: {sep:.2f}yd  WR speed: {wr.speed:.1f}yd/s",
+        f"  WR dist to zone: {wr_dist_to_zone:.1f}yd → WR eta to zone: {wr_eta_to_zone:.2f}s",
         f"YOUR pos: ({cb.x:.1f}, {cb.y:.1f})  facing={cb.facing:.0f}°  speed={cb.speed:.1f}yd/s",
         "",
         f"GEOMETRY CHECK:",
@@ -822,12 +826,14 @@ def build_wr_observation(
         dist_to_land = math.hypot(wr.x - ball.landing_x, wr.y - ball.landing_y)
         bearing_to_qb = math.degrees(math.atan2(qb.x - wr.x, qb.y - wr.y)) % 360.0
         facing_label, _ = _wr_facing_modifier(wr, qb)
+        req_speed = dist_to_land / max(ball.eta, 0.01)
         lines += [
             "",
             f"BALL IN AIR — ETA: {ball.eta:.2f}s",
             f"  Landing zone: ({ball.landing_x:.1f}, {ball.landing_y:.1f})  +/-{fuzz:.1f} yd",
             f"  Ball arrives at height z={ball.landing_z:.1f} ({_height_label(ball.landing_z)}) — be at the spot; your body adjusts to the height.",
             f"  Your distance to landing zone: {dist_to_land:.1f} yd",
+            f"  Your current speed: {wr.speed:.1f} yd/s  |  Required speed to arrive on time: {req_speed:.1f} yd/s",
             f"  FACING: set facing={bearing_to_qb:.0f} exactly (bearing from you to QB). Do NOT estimate.",
             f"  Your current facing: {wr.facing:.0f}° — {facing_label}",
             f"  YOUR HEADING: {wr.heading:.0f}° — do not change.",

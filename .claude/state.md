@@ -67,17 +67,22 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 - `_cb_situation()` emits a lean `GEOMETRY:` block: separation, bearing, WR projected pos in 0.5s, intercept bearing
 - No option labels, no tradeoff descriptions, no wr_motion prose
 
-## Known Issues (post-Round 14 + CB overhaul)
+## Known Issues (post-R15 regression fixes, full re-run pending)
+
+### R15 regression root cause + fixes (not yet re-run at scale)
+- **Window A heading lock bug** (caused R15 regression from 8C/2INC → 4C/1PBU/5INC): WR was calling `call_for_ball` with stem heading (0°) instead of break heading. Heading is mechanically locked at call time → QB throws to wrong trajectory. Fixed via `CRITICAL — HEADING WHEN CALLING` in `wr_live_free.txt`.
+- **CB WR-ETA check**: cb_pass2.txt + cb_intent_observation now include WR dist/ETA to landing zone. CB compares sprint_time vs wr_eta before choosing swat/pick over play_man.
+- **WR ball-in-air brake guidance**: wr_ball_in_air.txt shows REQUIRED SPEED = dist/ETA. Observation injects current speed + required speed. Curl still overshoots (behavioral).
 
 ### 3D-specific
 - **QB arc choice is high-variance**: smoke test picked loft on a quick slant (INCOMPLETE); identical re-run picked bullet with correct reasoning (CATCH). One sample each way — single runs can't distinguish prompt effects from model variance.
-- **CB flip-flops cut detection — partially fixed**: detected_cut_t now exposed in CB observation; CB smoke test (slant) printed CUT CONFIRMED correctly. Stem-phase check in cb_pass1 may still override it on early steps — monitor in Round 15.
-- **Round 15 (full 10-route CB run) not yet done** — only smoke-tested slant. All CB prompt+code changes landed but untested at scale.
+- **CB flip-flops cut detection — partially fixed**: detected_cut_t now exposed in CB observation; CB smoke test (slant) printed CUT CONFIRMED correctly. Stem-phase check in cb_pass1 may still override it on early steps.
 - gen_demo.py still emits legacy ball_speed_mph format.
 
 ### Route-specific
+- **Curl overshoot (behavioral)**: WR arrives at landing zone 0.48s early at 6.8 yd/s. Observation shows required=0.2 yd/s. WR ignores brake signal, overshoots 2.5yd. Prompt guidance exists; model doesn't act on it.
 - **Comeback WR bug**: WR calls at heading=0° before executing 180° break → heading locks wrong direction. Pre-existing, lowest priority.
-- **Go route call timing**: no cut trigger, pure speed separation — WR call timing has high variance. Seen at t=2.2 (CATCH) and t=3.7 (INCOMPLETE) on same seed.
+- **Go route call timing**: no cut trigger, pure speed separation — WR call timing has high variance.
 
 ## Known Issues carried from 2D (post-Round 12 + CB prompt overhaul)
 
@@ -110,7 +115,8 @@ Shadow model working: play_man on 8/10 routes, doom loop eliminated, sep at thro
 - 3D transformation (commit fe02ef6): physics/e2e/A4-mock tests pass; live slant smoke = INCOMPLETE (QB loft, 2.4s hang, WR called pre-cut). Round 14 (full 10-route 3D baseline) pending
 - 3D slant re-run (GPT-5-nano, seed 42): **CATCH sep=3.94** — QB bullet @ z=1.5 (correct flattest-arc reasoning), WR called at cut t=2.0 + clean ETA management in flight, CB flip-flopped cut detection and never contested. 0 parse errors
 - Round 14 (GPT-5-nano, seed 42, post QB lead fix): **8C/2INC** — slant CATCH sep=4.77, corner CATCH sep=5.34 (fixed from INCOMPLETE), go INCOMPLETE (WR late call t=3.7 model variance), comeback INCOMPLETE (pre-existing WR bug)
-- CB overhaul (this session, code+prompts, smoke tested): slant smoke CATCH sep=5.52 — CB correctly computed sprint_time > ETA → play_man. CUT CONFIRMED line working. Round 15 (full 10-route with CB changes) NOT yet run.
+- CB overhaul (code+prompts, smoke tested): slant smoke CATCH sep=5.52 — CB correctly computed sprint_time > ETA → play_man. CUT CONFIRMED line working.
+- Round 15 (GPT-5-nano, seed 42, CB changes): **4C/1PBU/5INC** — regression from R14. Root cause: Window A heading lock bug (WR calling with stem heading 0° instead of break heading). R15 fixes landed: wr_live_free.txt heading note, wr_ball_in_air.txt brake guidance, cb_pass2.txt WR-ETA check. Two-route sanity: slant INT→PBU (improved), curl still INCOMPLETE (overshoot). Full re-run with fixes pending.
 
 ## Not Started
 B–E phases
