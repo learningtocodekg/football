@@ -1,10 +1,8 @@
 # CLAUDE.md
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
+Start every message with Hare Krishna.
 Use a VENV or make one if there isn't.
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
 ## 1. Think Before Coding
 
@@ -71,4 +69,3 @@ When the user explicitly shuts down a specific approach ("stop recommending X", 
 
 ---
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
