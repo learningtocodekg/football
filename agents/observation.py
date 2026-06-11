@@ -196,13 +196,25 @@ def build_qb_observation(
                 lines.append(f"DETECTED: WR made a significant heading change at t={detected_cut_t:.1f}s — this matches the expected route cut (t≈{expected_open_t:.1f}s).")
             else:
                 lines.append(f"DETECTED: WR made a heading change at t={detected_cut_t:.1f}s — likely a jab/fake (real cut expected around t≈{expected_open_t:.1f}s).")
+        # A straight route (go/fly) has no break — every phase heads upfield. Direction is confirmed at the snap.
+        straight_route = bool(route_phases) and all(
+            abs((hdg - 0.0 + 180.0) % 360.0 - 180.0) <= 30.0 for _, hdg in route_phases
+        )
         # Is the route's defining break actually VISIBLE yet? Compare WR heading to the final break heading.
         break_visible = None
-        if route_phases and expected_open_t is not None and expected_open_t < 9.0:
+        if not straight_route and route_phases and expected_open_t is not None and expected_open_t < 9.0:
             final_break_hdg = route_phases[-1][1]
             hdg_gap = abs((wr.heading - final_break_hdg + 180.0) % 360.0 - 180.0)
             break_visible = hdg_gap <= 50.0
-        if break_visible is False:
+        if straight_route:
+            lines += [
+                "DIRECTION CHECK: this is a STRAIGHT route — no break. The WR's direction is confirmed from the snap "
+                "(straight upfield). There is nothing to wait for; openness here is purely a footrace.",
+                "Make the prediction now: he is open the moment he has overtaken the CB with separation that will hold or "
+                "grow. Project both forward — if the WR is pulling away (faster, or the CB is in recovery), throw and lead "
+                "him deep so he runs under it. Do NOT wait for a break or a call that is not coming on a go route.",
+            ]
+        elif break_visible is False:
             lines += [
                 f"DIRECTION CHECK: WR heading {wr.heading:.0f}° is still on the STEM — it has not swung to the route's "
                 f"{route_phases[-1][1]:.0f}° break. His committed direction is NOT confirmed yet.",

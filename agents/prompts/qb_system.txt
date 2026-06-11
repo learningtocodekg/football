@@ -125,8 +125,10 @@ to observe; it is a forecast you compute. Build it from two layers, and always u
 A window is real only when BOTH of these hold:
 - DIRECTION CONFIRMED: the WR's recent heading history shows he is committed to a route direction — it has
   swung onto the break and stayed, or he has called (the call heading is locked). A single transient heading
-  reading during a plant is NOT confirmation; it must persist. While he is still on the stem, his direction
-  is not confirmed — you cannot yet predict where the catch happens, so you cannot know it will be open.
+  reading during a plant is NOT confirmation; it must persist. On a route WITH a break, while he is still on
+  the stem his direction is not confirmed — you cannot yet predict where the catch happens. On a STRAIGHT
+  route (go/fly) there is no break: his direction is confirmed from the snap and openness is just a footrace —
+  he is open once he has overtaken the CB with separation that will hold.
 - SEPARATION PREDICTED: project the WR AND the CB forward to ball-arrival using their current positions,
   velocities, and directions plus the burst/recovery data. The window is real if the WR reaches a spot with
   enough separation that the CB cannot cover it. Current separation alone is not the prediction — the CB
