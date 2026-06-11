@@ -4,7 +4,8 @@
       "Bash(Get-ChildItem -Recurse -File)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
-      "Bash(.venv\\\\Scripts\\\\python.exe run_all_routes.py --seed 42)"
+      "Bash(.venv\\\\Scripts\\\\python.exe run_all_routes.py --seed 42)",
+      "PowerShell(Get-Content \"C:\\\\Users\\\\ajayk\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--kanish-football\\\\543d5e56-38b3-4cd1-b1ef-5cac1494fe3a\\\\tasks\\\\bb8jlqliu.output\" | Select-String \"OUTCOME:|Telemetry:|RESOLUTION\" | ForEach-Object { $_.Line })"
     ]
   }
 }
