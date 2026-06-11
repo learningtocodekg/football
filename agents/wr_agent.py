@@ -11,9 +11,6 @@ _LIVE_COMMITTED_PROMPT = (Path(__file__).parent / "prompts" / "wr_live_committed
 _LIVE_BROKEN_PROMPT = (Path(__file__).parent / "prompts" / "wr_live_broken.txt").read_text()
 _BALL_IN_AIR_PROMPT = (Path(__file__).parent / "prompts" / "wr_ball_in_air.txt").read_text()
 
-# How many degrees of heading change in one step counts as a detected cut
-CUT_DETECT_THRESHOLD = 30.0
-
 
 class WRAgent:
     def __init__(
@@ -44,7 +41,6 @@ class WRAgent:
         self.locked_heading: float | None = None
         self.broken_play: bool = False
         self.detected_cut_t: float | None = None
-        self._prev_heading: float | None = None
         self._pre_snap_plan: str = ""
         self.last_action: dict = {}
         self.wr_note: str = ""  # persistent scratchpad, updated each step
@@ -99,14 +95,6 @@ class WRAgent:
         self.wr_note = result.get("wr_note", "") or self.wr_note
         self.last_action = result
         return result
-
-    def record_heading(self, t: float, heading: float) -> None:
-        """Call each step to detect cuts from heading history."""
-        if self._prev_heading is not None and self.detected_cut_t is None:
-            diff = abs((heading - self._prev_heading + 180.0) % 360.0 - 180.0)
-            if diff >= CUT_DETECT_THRESHOLD:
-                self.detected_cut_t = t
-        self._prev_heading = heading
 
     def apply_decision(
         self,
