@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff, PLAYER_RADIUS
+from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff
 from engine.ball import BallState, throw_ball, advance_ball, DEFAULT_TARGET_Z, YD_S_TO_MPH
 from engine.resolution import resolve
 from engine.state_machine import PlayPhase
