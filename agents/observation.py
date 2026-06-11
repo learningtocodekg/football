@@ -71,6 +71,7 @@ def build_qb_observation(
     wr_call_heading: float | None = None,
     broken_play: bool = False,
     detected_cut_t: float | None = None,
+    route: str = "",
 ) -> str:
     dist_to_wr = _dist(qb, wr)
     v_max = max_ball_speed(qb_attrs.throw_power)
@@ -95,6 +96,16 @@ def build_qb_observation(
     lines = [
         f"=== QB OBSERVATION  t={t:.1f}s  sack_clock={sack_clock:.1f}s  |  {_down_str(down, distance)} ===",
         "",
+    ]
+    if route and route in _ROUTE_GEOMETRY:
+        lines += [
+            f"WR IS RUNNING A {route.upper()} ROUTE: {_ROUTE_GEOMETRY[route]}",
+            "  Use this KNOWN shape to anticipate where the WR ENDS UP. During a cut the WR's"
+            " instantaneous heading is noisy for a step or two — trust the route's final heading"
+            " (and the call heading once he calls), not a single transient reading.",
+            "",
+        ]
+    lines += [
         f"YOU (QB):  pos=({qb.x:.1f}, {qb.y:.1f})  dist_to_left_sideline={qb.x:.1f}yd  dist_to_right_sideline={FIELD_WIDTH - qb.x:.1f}yd",
         f"WR1 NOW:   pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
         f"  WR dist to sidelines: left={wr.x:.1f}yd  right={FIELD_WIDTH - wr.x:.1f}yd",
@@ -123,16 +134,25 @@ def build_qb_observation(
     else:
         lines.append("CB1: no CB on field this play.")
 
-    proj_x_reg = wr.x + math.sin(math.radians(wr.heading)) * wr.speed * regular_t
-    proj_y_reg = wr.y + math.cos(math.radians(wr.heading)) * wr.speed * regular_t
-    wr_hdg_norm = wr.heading % 360.0
+    # Once the WR has called, his heading is mechanically LOCKED to the call heading —
+    # project off that, not the noisy instantaneous heading at the moment of the cut.
+    if wr_called_for_ball and wr_call_heading is not None:
+        proj_hdg = wr_call_heading
+        hdg_src = "locked call heading"
+    else:
+        proj_hdg = wr.heading
+        hdg_src = "current heading"
+    proj_x_reg = wr.x + math.sin(math.radians(proj_hdg)) * wr.speed * regular_t
+    proj_y_reg = wr.y + math.cos(math.radians(proj_hdg)) * wr.speed * regular_t
+    wr_hdg_norm = proj_hdg % 360.0
     if 90.0 < wr_hdg_norm < 270.0:
         y_dir = f"DECREASING toward QB (current y={wr.y:.1f} → projected y={proj_y_reg:.1f})"
     else:
         y_dir = f"INCREASING upfield (current y={wr.y:.1f} → projected y={proj_y_reg:.1f})"
     lines += [
         f"ARC FLIGHT TIMES to WR's CURRENT position ({dist_to_wr:.1f} yd away): " + "  ".join(arc_strs),
-        f"LEAD HINT: on a {lead_arc} arc ({lead_t:.2f}s flight) WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
+        f"LEAD HINT: on a {lead_arc} arc ({lead_t:.2f}s flight), projecting off the {hdg_src} ({proj_hdg:.0f}°), "
+        f"WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
     ]
 
 
@@ -169,14 +189,40 @@ def build_qb_observation(
         if expected_open_t is not None and expected_open_t < 9.0:
             lines.append(
                 f"ROUTE HINT: WR expected to break around t={expected_open_t:.1f}s — "
-                "WR has NOT yet called for the ball. Do not throw until WR signals."
+                "WR has NOT yet called for the ball."
             )
         if detected_cut_t is not None:
             if expected_open_t is not None and abs(detected_cut_t - expected_open_t) <= 0.4:
                 lines.append(f"DETECTED: WR made a significant heading change at t={detected_cut_t:.1f}s — this matches the expected route cut (t≈{expected_open_t:.1f}s).")
             else:
-                lines.append(f"DETECTED: WR made a heading change at t={detected_cut_t:.1f}s — likely a jab/fake (real cut expected around t≈{expected_open_t:.1f}s). Wait for the WR call.")
-        lines.append("WR has not called for the ball. Hold until the call comes in.")
+                lines.append(f"DETECTED: WR made a heading change at t={detected_cut_t:.1f}s — likely a jab/fake (real cut expected around t≈{expected_open_t:.1f}s).")
+        # Is the route's defining break actually VISIBLE yet? Compare WR heading to the final break heading.
+        break_visible = None
+        if route_phases and expected_open_t is not None and expected_open_t < 9.0:
+            final_break_hdg = route_phases[-1][1]
+            hdg_gap = abs((wr.heading - final_break_hdg + 180.0) % 360.0 - 180.0)
+            break_visible = hdg_gap <= 50.0
+        if break_visible is False:
+            lines += [
+                f"DIRECTION CHECK: WR heading {wr.heading:.0f}° is still on the STEM — it has not swung to the route's "
+                f"{route_phases[-1][1]:.0f}° break. His committed direction is NOT confirmed yet.",
+                "You predict openness from a CONFIRMED direction. Until his heading history confirms the break, you cannot "
+                "project where the catch happens — so you cannot yet know separation will be there.",
+            ]
+        elif break_visible is True:
+            lines += [
+                f"DIRECTION CHECK: WR heading {wr.heading:.0f}° now matches the route's {route_phases[-1][1]:.0f}° break — "
+                "his committed direction is confirmed (even without a call).",
+                "Now make the prediction: project the WR AND the CB forward to ball-arrival from their current positions, "
+                "speeds, and headings. If the WR reaches a spot with separation the CB cannot cover, the window is real.",
+            ]
+        else:
+            lines += [
+                "DIRECTION CHECK: WR has not called and his heading has not yet swung to the route's break — his committed "
+                "direction is not confirmed.",
+                "Predict openness only once his heading history confirms the break (or he calls). Then project both players "
+                "forward and judge whether the separation will be there.",
+            ]
 
     if route_phases:
         lines += ["", "WR ROUTE SCHEDULE (guideline — WR is AI-driven, actual timing may vary):"]
@@ -242,8 +288,10 @@ def build_qb_observation(
         f"max range ≈{max_range('loft', v_max):.0f} yd on a loft.",
         "The ball flies a real 3D arc. Flatter arcs (bullet/drive) arrive sooner but pass through the lane "
         "at reachable height; higher arcs (touch/loft) clear underneath defenders but hang longer — the CB closes the whole time.",
-        "Lead the WR — throw to where he will be, not where he is.",
-        "CRITICAL: Do NOT throw until WR has called for the ball (unless broken play).",
+        "Lead the WR — throw to where he WILL BE, not where he is. A throw is a prediction: use the route shape for the "
+        "general expectation of his path, then confirm it against his real position/heading/speed history before you commit.",
+        "The WR's call is the clearest confirmation of his direction and is usually worth waiting for, but it is not a gate — "
+        "once his heading history confirms the break, predict the separation at arrival and throw if the window will be there.",
     ]
     return "\n".join(lines)
 

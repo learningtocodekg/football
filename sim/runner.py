@@ -389,6 +389,7 @@ def run_play(
                     wr_call_heading=wr_call_heading_pending,
                     broken_play=wr_agent.broken_play if isinstance(wr_agent, WRAgent) else False,
                     detected_cut_t=detected_cut_t,
+                    route=route_name,
                 )
                 if isinstance(qb_agent, ScriptedQB):
                     qb_action = qb_agent.decide(
