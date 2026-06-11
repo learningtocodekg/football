@@ -121,6 +121,60 @@ def parse_wr_live(raw: str) -> dict | None:
         return None
 
 
+def _normalize_wr_step(obj: dict) -> dict | None:
+    """Normalize one WR step like parse_wr_live (without reasoning/wr_note)."""
+    try:
+        heading = float(obj["heading"]) % 360.0
+        facing = float(obj.get("facing", heading)) % 360.0
+        throttle = str(obj.get("throttle", "accelerate")).strip().lower()
+        if throttle not in ("accelerate", "coast", "brake"):
+            throttle = "accelerate"
+        call_for_ball = bool(obj.get("call_for_ball", False))
+        return {
+            "heading": heading,
+            "facing": facing,
+            "throttle": throttle,
+            "call_for_ball": call_for_ball,
+        }
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def parse_wr_plan(raw: str) -> list[dict] | None:
+    """Parse a WR plan: an ordered list of 1-10 per-step actions.
+
+    Expects {"plan": [{heading, throttle, facing?, call_for_ball?}, ...],
+             "wr_note": "...", "reasoning": "..."}.
+    A top-level heading (no plan key) is treated as a 1-step plan.
+    """
+    obj = _extract_json(raw)
+    if obj is None:
+        return None
+
+    raw_plan = obj.get("plan")
+    if not isinstance(raw_plan, list):
+        # No plan key — treat the object itself as a single step if it has heading.
+        raw_plan = [obj] if "heading" in obj else []
+
+    raw_plan = raw_plan[:10]  # clamp to 1-10 (truncate)
+    reasoning = str(obj.get("reasoning", ""))
+    wr_note = str(obj.get("wr_note", ""))
+
+    steps: list[dict] = []
+    n = len(raw_plan)
+    for i, raw_step in enumerate(raw_plan):
+        if not isinstance(raw_step, dict):
+            continue
+        step = _normalize_wr_step(raw_step)
+        if step is None:
+            continue
+        step["reasoning"] = f"[plan {i + 1}/{n}] {reasoning}" if reasoning else f"[plan {i + 1}/{n}]"
+        step["wr_note"] = wr_note
+        steps.append(step)
+
+    return steps or None
+
+
 def parse_qb_pass2(raw: str, options: list[dict]) -> dict | None:
     """Parse pass-2 response: hold or throw (by arc option label + optional target_z)."""
     from engine.ball import DEFAULT_TARGET_Z, MIN_TARGET_Z, MAX_TARGET_Z

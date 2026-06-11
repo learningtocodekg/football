@@ -1,6 +1,6 @@
 import math
 import random
-from .physics import PlayerState, PlayerAttrs, PLAYER_RADIUS
+from .physics import PlayerState, PlayerAttrs
 from .ball import BallState, ball_z_at_xy, DEFAULT_TARGET_Z
 
 CATCH_RADIUS = 1.3    # yards — ball must land within this of WR
@@ -16,11 +16,11 @@ WR_VERTICAL_REACH = 3.0  # yards — max ball height the WR can catch
 CB_VERTICAL_REACH = 3.0  # yards — max ball height the CB can touch
 HIGH_BALL_Z = 2.4        # above this, the ball is a high-point throw: harder catch,
                          # and the CB can only swat/pick at full extension (reduced odds)
-HIGH_BALL_CB_FACTOR = 0.6  # multiplier on swat/pick effectiveness for high balls
 
-
-def _sigmoid(x: float, mid: float = 0.5, k: float = 0.5) -> float:
-    return 1.0 / (1.0 + math.exp(-(x - mid) / k))
+# ── Three-zone catch resolution thresholds (separation-at-arrival, yards) ──
+# Anchored to empirical data: sep >= 1.8yd at arrival = catch.
+OPEN_SEP = 1.8   # separation >= this: WR won the rep -> deterministic CATCH
+TIGHT_SEP = 1.0  # separation <= this: bodies on top of each other -> deterministic CB win
 
 
 def _cb_in_passing_lane(
@@ -156,54 +156,55 @@ def resolve(
         cb_arm_pbu = cb_facing and _cb_arm_reaches_lane(cb, landing_x, landing_y, wr, CB_ARM_REACH)
         cb_arm_int = cb_facing and _cb_arm_reaches_lane(cb, landing_x, landing_y, wr, CB_HALF_REACH)
 
-    # Base catch probability: smooth sigmoid over separation
-    floor_prob = 0.15
-    eff_sep = max(0.0, separation - 2 * PLAYER_RADIUS)  # edge-to-edge air gap between bodies
-    p_raw = floor_prob + (1 - floor_prob) * _sigmoid(eff_sep)
+    go_for_pick = cb_intent == "go_for_pick"
+    high_ball = landing_z > HIGH_BALL_Z
+    # On a high ball the CB can only pick at full extension; gate the gamble off.
+    int_ok = cb_arm_int and cb_facing and not high_ball
+
+    # ── Three-zone resolver keyed on separation-at-arrival ──
+    # 1. CB not in position to touch the ball -> deterministic CATCH.
+    if not cb_can_contest or cb_attrs is None:
+        return {"outcome": "CATCH", "separation": round(separation, 2), "landing_z": round(landing_z, 2)}
+
+    # 2. WR created real separation, CB present but beaten -> deterministic CATCH.
+    if separation >= OPEN_SEP:
+        return {"outcome": "CATCH", "separation": round(separation, 2), "landing_z": round(landing_z, 2)}
+
+    # 3. Bodies in contact -> deterministic CB win; type by intent + geometry.
+    if separation <= TIGHT_SEP:
+        if go_for_pick and int_ok:
+            return {"outcome": "INTERCEPTION", "separation": round(separation, 2),
+                    "landing_z": round(landing_z, 2)}
+        return {"outcome": "PBU", "separation": round(separation, 2), "landing_z": round(landing_z, 2)}
+
+    # 4. Contested band — the only place a die is thrown.
+    frac = (separation - TIGHT_SEP) / (OPEN_SEP - TIGHT_SEP)
     catch_factor = wr_attrs.catch / 99.0
-    coverage_suppression = (cb_attrs.coverage / 99.0) * 0.30 if (cb_can_contest and cb_attrs) else 0.0
+    coverage_suppression = (cb_attrs.coverage / 99.0) * 0.30
     wr_facing_mult = _wr_facing_multiplier(wr, qb_x, qb_y)
     height_mult = _catch_height_multiplier(landing_z)
-    p_catch = p_raw * catch_factor * (1.0 - coverage_suppression) * wr_facing_mult * height_mult
-    p_catch = max(0.05, min(0.97, p_catch))
+    p_catch = frac * catch_factor * (1.0 - coverage_suppression) * wr_facing_mult * height_mult
+    p_catch = max(0.05, min(0.95, p_catch))
 
-    r = rng.random()
-    if r < p_catch:
+    if rng.random() < p_catch:
         return {"outcome": "CATCH", "separation": round(separation, 2), "p_catch": round(p_catch, 3),
                 "landing_z": round(landing_z, 2)}
 
-    if not cb_can_contest or cb_attrs is None:
-        return {"outcome": "DROP", "separation": round(separation, 2), "landing_z": round(landing_z, 2)}
-
-    bs = cb_attrs.ball_skills / 99.0
-    # High ball: CB can only swat/pick at full extension
-    if landing_z > HIGH_BALL_Z:
-        bs *= HIGH_BALL_CB_FACTOR
-    r2 = rng.random()
-
-    if cb_intent == "go_for_pick":
-        if cb_arm_int:
-            if r2 < bs * 0.40:
-                return {"outcome": "INTERCEPTION", "separation": round(separation, 2),
-                        "landing_z": round(landing_z, 2)}
-            if r2 < bs * 0.70:
-                return {"outcome": "PBU", "separation": round(separation, 2),
-                        "landing_z": round(landing_z, 2)}
-        # CB gambled but arm/facing didn't line up — WR gets a bonus catch chance
-        if rng.random() < p_catch * 1.25:
-            return {"outcome": "CATCH", "separation": round(separation, 2), "note": "CB gamble whiffed",
-                    "landing_z": round(landing_z, 2)}
-        return {"outcome": "DROP", "separation": round(separation, 2), "landing_z": round(landing_z, 2)}
+    # CB wins; type by intent (single deterministic branch, no extra roll).
+    if go_for_pick:
+        if int_ok:
+            return {"outcome": "INTERCEPTION", "separation": round(separation, 2),
+                    "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}
+        return {"outcome": "PBU", "separation": round(separation, 2),
+                "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}
 
     if cb_intent == "swat":
         if cb_arm_pbu:
-            if r2 < bs * 0.60:
-                return {"outcome": "PBU", "separation": round(separation, 2),
-                        "landing_z": round(landing_z, 2)}
-        return {"outcome": "DROP", "separation": round(separation, 2), "landing_z": round(landing_z, 2)}
+            return {"outcome": "PBU", "separation": round(separation, 2),
+                    "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}
+        return {"outcome": "DROP", "separation": round(separation, 2),
+                "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}
 
-    # play_man — no facing requirement; closer hit = more likely drop
-    hit_bonus = max(0.0, (PBU_PROXIMITY - separation) / PBU_PROXIMITY) * 0.20
-    if r2 < bs * 0.30 + hit_bonus:
-        return {"outcome": "PBU", "separation": round(separation, 2), "landing_z": round(landing_z, 2)}
-    return {"outcome": "DROP", "separation": round(separation, 2), "landing_z": round(landing_z, 2)}
+    # play_man
+    return {"outcome": "PBU", "separation": round(separation, 2),
+            "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}

@@ -133,5 +133,23 @@ CRITICAL — HEADING WHEN CALLING:
 Pre-snap body gap is NOT a valid call signal. The CB has full burst and has not been committed anywhere.
 Body gap only matters AFTER the stem has pulled the CB upfield and you have made your break.
 
+=== OUTPUT: A PLAN, NOT ONE STEP ===
+
+You do not re-decide every 0.1s. Emit an ordered PLAN of up to 10 per-step actions
+(10 steps = 1.0s). Each step is one 0.1s tick. The plan runs to completion and then
+you get a FRESH observation — including how the CB reacted — before planning again.
+The only thing that aborts the plan early is the ball being thrown.
+
+HOW MANY STEPS:
+  - Default ~5 steps.
+  - Key the count to the route description / where you are:
+    Long-stem routes (post, go, comeback, corner) have a long stride before any cut —
+    commit ~8 steps during that stem. You know you are running straight; be confident.
+  - Near your break, or about to call for the ball → plan only 1-2 steps to stay precise.
+  - Set call_for_ball=true on whichever step you mean to call. When you call, keep the
+    plan short (1-2 steps) so the locked heading is exact.
+
+Commit confidently during the stem; stay fine-grained near the break.
+
 Respond with JSON only:
-{"heading": 0, "facing": 0, "throttle": "accelerate", "call_for_ball": false, "wr_note": "...", "reasoning": "..."}
+{"plan": [{"heading": 0, "throttle": "accelerate", "facing": 0, "call_for_ball": false}], "wr_note": "...", "reasoning": "..."}
