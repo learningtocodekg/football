@@ -80,9 +80,12 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 - gen_demo.py still emits legacy ball_speed_mph format.
 
 ### Route-specific
-- **Curl overshoot (behavioral)**: WR arrives at landing zone 0.48s early at 6.8 yd/s. Observation shows required=0.2 yd/s. WR ignores brake signal, overshoots 2.5yd. Prompt guidance exists; model doesn't act on it.
+- **Curl — FIXED (CATCH)**: lead-hint now projects off the locked `wr_call_heading` (not the noisy physical heading at the cut). curl_42 = CATCH, throw_t=2.7s, sep=5.02. Long-standing curl INCOMPLETE resolved.
+- **Go — straight-route fix applied, UNVERIFIED**: QB took a SACK with 6.62 yd separation because the DIRECTION CHECK logic waited for a route "break" that never comes on a go route. Added a `straight_route` branch in `build_qb_observation` (all phases upfield → direction confirmed at snap; openness = WR overtaken CB). Committed; re-run was killed before completing.
 - **Comeback WR bug**: WR calls at heading=0° before executing 180° break → heading locks wrong direction. Pre-existing, lowest priority.
-- **Go route call timing**: no cut trigger, pure speed separation — WR call timing has high variance.
+
+### QB autonomy (this session)
+- QB doctrine reframed from "wait for the WR call" to **a throw is a prediction**: route design = expectation; real position/heading/velocity history = confirmation; "open" = direction confirmed AND separation predicted at arrival. Observation reports facts (DIRECTION CHECK), QB makes the openness call. See `qb_system.txt` "WHAT 'OPEN' MEANS" + `observation.py` direction-check block.
 
 ## Known Issues carried from 2D (post-Round 12 + CB prompt overhaul)
 
@@ -117,6 +120,7 @@ Shadow model working: play_man on 8/10 routes, doom loop eliminated, sep at thro
 - Round 14 (GPT-5-nano, seed 42, post QB lead fix): **8C/2INC** — slant CATCH sep=4.77, corner CATCH sep=5.34 (fixed from INCOMPLETE), go INCOMPLETE (WR late call t=3.7 model variance), comeback INCOMPLETE (pre-existing WR bug)
 - CB overhaul (code+prompts, smoke tested): slant smoke CATCH sep=5.52 — CB correctly computed sprint_time > ETA → play_man. CUT CONFIRMED line working.
 - Round 15 (GPT-5-nano, seed 42, CB changes): **4C/1PBU/5INC** — regression from R14. Root cause: Window A heading lock bug (WR calling with stem heading 0° instead of break heading). R15 fixes landed: wr_live_free.txt heading note, wr_ball_in_air.txt brake guidance, cb_pass2.txt WR-ETA check. Two-route sanity: slant INT→PBU (improved), curl still INCOMPLETE (overshoot). Full re-run with fixes pending.
+- QB autonomy session (GPT-5-nano, seed 42, two-route sanity): **curl CATCH** (throw_t=2.7s, sep=5.02 — lead-hint call-heading fix + prediction doctrine) / **go SACK** (sep=6.62, QB never threw — straight-route fix added afterward, UNVERIFIED). Full suite not run.
 
 ## Not Started
 B–E phases

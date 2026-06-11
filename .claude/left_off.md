@@ -1,40 +1,28 @@
 # Left Off
-Date: 2026-06-10
+Date: 2026-06-11
 
 ## What We Worked On
-Round 15 regression triage. R15 had scored 4C/1PBU/5INC vs R14's 8C/2INC. Traced root cause, fixed it, sanity-checked two routes. Did not re-run full suite.
+QB autonomy / independence. User's directive: the QB should make its OWN throw decision — able to throw BEFORE the WR calls (if it predicts the window opening) and able to HOLD after the WR calls (if coverage is tight). It currently had no independence; it just waited for the WR call as a trigger.
+
+Mid-session the user reframed the approach: stop having the system DECLARE "cut confirmed / open." Instead teach the QB that **a throw is a prediction** — "open" = (1) WR direction confirmed by route design + real heading history, AND (2) separation predicted by projecting BOTH the WR and CB forward to ball-arrival.
+
+(Note: another chat had branched to `realism` and committed most of the QB route-read scaffolding into shared history `a64143a` — route param, `_ROUTE_GEOMETRY`, lead-hint call-heading fix, the DIRECTION CHECK block. My session's net-new uncommitted work was the prediction-doctrine wording + the straight-route fix.)
 
 ## What Got Done
 
-### Root cause found: Window A heading lock bug (all short-cut routes)
-When WR calls Window A (0.1-0.2s before the final cut), it was outputting its current **stem heading (0°)** instead of its upcoming **break heading** (45° for slant, 180° for curl, etc.). The heading output at the call step is mechanically locked by the runner for the rest of the play — so the QB projects WR trajectory on the wrong heading and throws to the wrong spot. 5 of 6 INC/PBU regressions in R15 traced back to this.
+### Curl throw accuracy — FIXED (now CATCH)
+Root cause: the QB LEAD HINT projected the WR off its **physical** heading. When the WR calls mid-cut (physical heading 270°) but its **locked call heading** is 180°, the projection pointed 5+ yd to the side → QB threw to empty grass. Fix (committed in shared history): project off `wr_call_heading` once the WR has called. Result: curl_42 = **CATCH, throw_t=2.7s, sep=5.02** (was INCOMPLETE/PBU for many rounds).
 
-**Fix**: Added `CRITICAL — HEADING WHEN CALLING` section to `wr_live_free.txt` near the bottom of CALL RULES:
-- Window A must output BREAK heading, not current stem heading
-- Added timing warning: "Do NOT call more than 0.2s early just because you know the break heading"
+### QB prediction doctrine (qb_system.txt + observation.py)
+Replaced the prescriptive "WHEN YOU CAN THROW — NOT A GATE" section with **"WHAT 'OPEN' MEANS — A THROW IS A PREDICTION"**: two-layer model (route design = expectation/prior; real position+heading+velocity history = confirmation), and "window is real" only when direction is confirmed AND separation is predicted at arrival. The observation's DIRECTION CHECK now reports facts (is the WR's heading on the route's break yet?) and hands the openness *prediction* to the QB, instead of issuing "DO NOT throw" / "you MAY throw" commands.
 
-### WR ball-in-air brake guidance (go/curl overshoot)
-WR was arriving at the landing zone early and running through it at full speed. On go route (no cut), WR hit landing zone at 9.5 yd/s with 0.53s remaining.
-
-**Fix**: Added to `wr_ball_in_air.txt`: REQUIRED SPEED = dist_to_zone / ETA, with explicit BRAKE/COAST/ACCELERATE decision. Added current speed + required speed to `build_wr_observation` ball-in-air section in `observation.py`.
-
-### CB sprint-or-play-man decision (WR ETA check)
-CB was sprinting to the landing zone even when WR would arrive first and be set. Added WR ETA comparison to `cb_pass2.txt` and `build_cb_intent_observation` in `observation.py`. CB now computes wr_dist_to_zone/wr_speed and compares against sprint_time before committing to swat/pick.
-
-### Sanity check results
-- **slant_42**: INT → PBU (improvement; WR now calls heading=45°, but early at t=1.6 — timing warning added)
-- **curl_42**: still INCOMPLETE — WR correctly calls heading=180° and QB targets (15.5, 61.4), but WR arrives at landing zone y=61.5 at t=3.3 with ETA=0.48s at speed=6.8, ignores brake signal, overshoots to y=58.9. Pure LLM behavioral failure.
-
-### QB crossing route note (REVERTED)
-Added note to `qb_pass2.txt` telling QB never to loft on crossing routes. User rejected: "that is the LLM proving it is not smart." Reverted. `qb_pass2.txt` unchanged from R14.
+### Go-route SACK — straight-route fix applied, NOT yet tested
+After the reframe, go_42 = **SACK** with max_sep=**6.62 yd** — the QB had a huge window and never threw. Cause: the DIRECTION CHECK logic gated on `expected_open_t < 9.0` and a route break; a go route has no break (`route_phases=[(999,0.0)]`, `expected_open_t=None`), so it fell into "direction not confirmed — wait for the break" and the QB waited forever. Fix: added a `straight_route` branch — when every route phase heads upfield, direction is confirmed from the snap and openness is "has the WR overtaken the CB with separation that holds." Committed to main but **the go re-run was killed before completing — fix is unverified.**
 
 ## What's Open / Known Issues
-1. **Full 10-route suite NOT run with R15 fixes** — next step is `python run_all_routes.py --seed 42`
-2. **Curl overshoot**: WR has correct required-speed info in observation but ignores brake guidance. Purely behavioral — may need stronger prompt language, or this is a model limit.
-3. **WR early call on slant (t=1.6 vs correct t=1.8)**: timing warning added; not re-tested.
-4. **Git push NOT done yet** — all fixes are staged.
+1. **Go straight-route fix is UNTESTED** — committed as "untested QB autonomity changes" (`03df8cd` on main). Re-run go_42 to confirm the QB now throws on the footrace instead of taking a sack.
+2. **Full 10-route suite not run** with the QB prediction doctrine. Only curl (CATCH) + go (SACK, pre-fix) were checked.
+3. **`realism` branch**: user intends to delete it. All my QB work is on `main`; nothing of value is realism-only. The WR-side realism changes (wr_agent.py, wr_live_free.txt, schema.py) remain UNCOMMITTED on realism — not my work, deliberately left alone.
 
 ## NEXT STEP
-Run the full 10-route suite: `python run_all_routes.py --seed 42`
-Look for: (a) heading lock fix closes the 5 R15 regressions, (b) CB WR-ETA check reduces go_for_pick on covered WRs, (c) brake guidance helps curl/go overshoot (skeptical), (d) new score vs R14 baseline of 8C/2INC.
-Then git push if results acceptable.
+Re-run `python run_all_routes.py --routes go --seed 42` and confirm the straight-route fix makes the QB throw on the footrace (CATCH/contested) instead of SACK. If good, run the full suite and compare to the R14 baseline (8C/2INC).
