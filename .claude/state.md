@@ -1,6 +1,21 @@
 # Build State
 Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef6; first live 3D slant = CATCH; all three viewers 3D-ready and human-verified; full 10-route 3D baseline NOT yet run — going route-by-route)
 
+## Realism work — 2026-06-11 (merged to main)
+- **P1 WR plan cadence**: WRAgent emits a PLAN of 1–4 per-step actions (`schema.parse_wr_plan`), consumed
+  from a queue with no LLM call until exhausted; aborts only when the ball is thrown. Runner unchanged.
+- **P2 deterministic three-zone catch** (`resolution.resolve`): sep≥1.8 → CATCH; sep≤1.0 → CB win (INT if
+  go_for_pick+arm/facing else PBU); 1.0–1.8 = the only rolled band (attrs/intent weight one roll). Removed
+  the sigmoid/floor and the catch-rating-multiplies-everything bug. CB intent autonomy + INT preserved.
+- **P3**: removed WR right-of-way pushout (bodies overlap now) + mid-flight lane-contest RNG from runner.
+- **WR prompt**: `wr_live_free.txt` rewritten 160→~33 lines; observation `CUT TARGET` line (cut time/depth
+  with ±0.4s/±2.5yd tolerance); STEM (fake-and-return, no early call) vs FINAL BREAK phases; break heading
+  must be the FINAL direction even if >90° from current (fixes curl running an out instead of hooking to 180).
+- **eval/metrics.py** added (P5); PRD.md deleted (P4); dead `WRAgent.record_heading` removed.
+- **KNOWN INTERACTION**: realism WR assumes a QB that waits for the WR call. main's anticipation QB (d376c1e)
+  throws early → slant PBU / curl INCOMPLETE. Realism gains need the QB to wait. (QB rollback 83c4e26 was
+  testing-only and reverted before merge.) See left_off.md.
+
 ## Built
 - engine/physics.py — PlayerState (+ cut_recovery field), apply_action (dynamic burst, cut recovery, speed shed), cut_recovery_steps(), BACKPEDAL_SPEED_FRACTION=0.75, CUT_RECOVERY_BASE_STEPS=4, CUT_ANGLE_THRESHOLD=35°, CUT_SPEED_THRESHOLD=3.0
 - engine/ball.py — 3D projectile physics: ARC_ANGLES {bullet 15°, drive 25°, touch 35°, loft 45°}, solve_arc() (t_flight, required speed, peak), max_ball_speed(throw_power), max_range(), throw_ball(arc, target_z) → None if infeasible, advance_ball (closed-form z, final-step snap to landing), ball_z_at_xy(); G=10.7 yd/s², RELEASE_Z=2.2, target_z clamp [0.3, 3.0]. (Old 2D MPH_TO_YDS was mph→ft/s — ball was 3× too fast all of Phase A.)
