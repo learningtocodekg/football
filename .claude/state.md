@@ -102,17 +102,22 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 ### QB autonomy (this session)
 - QB doctrine reframed from "wait for the WR call" to **a throw is a prediction**: route design = expectation; real position/heading/velocity history = confirmation; "open" = direction confirmed AND separation predicted at arrival. Observation reports facts (DIRECTION CHECK), QB makes the openness call. See `qb_system.txt` "WHAT 'OPEN' MEANS" + `observation.py` direction-check block.
 
-### QB autonomy — REVERTING (decision 2026-06-11, latest session)
-- The anticipation doctrine RELAPSED into premature throws on the go route: QB threw at t=0.5s a flat
-  ~12yd bullet into the cushion; ball traveled <5 yds downfield (verified in replay). A go is won by the
-  WR outrunning the CB and the QB throwing OVER the CB, leading the WR DEEP to catch over the shoulder.
-- **Decision: revert to a call-gated QB, and do NOT invoke the QB agent at all until the WR has called.**
-  Once called, the QB's only job = place the ball + decide whether/when to throw. See `.claude/left_off.md`.
-- Distance-frame bug to fix: designer distances ("10 yds deep") are WR-RELATIVE (downfield progress from
-  snap), not QB throw distance; the model conflated the two.
-- Changes still in tree from the autonomy attempt (keep/revert TBD): break_visible accuracy fix +
-  options-table locked-heading projection (likely keep); QB straight-route note + asymmetry prompt
-  paragraph (likely remove with the doctrine).
+### QB autonomy — DECISION: REDO THE QB PROMPTING (2026-06-11, latest session)
+- Distance-frame fix landed (WR DOWNFIELD DEPTH line in QB obs, throw-distance relabel, qb_system "two
+  distances" block, wr_start plumbed through runner). It PARTIALLY worked — go re-run had the QB HOLD at
+  t=0.5 citing "1.7 yards depth" — but the QB still threw early one step later: **go seed 42 = INT,
+  sep=0.96, throw_t=0.6, 15yd bullet.**
+- ROOT CAUSE is NOT the distance frame. At the throw, the WR (y=53.0) had NOT overtaken the CB (y=55.1).
+  The early throw is caused by the QB observation itself: (1) the LEAD HINT hands the QB a pre-computed
+  "throw to the projected coord" deep spot that always looks open on a vertical even when the WR is
+  behind the CB; (2) the obs never surfaces the decisive go fact — has the WR passed his man. Plus the
+  same full observation (LEAD HINT included) is sent in BOTH QB pass 1 and pass 2, so pass 1 isn't a
+  clean self-read.
+- **Decision (user): completely redo the QB prompting next session, working with an AI.** Ground-truth
+  reference written to repo root: `QB_step_example.txt` / `WR_step_example.txt` / `CB_step_example.txt`
+  (full per-step prompts reconstructed from the real go replay). Design goals: feed facts not answers
+  (kill/relegate the LEAD HINT), surface WR-vs-CB depth, genuinely separate pass1/pass2. Gating the QB
+  on the WR call (memory project_qb_call_gated) is still on the table but may be made moot by the redo.
 
 ## Known Issues carried from 2D (post-Round 12 + CB prompt overhaul)
 

@@ -72,8 +72,10 @@ def build_qb_observation(
     broken_play: bool = False,
     detected_cut_t: float | None = None,
     route: str = "",
+    wr_start: tuple[float, float] | None = None,
 ) -> str:
     dist_to_wr = _dist(qb, wr)
+    wr_depth = (wr.y - wr_start[1]) if wr_start is not None else None
     v_max = max_ball_speed(qb_attrs.throw_power)
     arc_strs = []
     lead_arc, lead_t = None, None
@@ -109,6 +111,13 @@ def build_qb_observation(
         f"YOU (QB):  pos=({qb.x:.1f}, {qb.y:.1f})  dist_to_left_sideline={qb.x:.1f}yd  dist_to_right_sideline={FIELD_WIDTH - qb.x:.1f}yd",
         f"WR1 NOW:   pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
         f"  WR dist to sidelines: left={wr.x:.1f}yd  right={FIELD_WIDTH - wr.x:.1f}yd",
+    ]
+    if wr_depth is not None:
+        lines += [
+            f"  WR DOWNFIELD DEPTH: {wr_depth:.1f} yd past the snap. THIS is the frame for every route distance —"
+            f' "10 yards deep" / "beat them deep" means the WR\'s progress downfield from where he started, NOT how far you throw.',
+        ]
+    lines += [
         f"  WR facing: {facing_label}  (catch probability modifier: {'x{:.2f}'.format(facing_mult)})",
         f"  WR BURST: {wr_accel_str}",
     ]
@@ -150,7 +159,7 @@ def build_qb_observation(
     else:
         y_dir = f"INCREASING upfield (current y={wr.y:.1f} → projected y={proj_y_reg:.1f})"
     lines += [
-        f"ARC FLIGHT TIMES to WR's CURRENT position ({dist_to_wr:.1f} yd away): " + "  ".join(arc_strs),
+        f"ARC FLIGHT TIMES to WR's CURRENT position — THROW DISTANCE (QB→WR) is {dist_to_wr:.1f} yd (distinct from WR depth above): " + "  ".join(arc_strs),
         f"LEAD HINT: on a {lead_arc} arc ({lead_t:.2f}s flight), projecting off the {hdg_src} ({proj_hdg:.0f}°), "
         f"WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
     ]
@@ -219,10 +228,20 @@ def build_qb_observation(
             departed_stem = (detected_cut_t is not None) or (gap_to_stem >= 25.0)
             break_visible = gap_to_break <= 35.0 and near_break >= 2 and departed_stem
         if straight_route:
+            depth_str = (
+                f"WR is {wr_depth:.1f} yd downfield of the snap"
+                if wr_depth is not None else "watch the WR's downfield depth"
+            )
+            deep_enough = wr_depth is not None and wr_depth >= 10.0
             lines += [
                 "DIRECTION CHECK: STRAIGHT route — no break, no cut coming. His direction is confirmed from the snap; "
-                "openness is a pure footrace. Once the WR is 10+ yards downfield, anticipate the moment his speed "
-                "opens an exploitable gap on the cushion and lead him deep — the pre-snap cushion is not that gap.",
+                f"openness is a pure footrace. {depth_str}. The route wants him ~10+ yd downfield before the speed "
+                "gap on the cushion becomes real — "
+                + ("he is past that depth now; "
+                   if deep_enough else
+                   "he is NOT there yet, so the current cushion is just pre-snap spacing, not earned separation; ")
+                + "anticipate the moment his pace breaks the cushion and lead him DEEP (throw it past/over the CB so "
+                "the WR runs under it), not a flat ball into the cushion in front of the CB.",
             ]
         elif break_visible is False:
             lines += [
@@ -598,7 +617,7 @@ def _wr_facing_modifier(wr: PlayerState, qb: PlayerState) -> tuple[str, float]:
 
 
 _ROUTE_GEOMETRY: dict[str, str] = {
-    "go": "GO / FLY — the first ~10 yards are the stem; the 'break' is simply to keep running straight. Beat the CB deep with pure speed. Somewhere in the stem the WR can sell a fake break (a sudden head/shoulder fake without turning) to flip the CB's hips while he accelerates straight past.",
+    "go": "GO / FLY — the first ~10 yards DOWNFIELD OF THE SNAP (the WR's depth, not your throw distance) are the stem; the 'break' is simply to keep running straight. Beat the CB deep with pure speed. Somewhere in the stem the WR can sell a fake break (a sudden head/shoulder fake without turning) to flip the CB's hips while he accelerates straight past. Win it by leading him DEEP and throwing OVER the CB so he runs under it.",
     "slant": "SLANT — stem upfield 2-3 steps, then cut sharp diagonally ACROSS the field (heading ~135deg or ~45deg toward the QB side). Low-depth crossing route.",
     "curl": "CURL — stem upfield 4-6 steps, then HOOK BACK toward the QB (heading ~180deg). You turn around and come back to the ball. Final heading is roughly back toward QB.",
     "comeback": "COMEBACK — stem upfield 6-8 steps toward the sideline, then break BACK toward the sideline at the same depth (heading ~270deg if left, ~90deg if right). You stop going upfield and come back flat.",

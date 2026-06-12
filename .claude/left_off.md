@@ -2,60 +2,64 @@
 Date: 2026-06-11
 
 ## What We Worked On
-Attempted to fix the QB's two complaints under the autonomy/anticipation doctrine: throwing too
-EARLY and inaccuracy, especially on routes with no break (go) or long-delayed breaks — WITHOUT
-reverting to "wait for the WR call" and without baby-feeding the QB. Conclusion: the autonomy
-approach relapsed on the go route. **Decision made this session: revert to a call-gated QB.**
+Tried the SMALLER fix before reverting to a gated QB: the handoff theory was that the QB throws
+early on the go route because it confuses "10 yards deep" (WR's downfield progress from his snap
+spot) with a 10-yard THROW distance. So we made the WR-relative depth frame explicit everywhere the
+QB sees a distance, re-ran the go route, and — when it failed again — stopped to actually READ the
+prompts instead of guessing. Decision for next session (user): **completely redo the QB prompting
+with an AI.**
 
-## What Got Done (changes currently in the tree)
-These are committed but are candidates to REVERT/RESHAPE under the call-gating rework below.
-- **break_visible bug fix** (`agents/observation.py`): shallow-break routes (slant 45°, post 30°,
-  out/post_corner ~315°) were reading "DIRECTION CONFIRMED" during the STEM because the stem heading
-  (0°) sat within the old 50° tolerance of the break heading → QB threw early. Now confirmation
-  requires the heading to sit on the break (≤35°), persist 2+ of last 3 reads, AND have departed the
-  stem (a confirmed `detected_cut_t`, or heading ≥25° off the stem).
-- **QB options-table accuracy** (`sim/runner.py`): the QB's arc-options table now projects the WR off
-  his LOCKED call heading (when called) instead of the noisy instantaneous physical heading.
-- **GO route rewrite (simple, per user)**: `_ROUTE_GEOMETRY["go"]` + `ROUTE_DESCRIPTIONS["go"]` now say:
-  first ~10 yds are the stem, the "break" is just continuing straight, beat them deep with speed, and
-  the WR may sell a FAKE BREAK (head/shoulder fake without turning) to flip the CB's hips while he
-  keeps full speed. WR call-for-ball line branched for straight routes ("call after 10 yds when your
-  pace is about to break the cushion"). QB straight-route note: "after WR is 10+ yds downfield,
-  anticipate the speed gap, lead deep."
-- **qb_system.txt**: added an "asymmetry of throwing early vs late" paragraph.
+## What Got Done (changes in the tree)
+- **Distance-frame fix** (`agents/observation.py` + `qb_system.txt`):
+  - `build_qb_observation` now takes `wr_start` and prints `WR DOWNFIELD DEPTH: X yd past the snap`,
+    explicitly labeled as the frame for all route distances (NOT throw distance).
+  - The ARC FLIGHT TIMES line is relabeled `THROW DISTANCE (QB→WR) is X yd (distinct from WR depth)`.
+  - The straight-route DIRECTION CHECK now cites the WR's ACTUAL depth and whether he's past ~10 yd.
+  - `_ROUTE_GEOMETRY["go"]` clarified: "~10 yards DOWNFIELD OF THE SNAP (the WR's depth, not your
+    throw distance)".
+  - `qb_system.txt` got a "TWO DIFFERENT DISTANCES — DO NOT CONFUSE THEM" block (WR DEPTH vs THROW
+    DISTANCE), with the concrete "a 12-yd THROW is not the WR being 12 yd deep" example.
+  - `sim/runner.py` passes `wr_start=wr_start_pos` into `build_qb_observation`.
+- **Three reference files written to repo root** (scratch, not wired into anything — delete anytime):
+  `QB_step_example.txt`, `WR_step_example.txt`, `CB_step_example.txt`. Each is the FULL per-step
+  prompt that agent receives (system prompt + freshly-built observation + step instruction),
+  reconstructed from the real go-route replay (`replays/play_42.json`) at t=0.5s. Built by
+  `$CLAUDE_JOB_DIR/tmp/dump_step_prompts.py` (uses `build_*_observation` directly, no LLM/sim run).
 
-## FAIL — the reason we are reverting
-On the go route the QB throws PREMATURELY: it threw at t=0.5s (its first legal step) a flat ~12-yard
-bullet into the CB cushion. **Visually verified in the replay: the ball traveled <5 yards downfield.**
-A go route is won by the WR OUTRUNNING the CB and the QB throwing it OVER the CB — out of the CB's
-reach — leading the WR DEEP to catch it OVER THE SHOULDER downfield. The QB did none of that; it
-grabbed the unearned pre-snap cushion as if it were separation. (The single CATCH we got was luck: the
-WR's jab fake put the CB in cut_recovery, so a short throw happened to hold ~2.7 yd. Not the intent.)
+## FAIL — go route still throws early
+Re-ran go (seed 42, gpt-5-nano): **INTERCEPTION, sep=0.96, throw_t=0.6s, 15-yd bullet to y=58.5.**
+The depth fix PARTIALLY worked — at t=0.5 the QB explicitly HELD citing "1.7 yards depth" (the new
+depth signal doing its job) — but one step later it threw anyway.
 
-This premature-throw behavior is EXACTLY why we originally gated on the WR call. The
-autonomy/anticipation doctrine reintroduced it. With a weak model (gpt-5-nano), an autonomous QB
-grabs the first cushion-window on every vertical.
-
-### Distance-frame confusion (contributing cause, must fix)
-When the designer says "10 yards deep" / "beat them deep," distances are ALWAYS relative to the WR's
-position — i.e., the WR's downfield progress from his STARTING position (current y minus snap y). They
-are NOT the QB's throw distance (QB-to-target). The observation surfaces throw distance, so the model
-conflated a 12-yard THROW with the WR being "deep," when the WR had only gone ~5 yds from his snap
-spot. Any go-route timing logic must anchor on WR-relative depth, and observations must state which
-frame a distance is in.
+## ROOT CAUSE (found by reading the actual prompt, not the distance frame)
+At the throw step the WR was at y=53.0 and the **CB was at y=55.1 — i.e. the WR had NOT overtaken his
+man** (he was 2.1 yd behind the CB). Two things in the QB prompt CAUSED the early throw, neither of
+which is the distance frame:
+1. **The LEAD HINT lies on a go route.** The observation hands the QB a pre-computed `WR will be
+   ≈(16.0, 59.8) — throw to the projected coord`. That projection assumes the WR keeps his current
+   speed and the CB keeps crawling, so it ALWAYS shows the WR pulling deep/open on a vertical — even
+   while he's still behind the CB. We spoon-fed it a deep target it hadn't earned.
+2. **We never surface the one fact that decides a go route: has the WR passed the CB?** The obs shows
+   both y-values but never says "WR is 2.1 yd BEHIND the CB — he hasn't beaten his man yet."
+Plus the whole observation is pre-chewing the decision (LEAD HINT, options table `sep@arr` +
+`CB clear/contested`, editorial DIRECTION CHECK), AND the same observation — LEAD HINT included — is
+sent in BOTH QB pass 1 and pass 2 (`qb_agent.py:241,271`), so "pass 1 = read it yourself" isn't real.
+The user's reaction: the QB prompting has been vibecoded into a mess and needs a clean redo.
 
 ## NEXT STEP
-**Revert the QB to call-gated, and go further: do NOT invoke the QB agent at all until the WR has
-called for the ball.** Once the WR calls, the QB agent's ONLY job is: (1) place the ball, and
-(2) decide whether/when to throw. Concretely: in `sim/runner.py`, skip the QB decision block entirely
-while `wr_call_visible` is False (QB simply holds). Re-shape `qb_system.txt`/`qb_pass*` around
-"the WR has called — where and when do you put the ball," dropping the anticipation/"a throw is a
-prediction" framing. For the go specifically, encode the correct intent: WR outruns CB → throw OVER
-the CB, led DEEP (WR-relative depth), caught over the shoulder. Then re-run the go route and the suite.
+**Completely redo the QB prompting (next session, with an AI).** Use the three `*_step_example.txt`
+files as the ground-truth picture of what the QB currently sees. Design goals to carry in:
+- Feed the QB FACTS, not pre-computed answers — especially kill/relegate the LEAD HINT and the
+  "throw to the projected coord" spoon-feed; let the QB do the projection.
+- Surface the decisive go-route fact: WR-vs-CB depth (has he overtaken his man, by how much).
+- If keeping two passes, genuinely separate them: pass 1 = QB forms its own read from raw facts;
+  pass 2 = here is the computed arc math for the spot you chose. Don't leak the projection into pass 1.
+- Open question still on the table: whether to gate the QB on the WR's call (memory
+  project_qb_call_gated) — the prompt redo may make gating unnecessary, or confirm it's needed.
 
 ## Open / Future
-- Decide which of this session's changes survive the call-gating rework (break_visible fix and the
-  options-table locked-heading accuracy fix are likely still useful; the QB straight-route anticipation
-  note and the asymmetry paragraph are tied to the autonomy doctrine and probably get removed).
+- Decide which distance-frame changes survive the QB-prompt redo (the WR DOWNFIELD DEPTH line and the
+  throw-distance relabel are honest facts and likely keep; the editorial straight-route DIRECTION
+  CHECK paragraph is the kind of pre-chewing the redo aims to remove).
 - Contested curl still PBU (WR decelerates through the hook). Pre-existing.
 - LLM nondeterminism: single runs aren't proof.
