@@ -92,8 +92,55 @@ CATCH PROBABILITY:
 - Arc choice: flatter arc = less time for the CB to close, but the ball is reachable in the lane. Higher arc = clears the lane but hangs — the CB closes the whole flight.
 - Catch height: chest-high easiest; high-point throws trade WR catch odds for taking the CB out of the play.
 
+=== READ THE ROUTE — ANTICIPATE THE DESTINATION ===
+
+You are told which route the WR is running. The route tells you WHERE he is going before he gets there.
+Use it. Do not just react to his current pixel position.
+
+- Know the shape. A SLANT cuts across the field; a CURL/HOOK turns around and comes BACK toward you at
+  roughly the SAME x, settling into a soft spot; an OUT/COMEBACK breaks to the sideline at the same depth;
+  a GO runs straight past everyone. The throw target lives where the route ENDS, not where the stem is.
+- Heading is noisy for one step during a cut. When a WR plants to break, his instantaneous heading can
+  flash a transient value (a single sideways step) before it settles onto the real break heading. NEVER
+  extrapolate a one-step heading reading. Trust (a) the route's known final heading, and (b) the WR's
+  CALL heading once he calls — that heading is locked; he is committed to it.
+  Example failure to avoid: on a CURL the WR's break flashes a sideways heading for one step; if you
+  project that, you throw 5+ yards to the side of a WR who is actually hooking straight back to you.
+- On a route that comes BACK toward you (curl/hook/comeback), the WR DECELERATES into the catch and
+  settles — do not over-lead him as if he keeps sprinting along the break heading. Throw to the spot he
+  hooks into, around the same x he broke at.
+
+=== WHAT "OPEN" MEANS — A THROW IS A PREDICTION ===
+
+A throw is a PREDICTION, not a reaction. You are not throwing to where the WR is — you are throwing to where
+he WILL BE when the ball arrives, and betting a throwable gap will be there. "Open" is not a state you wait
+to observe; it is a forecast you compute. Build it from two layers, and always use BOTH:
+
+1. ROUTE DESIGN gives you the EXPECTATION — the general shape and timing of where the WR is trying to go
+   (a curl hooks back to ~the same x; a go runs straight past). This is your prior, not the answer.
+2. REAL HISTORY confirms or corrects it. The WR is AI-driven — his timing and exact path vary. So back the
+   expectation up with what is actually on the field: the WR's position, speed, and HEADING over the last
+   few steps, and the CB's position, speed, and heading. Never throw on the route schedule alone.
+
+A window is real only when BOTH of these hold:
+- DIRECTION CONFIRMED: the WR's recent heading history shows he is committed to a route direction — it has
+  swung onto the break and stayed, or he has called (the call heading is locked). A single transient heading
+  reading during a plant is NOT confirmation; it must persist. On a route WITH a break, while he is still on
+  the stem his direction is not confirmed — you cannot yet predict where the catch happens. On a STRAIGHT
+  route (go/fly) there is no break: his direction is confirmed from the snap and openness is just a footrace —
+  he is open once he has overtaken the CB with separation that will hold.
+- SEPARATION PREDICTED: project the WR AND the CB forward to ball-arrival using their current positions,
+  velocities, and directions plus the burst/recovery data. The window is real if the WR reaches a spot with
+  enough separation that the CB cannot cover it. Current separation alone is not the prediction — the CB
+  closes the entire flight; do the projection.
+
+The WR's call is the clearest confirmation of his direction, and with a single receiver it is usually worth
+waiting for. But it is help, not a gate — once his heading history confirms the break, you may predict the
+window and throw on anticipation without it. Every step you then hold lets the CB close.
+
 DECISION LOGIC:
-- Don't throw until the route has had time to develop — watch for the WR's heading to change (the cut).
+- Throw once you can predict the catch point: direction confirmed (route + heading history or the call) AND
+  projected separation at arrival is there.
 - After the cut, use burst/recovery data to project separation at arrival. Current separation is NOT enough.
 - Lead the receiver to his FUTURE position, not where he is now.
 - If CB is in recovery right now: even a close window will open further during ball flight — throw earlier.
