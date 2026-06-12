@@ -361,7 +361,13 @@ def run_play(
                     print(f"  t={t:.1f}  WR called for the ball! heading={wr_agent.call_heading:.0f}deg")
 
             # ── QB decision ──────────────────────────────────────────────
-            if t < 0.5:
+            # The LLM QB is GATED on the WR's call: until the WR declares his break
+            # (locking his heading), the QB just holds and is not asked to decide.
+            # ScriptedQB self-gates via its own throw_t, so it runs as before.
+            if isinstance(qb_agent, QBAgent) and not wr_call_visible:
+                actions["QB"] = {"action": "hold", "reasoning": "waiting for the WR to call for the ball"}
+                print(f"  t={t:.1f}  QB -> 'hold'    | waiting for WR to call")
+            elif t < 0.5:
                 actions["QB"] = {"action": "hold", "reasoning": "route developing"}
                 print(f"  t={t:.1f}  QB -> 'hold'    | route developing")
             else:
@@ -411,6 +417,7 @@ def run_play(
                         cb_y=states["CB1"].y if "CB1" in states else None,
                         cb_heading=states["CB1"].heading if "CB1" in states else None,
                         cb_speed=states["CB1"].speed if "CB1" in states else None,
+                        t=t,
                     )
                 actions["QB"] = qb_action
                 p1 = qb_action.get("pass1")

@@ -1,5 +1,43 @@
 import json
 import re
+from typing import Literal
+
+from pydantic import BaseModel
+
+
+class WRStep(BaseModel):
+    """One 0.1s WR action, tagged with its absolute time t."""
+    t: float
+    heading: float
+    throttle: Literal["accelerate", "coast", "brake"]
+    facing: float
+    call_for_ball: bool
+    reasoning: str
+
+
+class WRPlan(BaseModel):
+    """A timestamped WR plan (1-4 steps) for the LIVE-free phase."""
+    plan: list[WRStep]
+    wr_note: str
+
+
+def wr_plan_steps(plan: WRPlan) -> list[dict] | None:
+    """Convert a validated WRPlan into the per-step dicts the runner consumes.
+
+    Clamps to 4 steps (keep the WR reactive) and tags each step's reasoning with
+    its absolute time t.
+    """
+    steps: list[dict] = []
+    for s in plan.plan[:4]:
+        steps.append({
+            "heading": s.heading % 360.0,
+            "facing": s.facing % 360.0,
+            "throttle": s.throttle,
+            "call_for_ball": s.call_for_ball,
+            "reasoning": f"t={s.t:.1f} {s.reasoning}".strip(),
+            "wr_note": plan.wr_note,
+        })
+    return steps or None
 
 
 def _extract_json(raw: str) -> dict | None:
@@ -34,11 +72,18 @@ def parse_qb_pass1(raw: str) -> dict | None:
         ta = obj.get("target_area")
         if not (isinstance(ta, list) and len(ta) == 2):
             return None
-        return {
+        result = {
             "action": "thinking",
             "target_area": [float(ta[0]), float(ta[1])],
             "reasoning": reasoning,
         }
+        ow = obj.get("open_window")
+        if isinstance(ow, list) and len(ow) == 2:
+            try:
+                result["open_window"] = (float(ow[0]), float(ow[1]))
+            except (TypeError, ValueError):
+                pass
+        return result
     return None
 
 
@@ -168,7 +213,15 @@ def parse_wr_plan(raw: str) -> list[dict] | None:
         step = _normalize_wr_step(raw_step)
         if step is None:
             continue
-        step["reasoning"] = f"[plan {i + 1}/{n}] {reasoning}" if reasoning else f"[plan {i + 1}/{n}]"
+        # Per-step reasoning if the model gave one; else fall back to the plan-level string.
+        step_reasoning = str(raw_step.get("reasoning", "")).strip() or reasoning
+        # Tag with the step's own absolute time t if present (forces the model to face the clock).
+        step_t = raw_step.get("t")
+        if isinstance(step_t, (int, float)):
+            tag = f"t={float(step_t):.1f}"
+        else:
+            tag = f"[plan {i + 1}/{n}]"
+        step["reasoning"] = f"{tag} {step_reasoning}".strip()
         step["wr_note"] = wr_note
         steps.append(step)
 
@@ -176,7 +229,7 @@ def parse_wr_plan(raw: str) -> list[dict] | None:
 
 
 def parse_qb_pass2(raw: str, options: list[dict]) -> dict | None:
-    """Parse pass-2 response: hold or throw (by arc option label + optional target_z)."""
+    """Parse pass-2 response: hold or throw (arc name + target_coord + optional target_z)."""
     from engine.ball import DEFAULT_TARGET_Z, MIN_TARGET_Z, MAX_TARGET_Z
 
     obj = _extract_json(raw)
@@ -187,32 +240,35 @@ def parse_qb_pass2(raw: str, options: list[dict]) -> dict | None:
     if act == "hold":
         return {"action": "hold", "reasoning": reasoning}
     if act == "throw":
+        if not options:
+            return None
         try:
             target_z = float(obj.get("target_z", DEFAULT_TARGET_Z))
         except (TypeError, ValueError):
             target_z = DEFAULT_TARGET_Z
         target_z = max(MIN_TARGET_Z, min(MAX_TARGET_Z, target_z))
 
-        label = str(obj.get("option", "")).strip().lower()
-        matched = next((o for o in options if o["label"] == label), None)
-        if matched is not None:
-            return {
-                "action": "throw",
-                "target_coord": matched["target"],
-                "arc": matched["arc"],
-                "target_z": target_z,
-                "reasoning": reasoning,
-            }
-        # Fallback: model gave target_coord directly — accept with first available arc
+        # Arc: accept "arc" (new) or "option" (legacy label). Fall back to the flattest feasible.
+        arc = str(obj.get("arc", obj.get("option", ""))).strip().lower()
+        valid_arcs = {o["arc"] for o in options}
+        if arc not in valid_arcs:
+            arc = options[0]["arc"]
+
+        # Landing spot: prefer the QB's explicit target_coord; else the arc's reference target.
         tc = obj.get("target_coord")
-        if isinstance(tc, list) and len(tc) == 2 and options:
-            print(f"  [QB pass2 fallback] model used target_coord directly (no option label) — accepted")
-            return {
-                "action": "throw",
-                "target_coord": [float(tc[0]), float(tc[1])],
-                "arc": options[0]["arc"],
-                "target_z": target_z,
-                "reasoning": reasoning,
-            }
-        return None
+        if isinstance(tc, list) and len(tc) == 2:
+            try:
+                target_coord = [float(tc[0]), float(tc[1])]
+            except (TypeError, ValueError):
+                target_coord = next(o["target"] for o in options if o["arc"] == arc)
+        else:
+            target_coord = next(o["target"] for o in options if o["arc"] == arc)
+
+        return {
+            "action": "throw",
+            "target_coord": target_coord,
+            "arc": arc,
+            "target_z": target_z,
+            "reasoning": reasoning,
+        }
     return None

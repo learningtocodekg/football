@@ -1,7 +1,7 @@
 import math
 from pathlib import Path
-from .llm_client import call_llm
-from .schema import parse_wr_pre_snap, parse_wr_live, parse_wr_plan
+from .llm_client import call_llm, call_llm_structured
+from .schema import parse_wr_pre_snap, parse_wr_live, parse_wr_plan, WRPlan, wr_plan_steps
 from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff
 
 _SYSTEM_PROMPT = (Path(__file__).parent / "prompts" / "wr_system.txt").read_text()
@@ -80,9 +80,16 @@ class WRAgent:
 
         # Free phase: request a PLAN, queue the tail, return the first step.
         self.call_count += 1
-        raw = call_llm(_SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT,
-                       self.model, self.reasoning_effort, self.provider)
-        plan = parse_wr_plan(raw)
+        if self.provider == "ollama":
+            raw = call_llm(_SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT,
+                           self.model, self.reasoning_effort, self.provider)
+            plan = parse_wr_plan(raw)
+        else:
+            plan_obj = call_llm_structured(
+                _SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT, WRPlan,
+                self.model, self.reasoning_effort,
+            )
+            plan = wr_plan_steps(plan_obj) if plan_obj is not None else None
         if not plan:
             self.parse_errors += 1
             print(f"  [WR plan parse error] raw={raw[:120]!r}")

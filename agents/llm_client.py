@@ -70,3 +70,38 @@ def call_llm(
         extra = getattr(msg, "model_extra", None) or {}
         content = extra.get("reasoning", "") or ""
     return content
+
+
+def call_llm_structured(
+    system_prompt: str,
+    user_message: str,
+    response_model,
+    model: str = "gpt-5-nano",
+    reasoning_effort: str | None = "low",
+):
+    """OpenAI structured output: returns a validated `response_model` instance (or None).
+
+    Uses chat.completions.parse with a Pydantic schema so the model's output is
+    guaranteed to match — no regex JSON extraction. OpenAI only; callers route
+    Ollama through call_llm + a lenient text parser.
+    """
+    client = _get_openai_client()
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message},
+    ]
+    kwargs: dict = {
+        "model": model,
+        "messages": messages,
+        "response_format": response_model,
+        "max_completion_tokens": 4000,
+    }
+    if reasoning_effort is not None:
+        kwargs["reasoning_effort"] = reasoning_effort
+
+    resp = client.chat.completions.parse(**kwargs)
+    parsed = resp.choices[0].message.parsed
+    if parsed is None:  # retry once
+        resp = client.chat.completions.parse(**kwargs)
+        parsed = resp.choices[0].message.parsed
+    return parsed

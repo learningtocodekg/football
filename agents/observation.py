@@ -74,266 +74,71 @@ def build_qb_observation(
     route: str = "",
     wr_start: tuple[float, float] | None = None,
 ) -> str:
+    """Lean, factual QB observation. No pre-computed throw, no editorial 'open' verdict -
+    the QB anticipates from the raw positions/speeds/history. The QB only runs once the WR
+    has called (heading locked), so we report off the locked call heading."""
     dist_to_wr = _dist(qb, wr)
     wr_depth = (wr.y - wr_start[1]) if wr_start is not None else None
-    v_max = max_ball_speed(qb_attrs.throw_power)
-    arc_strs = []
-    lead_arc, lead_t = None, None
-    for arc in ARC_ANGLES:
-        sol = solve_arc(dist_to_wr, arc)
-        if sol is None or sol[1] > v_max:
-            arc_strs.append(f"{arc}=OUT OF RANGE")
-            continue
-        t_f, _v, peak = sol
-        arc_strs.append(f"{arc}={t_f:.2f}s (peak z={peak:.1f})")
-        if lead_arc is None or arc == "drive":
-            lead_arc, lead_t = arc, t_f
-    if lead_t is None:
-        lead_arc, lead_t = "loft", dist_to_wr / max(v_max * 0.7, 1.0)
-    regular_t = lead_t
+    locked_hdg = wr_call_heading if wr_call_heading is not None else wr.heading
 
-    facing_label, facing_mult = _wr_facing_modifier(wr, qb)
-
-    wr_accel_str = _accel_status(wr.cut_recovery)
     lines = [
-        f"=== QB OBSERVATION  t={t:.1f}s  sack_clock={sack_clock:.1f}s  |  {_down_str(down, distance)} ===",
+        f"=== QB DECISION  t={t:.1f}s  |  sack clock {sack_clock:.1f}s  |  {_down_str(down, distance)} ===",
         "",
     ]
     if route and route in _ROUTE_GEOMETRY:
-        lines += [
-            f"WR IS RUNNING A {route.upper()} ROUTE: {_ROUTE_GEOMETRY[route]}",
-            "  Use this KNOWN shape to anticipate where the WR ENDS UP. During a cut the WR's"
-            " instantaneous heading is noisy for a step or two — trust the route's final heading"
-            " (and the call heading once he calls), not a single transient reading.",
-            "",
-        ]
-    lines += [
-        f"YOU (QB):  pos=({qb.x:.1f}, {qb.y:.1f})  dist_to_left_sideline={qb.x:.1f}yd  dist_to_right_sideline={FIELD_WIDTH - qb.x:.1f}yd",
-        f"WR1 NOW:   pos=({wr.x:.1f}, {wr.y:.1f})  speed={wr.speed:.1f}yd/s  heading={wr.heading:.0f}° ({_heading_label(wr.heading)})  facing={wr.facing:.0f}°",
-        f"  WR dist to sidelines: left={wr.x:.1f}yd  right={FIELD_WIDTH - wr.x:.1f}yd",
-    ]
-    if wr_depth is not None:
-        lines += [
-            f"  WR DOWNFIELD DEPTH: {wr_depth:.1f} yd past the snap. THIS is the frame for every route distance —"
-            f' "10 yards deep" / "beat them deep" means the WR\'s progress downfield from where he started, NOT how far you throw.',
-        ]
-    lines += [
-        f"  WR facing: {facing_label}  (catch probability modifier: {'x{:.2f}'.format(facing_mult)})",
-        f"  WR BURST: {wr_accel_str}",
-    ]
+        lines += [f"Your WR is running a {route.upper()} route: {_ROUTE_GEOMETRY[route]}", ""]
 
-    if cb is not None and cb_attrs is not None:
-        current_sep = _dist(wr, cb)
-        cb_accel_str = _accel_status(cb.cut_recovery)
-        lines += [
-            f"CB1 NOW:   pos=({cb.x:.1f}, {cb.y:.1f})  speed={cb.speed:.1f}yd/s  heading={cb.heading:.0f}°",
-            f"  CB BURST: {cb_accel_str}",
-            f"Current WR-CB separation: {current_sep:.2f} yd  body gap: {max(0.0, current_sep - 2*PLAYER_RADIUS):.1f} yd  (>2.5 yd = open/>1.5 yd gap, 1.5–2.5 yd = contested, <1.5 yd = contact)",
-        ]
-        if cb.cut_recovery >= 2:
-            lines.append(
-                f"  !! CB IN RECOVERY — hip-turned, {cb.cut_recovery} steps of reduced burst. "
-                f"Separation is likely to GROW even if it looks close right now."
-            )
-        elif wr.cut_recovery >= 2:
-            lines.append(
-                f"  NOTE: WR just cut — {wr.cut_recovery} steps of reduced burst. "
-                f"Separation may be about to SHRINK as CB closes."
-            )
-    else:
-        lines.append("CB1: no CB on field this play.")
-
-    # Once the WR has called, his heading is mechanically LOCKED to the call heading —
-    # project off that, not the noisy instantaneous heading at the moment of the cut.
     if wr_called_for_ball and wr_call_heading is not None:
-        proj_hdg = wr_call_heading
-        hdg_src = "locked call heading"
-    else:
-        proj_hdg = wr.heading
-        hdg_src = "current heading"
-    proj_x_reg = wr.x + math.sin(math.radians(proj_hdg)) * wr.speed * regular_t
-    proj_y_reg = wr.y + math.cos(math.radians(proj_hdg)) * wr.speed * regular_t
-    wr_hdg_norm = proj_hdg % 360.0
-    if 90.0 < wr_hdg_norm < 270.0:
-        y_dir = f"DECREASING toward QB (current y={wr.y:.1f} → projected y={proj_y_reg:.1f})"
-    else:
-        y_dir = f"INCREASING upfield (current y={wr.y:.1f} → projected y={proj_y_reg:.1f})"
+        call_str = f" at t={wr_call_t:.1f}s" if wr_call_t is not None else ""
+        lines += [
+            f"He has CALLED for the ball{call_str} and his heading is now LOCKED at {locked_hdg:.0f}deg "
+            f"({_heading_label(locked_hdg)}) - he is committed to this path; only his speed can still change.",
+            "",
+        ]
+
+    depth_str = f"  ({wr_depth:.0f}yd downfield of his snap)" if wr_depth is not None else ""
+    wr_rec = (
+        f"  [recovering from his cut - limited acceleration for {wr.cut_recovery} more steps]"
+        if wr.cut_recovery > 0 else ""
+    )
     lines += [
-        f"ARC FLIGHT TIMES to WR's CURRENT position — THROW DISTANCE (QB→WR) is {dist_to_wr:.1f} yd (distinct from WR depth above): " + "  ".join(arc_strs),
-        f"LEAD HINT: on a {lead_arc} arc ({lead_t:.2f}s flight), projecting off the {hdg_src} ({proj_hdg:.0f}°), "
-        f"WR will be ≈({proj_x_reg:.1f}, {proj_y_reg:.1f}) — WR's y is {y_dir}. Throw to the projected coord, not current pos.",
+        "POSITIONS NOW:",
+        f"  You (QB): ({qb.x:.1f}, {qb.y:.1f})",
+        f"  WR: ({wr.x:.1f}, {wr.y:.1f})  heading {wr.heading:.0f}deg ({_heading_label(wr.heading)})  "
+        f"speed {wr.speed:.1f} yd/s{depth_str}{wr_rec}",
     ]
-
-
-    # WR signal block
-    lines += [""]
-    if broken_play:
+    if cb is not None:
+        sep = _dist(wr, cb)
+        cb_rec = (
+            f"  [recovering from a cut - cannot accelerate for {cb.cut_recovery} more steps]"
+            if cb.cut_recovery > 0 else ""
+        )
         lines += [
-            "!! BROKEN PLAY — WR deviated from route plan. Original cut schedule is void.",
-            "Wait for the WR to call for the ball and look for an open window.",
+            f"  CB: ({cb.x:.1f}, {cb.y:.1f})  heading {cb.heading:.0f}deg  speed {cb.speed:.1f} yd/s{cb_rec}",
+            f"  Separation now (center-to-center): {sep:.1f} yd.",
         ]
-    elif wr_called_for_ball:
-        lines += [
-            f"** WR CALLED FOR BALL at t={wr_call_t:.1f}s — heading {wr_call_heading:.0f}° ({_heading_label(wr_call_heading)}) **",
-            "WR is committed to this path (heading locked). Speed may vary. Lead him where he will be when ball arrives.",
-            "If coverage is too tight, hold — WR stays on this path.",
-        ]
-        # Go-route hint: CB plays cushion ahead of WR, throw must clear CB
-        if cb is not None and expected_open_t is not None and expected_open_t >= 9.0:
-            cb_y = cb.y
-            lines += [
-                f"GO ROUTE — CB plays CUSHION (ahead of WR at y={cb_y:.1f}). Your throw target MUST be further upfield than y={cb_y:.1f}.",
-                f"  If you throw to WR's current projected y and the CB is at y={cb_y:.1f}, the CB is already between the ball and the WR.",
-                f"  Throw PAST the CB: target y > {cb_y:.1f}. On a go route, use a lob and aim deep enough that the WR runs under it.",
-            ]
+    else:
+        lines.append("  CB: none on the field this play.")
+    lines.append(
+        f"  Throw distance you->WR right now: {dist_to_wr:.1f} yd.  WR top speed: {wr_attrs.max_speed:.1f} yd/s."
+    )
+
+    if history and cb is not None:
+        recent = history[-HISTORY_WINDOW:]
         lines += [
             "",
-            "WR CALLED FOR BALL — use your own judgment:",
-            "  A WR calling for the ball means he believes he will be open soon. It does NOT mean you must throw immediately.",
-            "  Check: is coverage actually open right now? Is the CB still closing? Is the WR in the right position?",
-            "  If coverage looks tight, hold — the WR will maintain his heading.",
-            "  If coverage is open, throw now. Every step you wait gives the CB more time to close.",
+            "RECENT MOVEMENT (every 0.1s - read the trend in speed and separation):",
+            f"  {'t':>5}  {'WR pos':>14}  {'spd':>5}  {'CB pos':>14}  {'spd':>5}  {'sep':>5}",
         ]
-    else:
-        if expected_open_t is not None and expected_open_t < 9.0:
+        for h in recent:
+            wx_h, wy_h = h["wr"]
+            cx_h, cy_h = h["cb"]
+            sep_h = math.hypot(wx_h - cx_h, wy_h - cy_h)
             lines.append(
-                f"ROUTE HINT: WR expected to break around t={expected_open_t:.1f}s — "
-                "WR has NOT yet called for the ball."
+                f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h.get('wr_spd', 0.0):>5.1f}"
+                f"  ({cx_h:5.1f},{cy_h:5.1f})  {h.get('cb_spd', 0.0):>5.1f}  {sep_h:>5.1f}"
             )
-        if detected_cut_t is not None:
-            if expected_open_t is not None and abs(detected_cut_t - expected_open_t) <= 0.4:
-                lines.append(f"DETECTED: WR made a significant heading change at t={detected_cut_t:.1f}s — this matches the expected route cut (t≈{expected_open_t:.1f}s).")
-            else:
-                lines.append(f"DETECTED: WR made a heading change at t={detected_cut_t:.1f}s — likely a jab/fake (real cut expected around t≈{expected_open_t:.1f}s).")
-        # A straight route (go/fly) has no break — every phase heads upfield. Direction is confirmed at the snap.
-        straight_route = bool(route_phases) and all(
-            abs((hdg - 0.0 + 180.0) % 360.0 - 180.0) <= 30.0 for _, hdg in route_phases
-        )
-        # Is the route's defining break actually VISIBLE yet? A break is confirmed only when the WR's
-        # heading has SWUNG ONTO the break AND left the stem — not merely when a shallow break angle
-        # (slant 45°, post 30°) happens to sit near the upfield stem heading. Require the heading to
-        # (a) sit on the break, (b) have persisted there for 2+ of the last 3 reads (no one-step plant
-        # flash), and (c) be a real departure from the stem (a confirmed cut, or heading well off the stem).
-        break_visible = None
-        if not straight_route and route_phases and expected_open_t is not None and expected_open_t < 9.0:
-            final_break_hdg = route_phases[-1][1]
-            stem_hdg = route_phases[0][1]
-            gap_to_break = abs((wr.heading - final_break_hdg + 180.0) % 360.0 - 180.0)
-            gap_to_stem = abs((wr.heading - stem_hdg + 180.0) % 360.0 - 180.0)
-            recent_hdgs = [h["wr_hdg"] for h in (history or [])[-2:]] + [wr.heading]
-            near_break = sum(
-                1 for hh in recent_hdgs
-                if abs((hh - final_break_hdg + 180.0) % 360.0 - 180.0) <= 35.0
-            )
-            departed_stem = (detected_cut_t is not None) or (gap_to_stem >= 25.0)
-            break_visible = gap_to_break <= 35.0 and near_break >= 2 and departed_stem
-        if straight_route:
-            depth_str = (
-                f"WR is {wr_depth:.1f} yd downfield of the snap"
-                if wr_depth is not None else "watch the WR's downfield depth"
-            )
-            deep_enough = wr_depth is not None and wr_depth >= 10.0
-            lines += [
-                "DIRECTION CHECK: STRAIGHT route — no break, no cut coming. His direction is confirmed from the snap; "
-                f"openness is a pure footrace. {depth_str}. The route wants him ~10+ yd downfield before the speed "
-                "gap on the cushion becomes real — "
-                + ("he is past that depth now; "
-                   if deep_enough else
-                   "he is NOT there yet, so the current cushion is just pre-snap spacing, not earned separation; ")
-                + "anticipate the moment his pace breaks the cushion and lead him DEEP (throw it past/over the CB so "
-                "the WR runs under it), not a flat ball into the cushion in front of the CB.",
-            ]
-        elif break_visible is False:
-            lines += [
-                f"DIRECTION CHECK: WR heading {wr.heading:.0f}° is still on the STEM — it has not swung to the route's "
-                f"{route_phases[-1][1]:.0f}° break. His committed direction is NOT confirmed yet.",
-                "You predict openness from a CONFIRMED direction. Until his heading history confirms the break, you cannot "
-                "project where the catch happens — so you cannot yet know separation will be there.",
-            ]
-        elif break_visible is True:
-            lines += [
-                f"DIRECTION CHECK: WR heading {wr.heading:.0f}° now matches the route's {route_phases[-1][1]:.0f}° break — "
-                "his committed direction is confirmed (even without a call).",
-                "Now make the prediction: project the WR AND the CB forward to ball-arrival from their current positions, "
-                "speeds, and headings. If the WR reaches a spot with separation the CB cannot cover, the window is real.",
-            ]
-        else:
-            lines += [
-                "DIRECTION CHECK: WR has not called and his heading has not yet swung to the route's break — his committed "
-                "direction is not confirmed.",
-                "Predict openness only once his heading history confirms the break (or he calls). Then project both players "
-                "forward and judge whether the separation will be there.",
-            ]
 
-    if route_phases:
-        lines += ["", "WR ROUTE SCHEDULE (guideline — WR is AI-driven, actual timing may vary):"]
-        proj_x, proj_y = wr.x, wr.y
-        proj_hdg = wr.heading
-        proj_t = t
-        for cut_t, cut_hdg in route_phases:
-            if cut_t >= 999:
-                continue
-            label = _heading_label(cut_hdg)
-            if t >= cut_t:
-                lines.append(f"  t={cut_t:.1f}s  cut to {cut_hdg:.0f}° ({label})  [DONE]")
-            else:
-                dt = cut_t - proj_t
-                proj_x += math.sin(math.radians(proj_hdg)) * wr.speed * dt
-                proj_y += math.cos(math.radians(proj_hdg)) * wr.speed * dt
-                lines.append(
-                    f"  t={cut_t:.1f}s  cut to {cut_hdg:.0f}° ({label})  "
-                    f"[in ~{cut_t - t:.1f}s — WR est. near ({proj_x:.1f}, {proj_y:.1f})]"
-                )
-                proj_hdg = cut_hdg
-                proj_t = cut_t
-        final_hdg = route_phases[-1][1]
-        lines.append(f"  after last cut: WR runs {final_hdg:.0f}° ({_heading_label(final_hdg)}) — lead him")
-
-    if history:
-        recent = history[-HISTORY_WINDOW:]
-        if cb is not None:
-            lines += [
-                "",
-                "MOVEMENT HISTORY (rec=cut_recovery — when rec>0, that player cannot burst freely):",
-                f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR rec':>7}  {'CB pos':>14}  {'CB hdg':>7}  {'CB rec':>7}  {'sep':>6}",
-            ]
-            for h in recent:
-                wx_h, wy_h = h["wr"]
-                cx_h, cy_h = h["cb"]
-                sep_h = math.hypot(wx_h - cx_h, wy_h - cy_h)
-                wr_cut = h.get("wr_cut_rec", 0)
-                cb_cut = h.get("cb_cut_rec", 0)
-                wr_rec_str = f"{wr_cut}rec" if wr_cut > 0 else "free"
-                cb_rec_str = f"{cb_cut}rec" if cb_cut > 0 else "free"
-                lines.append(
-                    f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°  {wr_rec_str:>7}"
-                    f"  ({cx_h:5.1f},{cy_h:5.1f})  {h['cb_hdg']:>6.0f}°  {cb_rec_str:>7}  {sep_h:>6.2f}"
-                )
-        else:
-            lines += [
-                "",
-                "MOVEMENT HISTORY (most recent last):",
-                f"  {'t':>5}  {'WR pos':>14}  {'WR hdg':>7}  {'WR spd':>7}  {'WR rec':>7}",
-            ]
-            for h in recent:
-                wx_h, wy_h = h["wr"]
-                wr_cut = h.get("wr_cut_rec", 0)
-                rec_str = f"{wr_cut}rec" if wr_cut > 0 else "free"
-                lines.append(
-                    f"  {h['t']:>5.1f}  ({wx_h:5.1f},{wy_h:5.1f})  {h['wr_hdg']:>6.0f}°  {h.get('wr_spd', 0.0):>6.1f}  {rec_str:>7}"
-                )
-
-    lines += [
-        "",
-        f"YOUR ARM: max ball speed {v_max * YD_S_TO_MPH:.0f} mph — bullet feasible to ≈{max_range('bullet', v_max):.0f} yd, "
-        f"max range ≈{max_range('loft', v_max):.0f} yd on a loft.",
-        "The ball flies a real 3D arc. Flatter arcs (bullet/drive) arrive sooner but pass through the lane "
-        "at reachable height; higher arcs (touch/loft) clear underneath defenders but hang longer — the CB closes the whole time.",
-        "Lead the WR — throw to where he WILL BE, not where he is. A throw is a prediction: use the route shape for the "
-        "general expectation of his path, then confirm it against his real position/heading/speed history before you commit.",
-        "The WR's call is the clearest confirmation of his direction and is usually worth waiting for, but it is not a gate — "
-        "once his heading history confirms the break, predict the separation at arrival and throw if the window will be there.",
-    ]
     return "\n".join(lines)
 
 
@@ -616,30 +421,36 @@ def _wr_facing_modifier(wr: PlayerState, qb: PlayerState) -> tuple[str, float]:
         return "facing away from QB (running blind)", 0.80
 
 
+# One short line per route. Depths are WR-relative (downfield from his snap spot).
+# WR1 is on the LEFT, so 90°=inside (toward middle), 270°=toward his sideline.
 _ROUTE_GEOMETRY: dict[str, str] = {
-    "go": "GO / FLY — the first ~10 yards DOWNFIELD OF THE SNAP (the WR's depth, not your throw distance) are the stem; the 'break' is simply to keep running straight. Beat the CB deep with pure speed. Somewhere in the stem the WR can sell a fake break (a sudden head/shoulder fake without turning) to flip the CB's hips while he accelerates straight past. Win it by leading him DEEP and throwing OVER the CB so he runs under it.",
-    "slant": "SLANT — stem upfield 2-3 steps, then cut sharp diagonally ACROSS the field (heading ~135deg or ~45deg toward the QB side). Low-depth crossing route.",
-    "curl": "CURL — stem upfield 4-6 steps, then HOOK BACK toward the QB (heading ~180deg). You turn around and come back to the ball. Final heading is roughly back toward QB.",
-    "comeback": "COMEBACK — stem upfield 6-8 steps toward the sideline, then break BACK toward the sideline at the same depth (heading ~270deg if left, ~90deg if right). You stop going upfield and come back flat.",
-    "in": "IN (DIG) — stem upfield 4-5 steps, then cut HARD across the field toward the opposite hash (heading ~90deg or ~270deg). Sharp flat cross.",
-    "out": "OUT — stem upfield 4-5 steps, then cut HARD to the sideline (heading ~270deg or ~90deg).",
-    "corner": "CORNER — stem upfield, make an inside fake, then break diagonally to the CORNER of the end zone (heading ~315deg or ~45deg). Ends outside and deep.",
-    "post": "POST — stem upfield, make an outside fake, then break diagonally toward the GOALPOST (heading ~45deg or ~315deg). Ends inside and deep.",
-    "post_corner": "POST-CORNER — three committed phases: stem upfield, break toward post (~45deg), then break back to corner (~315deg). Each phase must be held for multiple steps.",
-    "zig": "ZIG — stem upfield, make a hard break at one angle (e.g. ~45deg or ~135deg), then snap to the opposite angle. Two distinct committed cuts.",
-    "double_move": "DOUBLE MOVE — run an initial route convincingly for 3-4+ steps to commit the CB's hips, then snap hard to the opposite direction. The fake must look real.",
-    "drag": "DRAG — flat crossing route at very low depth (~1-3 yards past LOS), heading directly across the field toward the opposite hash. Stays low and flat.",
+    "go":          "GO/FLY - sprint straight upfield (0 deg), no break. He has to beat the CB deep with pure speed; lead him over the top.",
+    "slant":       "SLANT - 5yd stem, then a quick break inside across the field (45 deg). Short and fast.",
+    "post":        "POST - 10yd stem, then break inside toward the goalpost (30 deg), heading deep.",
+    "curl":        "CURL - 10yd stem, then hook back toward you (180 deg) and settle ~2yd back; he decelerates into it.",
+    "comeback":    "COMEBACK - 12yd stem, then plant and break back down toward the sideline (225 deg); he decelerates into it.",
+    "out":         "OUT - 10yd stem, then break flat to the sideline (270 deg).",
+    "in":          "IN/DIG - 10yd stem, then cut hard inside across the field (90 deg).",
+    "corner":      "CORNER - 10yd stem, then break to the deep sideline corner (315 deg).",
+    "post_corner": "POST-CORNER - 10yd stem, fake inside to the post (45 deg), then break back out to the corner (315 deg).",
+    "zig":         "ZIG - 5yd stem, jab inside (90 deg), then snap out to the sideline (270 deg).",
+    "double_move": "DOUBLE MOVE - 8yd stem, fake inside (90 deg), then snap back vertical (0 deg) and go deep.",
+    "drag":        "DRAG - shallow 4yd stem, then a flat cross inside (90 deg); stays low.",
 }
 
 
-def _est_yards(threshold: float, from_rest: bool = True, max_speed: float = 8.5, accel: float = 14.0) -> int:
-    """Estimate yards traveled over `threshold` seconds."""
-    if from_rest:
-        t_max = max_speed / accel
-        if threshold <= t_max:
-            return round(0.5 * accel * threshold ** 2)
-        return round(0.5 * accel * t_max ** 2 + max_speed * (threshold - t_max))
-    return round(max_speed * threshold)
+def _est_yards(threshold: float, from_rest: bool = True, max_speed: float = 9.5, accel: float = 14.0) -> int:
+    """Estimate yards traveled over `threshold` seconds under the real burst-accel model.
+
+    engine.physics.apply_action accelerates with burst = accel * (1 - v/max_speed), so speed
+    approaches max_speed asymptotically: v(t) = max_speed * (1 - e^(-k t)), k = accel/max_speed.
+    Integrating gives distance. (The old constant-accel-to-cap model overshot ~25%.)
+    """
+    if not from_rest or accel <= 0 or max_speed <= 0:
+        return round(max_speed * threshold)
+    k = accel / max_speed
+    dist = max_speed * threshold - (max_speed / k) * (1.0 - math.exp(-k * threshold))
+    return round(dist)
 
 
 def _phase_instruction(route_phases: list[tuple[float, float]], cut_time: float, cut_heading: float) -> str:
@@ -811,6 +622,8 @@ def build_wr_observation(
         if is_final:
             lines += [
                 f"YOUR HEADING NOW: {phase_heading:.0f}° ({_heading_label(phase_heading)}) — this is your final break. Run it.",
+                f"  PLAN WINDOW: you are at t={t:.1f}s — this plan may cover t={t + 0.1:.1f} through t={t + 0.4:.1f} (1-4 steps). "
+                f"You are in the cut window now.",
                 "",
             ]
         else:
@@ -819,12 +632,27 @@ def build_wr_observation(
             snap_y = wr_start[1] if wr_start else wr.y
             cut_depth = _est_yards(phase_thresh, from_rest=True,
                                    max_speed=wr_attrs.max_speed, accel=wr_attrs.acceleration)
+            earliest_depth = max(0.0, cut_depth - 2.5)
+            wr_depth_now = wr.y - snap_y
+            stem_left = max(0.0, cut_depth - wr_depth_now)
+            ticks_to_break = max(0, round(time_left / 0.1))
             lines += [
                 f"YOUR HEADING NOW: {phase_heading:.0f}° ({_heading_label(phase_heading)}) | ~{time_left:.1f}s remaining, then cut to {next_heading:.0f}°",
-                f"  CUT TARGET: break to {next_heading:.0f}° at t≈{phase_thresh:.1f}s (±0.4s) and ~{cut_depth}yd downfield of the snap "
-                f"(y≈{snap_y + cut_depth:.0f}, ±2.5yd). Aim for this; break earlier only if the CB clearly opens it.",
-                "",
+                f"  CUT TARGET: your break is at t≈{phase_thresh:.1f}s and ~{cut_depth}yd downfield (y≈{snap_y + cut_depth:.0f}), "
+                f"margin ±0.4s / ±2.5yd. You are {wr_depth_now:.0f}yd into the stem — about {stem_left:.0f}yd of stem left.",
+                f"  The stem is what creates the separation: it pulls the CB's weight upfield so your break leaves him behind. "
+                f"Break short of ~{earliest_depth:.0f}yd and the CB is still on your hip when the ball arrives — the route never "
+                f"developed, no separation. That margin is your room to feel the timing; a CB wrong-way commit (rec>0) is what "
+                f"lets you break sooner.",
             ]
+            break_in_window = phase_thresh <= t + 0.4 + 1e-9
+            lines.append(
+                f"  PLAN WINDOW: you are at t={t:.1f}s — this plan may cover t={t + 0.1:.1f} through t={t + 0.4:.1f} (1-4 steps). "
+                f"Your break at t≈{phase_thresh:.1f}s is {'INSIDE' if break_in_window else 'BEYOND'} this window"
+                + ("." if break_in_window
+                   else f"; a break or call placed in this plan fires at t≤{t + 0.4:.1f}s, before the cut window.")
+            )
+            lines.append("")
 
     # ── Pre-snap plan + note ──────────────────────────────────────────────────
     lines += [

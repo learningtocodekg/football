@@ -1,15 +1,21 @@
-STEP 1 OF 2 — READ THE FIELD.
+STEP 1 of 2 - IS THERE A WINDOW?
 
-Look at the situation. Do you see a throw developing right now, or do you want to wait?
+Your WR is locked on his break. Project both players forward from the positions, headings, and speeds above, and from the trend in the recent-movement table: the WR keeps running his locked heading; the CB chases from where he is.
 
-If you want to wait: respond with hold.
-If you see a window: respond with thinking and give the coordinates where you want the ball to LAND — the actual spot on the field. This must be a place where the WR will realistically be when the ball arrives. You are not committing yet, this is just your read.
-(target_area is the 2D ground spot [x, y]. You will choose the arc and catch height in step 2.)
+Is a window coming - a stretch of time in the next ~0.3 to 1.5 seconds when the WR will have 1.8+ yd of separation - that you could land the ball in? The ball needs travel time, so the real question is "will he be open soon, when, and where."
 
-Respond with JSON only.
+- If there is NO clear window yet: hold. You get a fresh read 0.1s later.
+- If there IS: give the time span he will be open and the spot to aim (where he will be during that span).
 
-Hold:
-{"action": "hold", "reasoning": "one sentence why"}
+Examples:
+  WR (16.0, 60.0) heading 0 deg at 9.0 yd/s, CB (16.0, 62.0) heading 0 deg at 8.5 yd/s, sep 2.0 and growing (CB a step behind on a go):
+    {"action": "thinking", "target_area": [16.0, 68.0], "open_window": [0.9, 1.5], "reasoning": "WR is pulling away deep, 2+ yd clear from ~0.9s on, running through roughly (16,66) to (16,70)"}
 
-Thinking (seeing a window):
-{"action": "thinking", "target_area": [x, y], "reasoning": "one sentence — where is the WR going and why is this a good landing spot"}
+  WR (20.0, 58.0) heading 90 deg at 8.0 yd/s just broke on a dig, CB (18.0, 58.0) heading 90 deg at 6.0 yd/s still turning, sep 2.0:
+    {"action": "thinking", "target_area": [27.0, 58.5], "open_window": [0.5, 0.9], "reasoning": "WR crosses into space while the CB is still recovering the turn, open ~0.5 to 0.9s around (26-29, 58)"}
+
+  WR (16.0, 57.0) heading 0 deg at 9.0 yd/s, CB (16.0, 57.6) heading 0 deg at 9.0 yd/s, sep 0.6 and flat (CB stride for stride):
+    {"action": "hold", "reasoning": "no separation, CB is matching him step for step, no window yet"}
+
+Hold:   {"action": "hold", "reasoning": "..."}
+Window: {"action": "thinking", "target_area": [x, y], "open_window": [t_from, t_to], "reasoning": "..."}

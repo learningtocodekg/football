@@ -4,6 +4,10 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 ## Realism work — 2026-06-11 (merged to main)
 - **P1 WR plan cadence**: WRAgent emits a PLAN of 1–4 per-step actions (`schema.parse_wr_plan`), consumed
   from a queue with no LLM call until exhausted; aborts only when the ball is thrown. Runner unchanged.
+  **2026-06-12: plan is now TIMESTAMPED + Pydantic structured output** (`WRStep`/`WRPlan` via
+  `chat.completions.parse`, OpenAI path; Ollama keeps lenient `parse_wr_plan`). Each step carries absolute
+  `t` (window `[T+0.1, T+0.4]`) + its own reasoning — this is what finally made the WR hold its stem to the
+  cut window (t≈0.9 on the slant) instead of breaking at t=0.2.
 - **P2 deterministic three-zone catch** (`resolution.resolve`): sep≥1.8 → CATCH; sep≤1.0 → CB win (INT if
   go_for_pick+arm/facing else PBU); 1.0–1.8 = the only rolled band (attrs/intent weight one roll). Removed
   the sigmoid/floor and the catch-rating-multiplies-everything bug. CB intent autonomy + INT preserved.
@@ -27,8 +31,8 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 - agents/wr_agent.py (three-pass: pre_snap / decide / ball_in_air; call-for-ball state machine; locked heading; broken play)
 - agents/scripted.py — ScriptedWR (4 routes), ScriptedCB (legacy), ScriptedQB (route-aware lead throw)
 - agents/observation.py — _accel_status() helper; build_qb_observation (CB burst/recovery lines, WR burst, extended history table with rec columns, separation trend alerts); build_cb_observation (WR/CB burst lines, WR-hip-turned alert, extended history table with rec columns); build_wr_observation (WR/CB burst lines, CB-hip-turned alert, extended history table with rec/spd columns); build_wr_pre_snap_observation, build_cb_pre_snap_observation, build_cb_intent_observation, _wr_facing_modifier
-- agents/schema.py — QB parsers + CB parsers + WR parsers (parse_wr_pre_snap, parse_wr_live)
-- agents/llm_client.py (OpenAI + Ollama)
+- agents/schema.py — QB parsers + CB parsers + WR parsers (parse_wr_pre_snap, parse_wr_live, parse_wr_plan); Pydantic WRStep/WRPlan + wr_plan_steps() for structured-output WR plans
+- agents/llm_client.py (OpenAI + Ollama; call_llm_structured() = chat.completions.parse with a Pydantic response_format)
 - agents/prompts/ — qb_system (physics/burst/recovery scenarios), qb_pass1, qb_pass2, cb_system (physics + patience doctrine), cb_pre_snap, cb_pass1 (burst-aware decision framework), cb_pass2, wr_system (physics + three deception patterns), wr_pre_snap, wr_live_free (burst-aware framework), wr_live_committed, wr_live_broken, wr_ball_in_air
 - sim/runner.py — A2 + A3 + A4 modes; WR pre-snap; per-step WR decide; call-for-ball one-step delay; OOB broken play trigger; heading lock; cut_recovery in move_history entries; 3D throw path (arc/target_z, infeasible→hold); mid-flight lane contest (ball ≤0.75yd from CB at z≤3.0, CB facing → tip/pick roll, once per flight, >3yd from catch point)
 - sim/seeds.py, rosters/default.yaml
@@ -81,6 +85,19 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 **CB observation — raw geometry, no option labels:**
 - `_cb_situation()` emits a lean `GEOMETRY:` block: separation, bearing, WR projected pos in 0.5s, intercept bearing
 - No option labels, no tradeoff descriptions, no wr_motion prose
+
+## WR early-break — FIXED 2026-06-12 (timestamped structured-output plan)
+- Long-standing "WR ignores route geometry / breaks at t=0.2" is resolved on the slant + go stem. Root
+  cause was a blind batched plan (break+call baked into the first t=0.0 plan, served from the queue with no
+  fresh CB look) + cloned per-step reasoning that masked it. Prompt-only fixes failed (REQUIRE language
+  broke the freedom principle and was reverted; factual reframe and a "tick-math" fact both still broke
+  early — the model even rationalized a 0.3–0.4s stem from the tick fact). The fix that stuck: force each
+  plan step to carry its absolute `t` via a Pydantic structured-output schema, so the model can't pretend a
+  4-step (0.4s) plan reaches the 1.0s break. slant = CATCH sep 4.35, WR held stem to t=0.9. Freedom intact
+  (it re-plans each tick and chooses to hold). **Not yet run across the full 10-route suite.**
+- **Loft hang-time / WR air overshoot (open, QB thread)**: go ended INCOMPLETE (sep 2.34) NOT from the stem
+  — QB lofted 17.6yd (~1.9s hang), WR reached the fixed landing spot too early then thrashed
+  brake/accelerate and overshot. Parked for the QB thread.
 
 ## Known Issues (post-R15 regression fixes, full re-run pending)
 
@@ -153,6 +170,7 @@ Shadow model working: play_man on 8/10 routes, doom loop eliminated, sep at thro
 - CB overhaul (code+prompts, smoke tested): slant smoke CATCH sep=5.52 — CB correctly computed sprint_time > ETA → play_man. CUT CONFIRMED line working.
 - Round 15 (GPT-5-nano, seed 42, CB changes): **4C/1PBU/5INC** — regression from R14. Root cause: Window A heading lock bug (WR calling with stem heading 0° instead of break heading). R15 fixes landed: wr_live_free.txt heading note, wr_ball_in_air.txt brake guidance, cb_pass2.txt WR-ETA check. Two-route sanity: slant INT→PBU (improved), curl still INCOMPLETE (overshoot). Full re-run with fixes pending.
 - QB autonomy session (GPT-5-nano, seed 42, two-route sanity): **curl CATCH** (throw_t=2.7s, sep=5.02 — lead-hint call-heading fix + prediction doctrine) / **go SACK** (sep=6.62, QB never threw — straight-route fix added afterward, UNVERIFIED). Full suite not run.
+- WR stem-fix session (GPT-5-nano, seed 42, timestamped structured-output plan): **slant CATCH sep=4.35** — WR held stem to t=0.9, broke at cut window (was t=0.2), 0 parse errors. **go INCOMPLETE sep=2.34** — early-deep-throw FIXED (held stem, called t=0.9, throw t=1.5 not t=0.2) but lost to a separate loft hang-time/WR-overshoot issue (QB thread). Full suite not yet run.
 
 ## Not Started
 B–E phases

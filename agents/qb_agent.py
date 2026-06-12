@@ -73,6 +73,8 @@ def _build_options(
     cb_heading: float | None = None,
     cb_speed: float | None = None,
     target_z: float = DEFAULT_TARGET_Z,
+    t_now: float = 0.0,
+    open_window: tuple[float, float] | None = None,
 ) -> tuple[list[dict], str]:
     """Generate one throw option per arc at the target, with real 3D flight physics."""
     tx, ty = target
@@ -81,7 +83,6 @@ def _build_options(
         dist = 0.01
 
     v_max = max_ball_speed(throw_power)
-    recovery_time = wr_cut_recovery * 0.1  # seconds the WR is still rebuilding speed
 
     options = []
     out_of_range = []
@@ -95,6 +96,10 @@ def _build_options(
             out_of_range.append(arc)
             continue
         eta = t_flight
+        arrival_t = round(t_now + t_flight, 2)
+        in_window = (
+            open_window is not None and open_window[0] <= arrival_t <= open_window[1]
+        )
         # Project WR forward by eta using current heading/speed (constant-speed estimate)
         wr_proj_x = wr_x + math.sin(math.radians(wr_heading)) * wr_speed * eta
         wr_proj_y = wr_y + math.cos(math.radians(wr_heading)) * wr_speed * eta
@@ -108,24 +113,11 @@ def _build_options(
             "mph": round(speed * YD_S_TO_MPH, 1),
             "peak_z": round(peak_z, 1),
             "eta": round(eta, 2),
+            "arrival_t": arrival_t,
+            "in_window": in_window,
             "wr_at_arrival": [round(wr_proj_x, 1), round(wr_proj_y, 1)],
             "wr_offset": round(wr_offset, 1),
         }
-
-        # ── Recovery-aware projection: WR rebuilds to max speed during flight ──
-        if wr_cut_recovery > 0:
-            if eta <= recovery_time:
-                rec_proj_x, rec_proj_y = wr_proj_x, wr_proj_y
-            else:
-                # Phase 1: recovery_time seconds at current (slow) speed
-                mid_x = wr_x + math.sin(math.radians(wr_heading)) * wr_speed * recovery_time
-                mid_y = wr_y + math.cos(math.radians(wr_heading)) * wr_speed * recovery_time
-                # Phase 2: remaining time at recovered max speed
-                free_time = eta - recovery_time
-                rec_proj_x = mid_x + math.sin(math.radians(wr_heading)) * wr_max_speed * free_time
-                rec_proj_y = mid_y + math.cos(math.radians(wr_heading)) * wr_max_speed * free_time
-            opt["wr_at_arrival_recovered"] = [round(rec_proj_x, 1), round(rec_proj_y, 1)]
-            opt["wr_offset_recovered"] = round(math.hypot(tx - rec_proj_x, ty - rec_proj_y), 1)
 
         # ── CB projected position at arrival ─────────────────────────────────
         if cb_x is not None and cb_y is not None:
@@ -137,77 +129,59 @@ def _build_options(
             sep_at_arrival = math.hypot(wr_proj_x - cb_proj_x, wr_proj_y - cb_proj_y)
             opt["cb_at_arrival"] = [round(cb_proj_x, 1), round(cb_proj_y, 1)]
             opt["sep_at_arrival"] = round(sep_at_arrival, 1)
-            if sep_at_arrival < 1.5:
-                opt["cb_context"] = "CB arrives tight"
-            elif sep_at_arrival < 2.5:
-                opt["cb_context"] = "CB contested"
-            else:
-                opt["cb_context"] = "CB clear"
             opt["lane"] = _lane_note(qb_x, qb_y, tx, ty, t_flight,
                                      cb_x, cb_y, cb_heading, cb_speed, arc, target_z)
 
         options.append(opt)
 
-    show_recovery = wr_cut_recovery > 0
     show_cb = cb_x is not None and cb_y is not None
 
+    win_str = (
+        f"  (you want the ball to ARRIVE between t={open_window[0]:.1f}s and t={open_window[1]:.1f}s)"
+        if open_window is not None else ""
+    )
     lines = [
-        f"  Throw options to ({tx:.1f},{ty:.1f}) — {dist:.1f} yd, catch height z={target_z:.1f} (you may change target_z, 0.3–3.0):",
+        f"  Arc options to ({tx:.1f},{ty:.1f}) - throw distance {dist:.1f} yd, catch height z={target_z:.1f}.{win_str}",
     ]
     if show_cb:
         lines += [
-            "  arc       flight   mph   peak_z   WR at arrival        CB at arrival     sep@arr",
-            "  ------    ------   ---   ------   -------------------  ---------------   -------",
+            "  arc       flight   arrives@   WR at arrival        CB at arrival      sep@arr",
+            "  ------    ------   --------   -------------------  -----------------  -------",
         ]
+        for o in options:
+            sep = o.get("sep_at_arrival")
+            cb_arr = o.get("cb_at_arrival", [0.0, 0.0])
+            sep_str = f"{sep:.1f}yd" if isinstance(sep, float) else "?"
+            mark = "  <-- arrives in your window" if o.get("in_window") else ""
+            note = o.get("lane", "")
+            note_str = f"  [{note}]" if note and "clear" not in note else (f"  [{note}]" if note else "")
+            lines.append(
+                f"  {o['label']:<8}  {o['t_flight']:.2f}s   t={o['arrival_t']:<5.1f}"
+                f"  ({o['wr_at_arrival'][0]:.1f},{o['wr_at_arrival'][1]:.1f})  "
+                f"({cb_arr[0]:.1f},{cb_arr[1]:.1f})   {sep_str:>6}{note_str}{mark}"
+            )
     else:
         lines += [
-            "  arc       flight   mph   peak_z   WR will be at arrival    offset from ball",
-            "  ------    ------   ---   ------   --------------------     ----------------",
+            "  arc       flight   arrives@   WR at arrival",
+            "  ------    ------   --------   -------------------",
         ]
-    for o in options:
-        catchable = "CATCHABLE" if o["wr_offset"] <= 1.3 else f"MISS by {o['wr_offset']}yd"
-        if show_cb:
-            sep = o.get("sep_at_arrival", "?")
-            cb_arr = o.get("cb_at_arrival", ["?", "?"])
-            sep_str = f"{sep:.1f}yd" if isinstance(sep, float) else "?"
+        for o in options:
             lines.append(
-                f"  {o['label']:<8}  {o['t_flight']:.2f}s   {o['mph']:.0f}    {o['peak_z']:>4.1f}    "
-                f"({o['wr_at_arrival'][0]:.1f},{o['wr_at_arrival'][1]:.1f})  "
-                f"({cb_arr[0]:.1f},{cb_arr[1]:.1f})   {sep_str}  [{o.get('cb_context','')}; {o.get('lane','')}]"
-            )
-        else:
-            lines.append(
-                f"  {o['label']:<8}  {o['t_flight']:.2f}s   {o['mph']:.0f}    {o['peak_z']:>4.1f}    "
-                f"({o['wr_at_arrival'][0]:.1f},{o['wr_at_arrival'][1]:.1f})   {catchable}"
-            )
-        if show_recovery and "wr_at_arrival_recovered" in o:
-            rec = o["wr_at_arrival_recovered"]
-            rec_catchable = "CATCHABLE" if o["wr_offset_recovered"] <= 1.3 else f"MISS by {o['wr_offset_recovered']}yd"
-            lines.append(
-                f"            w/ accel (recovery): WR at ({rec[0]:.1f},{rec[1]:.1f})   {rec_catchable}"
+                f"  {o['label']:<8}  {o['t_flight']:.2f}s   t={o['arrival_t']:<5.1f}"
+                f"  ({o['wr_at_arrival'][0]:.1f},{o['wr_at_arrival'][1]:.1f})"
             )
     if out_of_range:
         lines.append(f"  OUT OF RANGE for your arm at this distance: {', '.join(out_of_range)}")
-    lines.append("")
-    if show_recovery:
-        if recovery_time > 0:
-            lines.append(
-                f"NOTE: WR is in cut_recovery ({wr_cut_recovery} steps ≈ {recovery_time:.1f}s) — "
-                "the 'current speed' row assumes the WR stays slow; the 'w/ accel (recovery)' row assumes "
-                "the WR rebuilds to max speed after recovery ends. The truth is between them; trust 'w/ accel' "
-                "for longer flights, 'current speed' for very fast throws."
-            )
-    else:
-        lines.append("NOTE: WR projection uses current heading/speed — if a cut is pending, actual position will differ.")
+    lines += [
+        "",
+        "arrives@ = when the ball lands if you throw now (current time + flight time).",
+    ]
     if show_cb:
         lines.append(
-            "CB at arrival = projected CB position when ball lands (constant-speed estimate). "
-            "sep@arr = projected WR-CB separation at arrival. "
-            ">2.5 yd = open (high prob catch). 1.5-2.5 yd = contested. <1.5 yd = tight, expect PBU. "
-            "The lane note tells you whether the ball passes the CB at a reachable height mid-flight — "
-            "a ball within his vertical reach in the lane can be tipped or picked before it ever gets to the WR. "
-            "AIM AWAY FROM CB: pick a target_coord within 1.3 yd of the WR's projected position, "
-            "on the side AWAY from where the CB will be."
+            "WR/CB at arrival are projected to that time (WR on his locked heading at current speed - he may "
+            "still be accelerating; CB chasing at current speed). sep@arr is center-to-center: 1.8+ clean, "
+            "1.0-1.8 contested, 1.0 or less the CB wins. A [TIP/PICK RISK] note means the ball passes within "
+            "the CB's reach mid-flight - prefer a higher arc or a spot away from him."
         )
     return options, "\n".join(lines)
 
@@ -233,10 +207,11 @@ class QBAgent:
                wr_heading: float = 0.0, wr_speed: float = 0.0,
                wr_cut_recovery: int = 0, wr_max_speed: float = 9.5,
                cb_x: float | None = None, cb_y: float | None = None,
-               cb_heading: float | None = None, cb_speed: float | None = None) -> dict:
+               cb_heading: float | None = None, cb_speed: float | None = None,
+               t: float = 0.0) -> dict:
         system = _SYSTEM_PROMPT
 
-        # ── Pass 1: read the field ───────────────────────────────────────
+        # ── Pass 1: anticipation — is there a window, when/where? ─────────
         self.call_count += 1
         raw1 = call_llm(system, observation + "\n\n" + _PASS1_PROMPT,
                         self.model, self.reasoning_effort, self.provider)
@@ -251,7 +226,7 @@ class QBAgent:
             self.last_action = result
             return result
 
-        # ── Pass 2: commit or hold ───────────────────────────────────────
+        # ── Pass 2: pick the arc + placement, or hold ────────────────────
         self.call_count += 1
         options, options_text = _build_options(
             p1["target_area"], qb_x, qb_y,
@@ -260,6 +235,7 @@ class QBAgent:
             wr_cut_recovery=wr_cut_recovery, wr_max_speed=wr_max_speed,
             cb_x=cb_x, cb_y=cb_y,
             cb_heading=cb_heading, cb_speed=cb_speed,
+            t_now=t, open_window=p1.get("open_window"),
         )
         if not options:
             result = {"action": "hold",

@@ -19,31 +19,35 @@ from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff, h
 # The WR uses the heading for the first phase whose threshold is not yet exceeded.
 # Heading 0° = straight upfield, 90° = right, 180° = back toward QB, 270° = left.
 
+# Times are derived from the WR run physics (max_speed 9.5, accel 14): from rest,
+# 5yd≈1.0s, 7yd≈1.3s, 10yd≈1.6s, 12yd≈1.9s. Routes that sell a fake carry a small
+# (+~0.2s) deception cushion on the break. WR1 lines up on the LEFT (x=16), so
+# 90°=inside (toward middle), 270°=toward his sideline.
 ROUTES: dict[str, list[tuple[float, float]]] = {
-    # Slant: ~14 yd upfield stem (2.0s), then diagonal inside cut at 45°
-    "slant":       [(2.0, 0.0), (999, 45.0)],
-    # Post: ~31 yd upfield stem (4.0s), then diagonal toward goalpost at 30°
-    "post":        [(4.0, 0.0), (999, 30.0)],
-    # Comeback: ~19 yd upfield stem (2.5s), then turn back toward QB at 180°
-    "comeback":    [(2.5, 0.0), (999, 180.0)],
-    # Out: upfield stem, then cut hard to the sideline
-    "out":         [(1.8, 0.0), (999, 315.0)],
-    # Go: straight vertical fly route, no cuts
+    # Slant: 5yd stem (1.0s), then break inside at 45°
+    "slant":       [(1.0, 0.0), (999, 45.0)],
+    # Post: 10yd stem (1.8s incl. fake), then break inside toward the goalpost at 30°
+    "post":        [(1.8, 0.0), (999, 30.0)],
+    # Comeback: 12yd stem (1.9s), then plant and break back to the sideline at 225°
+    "comeback":    [(1.9, 0.0), (999, 225.0)],
+    # Out: 10yd stem (1.6s), then break flat to the sideline at 270°
+    "out":         [(1.6, 0.0), (999, 270.0)],
+    # Go: straight vertical fly route, no cuts (10yd stem then keep running)
     "go":          [(999, 0.0)],
-    # Double move: stem upfield, fake right (outside), snap back upfield
-    "double_move": [(1.5, 0.0), (2.2, 90.0), (999, 0.0)],
-    # Curl: ~19 yd upfield stem (2.5s), then hook back toward QB at 180°
-    "curl":        [(2.5, 0.0), (999, 180.0)],
-    # Zig: ~6 yd upfield (1.0s), jab left at 270° for ~4 yd (0.5s), snap right at 90°
-    "zig":         [(1.0, 0.0), (1.5, 270.0), (999, 90.0)],
-    # Drag: ~6 yd upfield stem (1.0s), then flat cross at 90°
-    "drag":        [(1.0, 0.0), (999, 90.0)],
-    # Corner: ~19 yd upfield stem (2.5s), then diagonal to corner of end zone at 290°
-    "corner":      [(2.5, 0.0), (999, 290.0)],
-    # Post-corner: stem up, fake post inside at 45°, flip to corner outside at 315°
-    "post_corner": [(2.0, 0.0), (2.4, 45.0), (999, 315.0)],
-    # In (dig): ~14 yd upfield stem (2.0s), then hard inside cut at 90°
-    "in":          [(2.0, 0.0), (999, 90.0)],
+    # Double move: 8yd stem (1.4s), fake inside at 90° (~0.5s), snap back upfield at 0°
+    "double_move": [(1.4, 0.0), (1.9, 90.0), (999, 0.0)],
+    # Curl: 10yd stem (1.8s), then hook back toward QB at 180° (settle ~2yd back)
+    "curl":        [(1.8, 0.0), (999, 180.0)],
+    # Zig: 5yd stem (1.0s), jab inside at 90° (~0.4s), snap out to the sideline at 270°
+    "zig":         [(1.0, 0.0), (1.4, 90.0), (999, 270.0)],
+    # Drag: 4yd stem (0.9s), then flat shallow cross inside at 90°
+    "drag":        [(0.9, 0.0), (999, 90.0)],
+    # Corner: 10yd stem (1.8s incl. fake), then break to the deep sideline corner at 315°
+    "corner":      [(1.8, 0.0), (999, 315.0)],
+    # Post-corner: 10yd stem (1.8s), fake post inside at 45° (~0.4s), flip to corner at 315°
+    "post_corner": [(1.8, 0.0), (2.2, 45.0), (999, 315.0)],
+    # In (dig): 10yd stem (1.6s), then hard inside cut across at 90°
+    "in":          [(1.6, 0.0), (999, 90.0)],
 }
 
 # Per-route metadata for agents and observers.
@@ -83,9 +87,9 @@ ROUTE_DESCRIPTIONS: dict[str, dict] = {
     },
     "double_move": {
         "description": (
-            "The outside fake must look real enough to move the CB's hips toward the sideline. "
-            "A weak drift won't commit him — go deep to ~90° and hold until his rec shows. "
-            "Then snap back upfield and go."
+            "The inside fake (90°) must look real enough to move the CB's hips inside. "
+            "A weak drift won't commit him — sell it to ~90° and hold until his rec shows. "
+            "Then snap back upfield (0°) and go deep."
         ),
     },
     "curl": {
@@ -97,8 +101,8 @@ ROUTE_DESCRIPTIONS: dict[str, dict] = {
     },
     "zig": {
         "description": (
-            "The leftward jab must reach ~270° and hold long enough to move the CB's hips left. "
-            "A shallow drift does nothing. Hold the jab until CB rec appears, then snap right."
+            "The inside jab (90°) must hold long enough to move the CB's hips inside. "
+            "A shallow drift does nothing. Hold the jab until CB rec appears, then snap out to the sideline (270°)."
         ),
     },
     "drag": {

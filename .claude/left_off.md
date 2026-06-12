@@ -1,65 +1,72 @@
 # Left Off
-Date: 2026-06-11
+Date: 2026-06-12
 
 ## What We Worked On
-Tried the SMALLER fix before reverting to a gated QB: the handoff theory was that the QB throws
-early on the go route because it confuses "10 yards deep" (WR's downfield progress from his snap
-spot) with a 10-yard THROW distance. So we made the WR-relative depth frame explicit everywhere the
-QB sees a distance, re-ran the go route, and — when it failed again — stopped to actually READ the
-prompts instead of guessing. Decision for next session (user): **completely redo the QB prompting
-with an AI.**
+WR thread (QB was being redone in a separate chat). Chased down WHY the WR breaks its route
+absurdly early — on the slant it cut at t=0.2 / ~0.6yd when the route is a 5yd / ~1.0s stem —
+and fixed it **without** breaking the high-freedom principle (guide via information, never
+enforce a decision in code). The fix that finally worked: **timestamped plan steps + Pydantic
+structured outputs.**
 
-## What Got Done (changes in the tree)
-- **Distance-frame fix** (`agents/observation.py` + `qb_system.txt`):
-  - `build_qb_observation` now takes `wr_start` and prints `WR DOWNFIELD DEPTH: X yd past the snap`,
-    explicitly labeled as the frame for all route distances (NOT throw distance).
-  - The ARC FLIGHT TIMES line is relabeled `THROW DISTANCE (QB→WR) is X yd (distinct from WR depth)`.
-  - The straight-route DIRECTION CHECK now cites the WR's ACTUAL depth and whether he's past ~10 yd.
-  - `_ROUTE_GEOMETRY["go"]` clarified: "~10 yards DOWNFIELD OF THE SNAP (the WR's depth, not your
-    throw distance)".
-  - `qb_system.txt` got a "TWO DIFFERENT DISTANCES — DO NOT CONFUSE THEM" block (WR DEPTH vs THROW
-    DISTANCE), with the concrete "a 12-yd THROW is not the WR being 12 yd deep" example.
-  - `sim/runner.py` passes `wr_start=wr_start_pos` into `build_qb_observation`.
-- **Three reference files written to repo root** (scratch, not wired into anything — delete anytime):
-  `QB_step_example.txt`, `WR_step_example.txt`, `CB_step_example.txt`. Each is the FULL per-step
-  prompt that agent receives (system prompt + freshly-built observation + step instruction),
-  reconstructed from the real go-route replay (`replays/play_42.json`) at t=0.5s. Built by
-  `$CLAUDE_JOB_DIR/tmp/dump_step_prompts.py` (uses `build_*_observation` directly, no LLM/sim run).
+## Root Cause (confirmed by reading config → observation → behavior)
+- Config is correct: `ROUTES["slant"] = [(1.0, 0.0), (999, 45.0)]` → cut_time 1.0s, ~5yd depth.
+- The observation correctly told the WR `CUT TARGET: break to 45° at t≈1.0s, ~5yd`. So timing/
+  yardage were NOT missing.
+- The WR LLM ignored it. Two compounding mechanisms:
+  1. **Blind batched plan.** The LIVE-free phase makes ONE plan call (`wr_agent.decide`) that
+     returns up to 4 steps served from a queue with no fresh CB look. The model baked the
+     break+call into step 3/4 of its very first plan at t=0.0 — committing the cut sight-unseen.
+  2. **Cloned reasoning** (`parse_wr_plan`) stamped one plan-level string onto every step, so the
+     replay showed "maintain stem" on the very step that broke — masking what happened.
 
-## FAIL — go route still throws early
-Re-ran go (seed 42, gpt-5-nano): **INTERCEPTION, sep=0.96, throw_t=0.6s, 15-yd bullet to y=58.5.**
-The depth fix PARTIALLY worked — at t=0.5 the QB explicitly HELD citing "1.7 yards depth" (the new
-depth signal doing its job) — but one step later it threw anyway.
+## What Got Done — the fix (in the tree)
+- **`agents/schema.py`** — `WRStep` / `WRPlan` Pydantic models + `wr_plan_steps()` converter.
+  Each step: `t, heading, throttle(Literal), facing, call_for_ball, reasoning`. `parse_wr_plan`
+  (Ollama text fallback) now tags each step with its own `t` and per-step reasoning.
+- **`agents/llm_client.py`** — `call_llm_structured()` using `chat.completions.parse` with the
+  Pydantic schema as `response_format` (OpenAI structured outputs, guaranteed shape — no regex).
+- **`agents/wr_agent.py`** — `decide()` free phase: OpenAI → structured path (`WRPlan`); Ollama →
+  keeps lenient `call_llm` + `parse_wr_plan`.
+- **`agents/prompts/wr_live_free.txt`** — plan output is now a list of TIMESTAMPED steps. Window
+  is `[T+0.1, T+0.4]` (1–4 steps), each step tagged with absolute `t` and its own one-line
+  reasoning; JSON example includes `t`.
+- **`agents/observation.py`** — concrete `PLAN WINDOW: you are at t=…, plan may cover t+0.1…t+0.4;
+  your break at t≈X is INSIDE/BEYOND this window` line. Also REVERTED an earlier REQUIRE/MUST
+  detour back to factual/consequence framing (see below).
 
-## ROOT CAUSE (found by reading the actual prompt, not the distance frame)
-At the throw step the WR was at y=53.0 and the **CB was at y=55.1 — i.e. the WR had NOT overtaken his
-man** (he was 2.1 yd behind the CB). Two things in the QB prompt CAUSED the early throw, neither of
-which is the distance frame:
-1. **The LEAD HINT lies on a go route.** The observation hands the QB a pre-computed `WR will be
-   ≈(16.0, 59.8) — throw to the projected coord`. That projection assumes the WR keeps his current
-   speed and the CB keeps crawling, so it ALWAYS shows the WR pulling deep/open on a vertical — even
-   while he's still behind the CB. We spoon-fed it a deep target it hadn't earned.
-2. **We never surface the one fact that decides a go route: has the WR passed the CB?** The obs shows
-   both y-values but never says "WR is 2.1 yd BEHIND the CB — he hasn't beaten his man yet."
-Plus the whole observation is pre-chewing the decision (LEAD HINT, options table `sep@arr` +
-`CB clear/contested`, editorial DIRECTION CHECK), AND the same observation — LEAD HINT included — is
-sent in BOTH QB pass 1 and pass 2 (`qb_agent.py:241,271`), so "pass 1 = read it yourself" isn't real.
-The user's reaction: the QB prompting has been vibecoded into a mess and needs a clean redo.
+## Result — IT WORKED (slant)
+slant seed 42, gpt-5-nano: **CATCH, sep 4.35, 0 parse errors.** WR held the 0° stem to **t=0.9**,
+broke to 45° and called at the cut window (was t=0.2). `detected_cut_t=0.9`, throw_t=1.0,
+throw_distance 12.2yd (a real slant from depth). Per-step reasoning now reads against the clock
+(`t=0.7 eyes still on break point ~1.0s`). Freedom intact — it re-plans each tick and *chooses*
+to hold the stem; we made the clock legible, didn't force it.
+
+## Go route — early-throw bug FIXED, but play INCOMPLETE for a SEPARATE reason
+go seed 42: WR held stem, called at t=0.9, QB threw at **t=1.5 (not the old t=0.2 bomb)** —
+the original go-route early-deep-throw is gone. BUT outcome = **INCOMPLETE, sep 2.34**, due to a
+downstream QB/air issue, NOT the stem: QB threw a **17.6yd loft** that hangs ~1.9s; the WR reaches
+the fixed landing spot way too early (~t=2.0, ball ETA still ~1.4s), then thrashes
+brake→accelerate and **overshoots**. Also 1 `[QB pass1 parse error] raw=` (empty response).
+→ **User parked the loft/air-timing issue for the QB thread.**
+
+## Detours that FAILED (don't repeat)
+- **REQUIRE/MUST language** in prompt+obs (forbid breaking before the window): works against the
+  high-freedom principle — reverted.
+- **Factual consequence reframe alone**: WR still broke at t=0.3.
+- **Tick-math fact alone** ("break is ~7 ticks away, a 4-step plan can't reach it"): BACKFIRED —
+  the model *rationalized* a 0.3–0.4s stem, using the new info to justify the early break instead
+  of extending. Lesson: information about timing didn't stick until each step was forced to carry
+  its absolute `t` (structured output) — then the model couldn't pretend a short plan reached 1.0s.
 
 ## NEXT STEP
-**Completely redo the QB prompting (next session, with an AI).** Use the three `*_step_example.txt`
-files as the ground-truth picture of what the QB currently sees. Design goals to carry in:
-- Feed the QB FACTS, not pre-computed answers — especially kill/relegate the LEAD HINT and the
-  "throw to the projected coord" spoon-feed; let the QB do the projection.
-- Surface the decisive go-route fact: WR-vs-CB depth (has he overtaken his man, by how much).
-- If keeping two passes, genuinely separate them: pass 1 = QB forms its own read from raw facts;
-  pass 2 = here is the computed arc math for the spot you chose. Don't leak the projection into pass 1.
-- Open question still on the table: whether to gate the QB on the WR's call (memory
-  project_qb_call_gated) — the prompt redo may make gating unnecessary, or confirm it's needed.
+**Run the full 10-route A4 suite (seed 42, gpt-5-nano) to confirm the timestamped/structured-output
+WR holds its stem on every route and check for regressions.** The fix is verified only on slant
+(CATCH) and the go stem so far. `python run_all_routes.py`.
 
 ## Open / Future
-- Decide which distance-frame changes survive the QB-prompt redo (the WR DOWNFIELD DEPTH line and the
-  throw-distance relabel are honest facts and likely keep; the editorial straight-route DIRECTION
-  CHECK paragraph is the kind of pre-chewing the redo aims to remove).
-- Contested curl still PBU (WR decelerates through the hook). Pre-existing.
-- LLM nondeterminism: single runs aren't proof.
+- Loft hang-time vs WR air-arrival overshoot + QB under-leading a deep ball → **QB thread**.
+- Save-to-memory pending: "timestamped Pydantic structured-output plan is what finally held the WR
+  stem (freedom-preserving)" — durable finding worth recording.
+- Ollama path uses the lenient text parser (no structured outputs via openai-compat); only
+  exercised if `--local`.
+- LLM nondeterminism: single runs aren't proof; suite run will be more telling.
