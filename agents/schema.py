@@ -156,7 +156,7 @@ def parse_wr_plan(raw: str) -> list[dict] | None:
         # No plan key — treat the object itself as a single step if it has heading.
         raw_plan = [obj] if "heading" in obj else []
 
-    raw_plan = raw_plan[:10]  # clamp to 1-10 (truncate)
+    raw_plan = raw_plan[:4]  # clamp to 1-4 (truncate) — keep the WR reactive for deception
     reasoning = str(obj.get("reasoning", ""))
     wr_note = str(obj.get("wr_note", ""))
 

@@ -727,8 +727,13 @@ def build_wr_observation(
         else:
             time_left = phase_thresh - t
             next_heading = all_phases[current_phase_idx + 1][1] if current_phase_idx + 1 < len(all_phases) else phase_heading
+            snap_y = wr_start[1] if wr_start else wr.y
+            cut_depth = _est_yards(phase_thresh, from_rest=True,
+                                   max_speed=wr_attrs.max_speed, accel=wr_attrs.acceleration)
             lines += [
                 f"YOUR HEADING NOW: {phase_heading:.0f}° ({_heading_label(phase_heading)}) | ~{time_left:.1f}s remaining, then cut to {next_heading:.0f}°",
+                f"  CUT TARGET: break to {next_heading:.0f}° at t≈{phase_thresh:.1f}s (±0.4s) and ~{cut_depth}yd downfield of the snap "
+                f"(y≈{snap_y + cut_depth:.0f}, ±2.5yd). Aim for this; break earlier only if the CB clearly opens it.",
                 "",
             ]
 

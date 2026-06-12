@@ -1,155 +1,32 @@
-ROUTE RUNNING DECISION
+ROUTE RUNNING — per-step decision.
 
-=== STRATEGIC FRAMEWORK — think through this every step ===
+GOAL: get open at your route's BREAK, then call. You are always in one of two phases (the observation's
+"YOUR HEADING NOW" line tells you which): the STEM, or the FINAL BREAK.
 
-1. WHERE ARE YOU? Compare your current position to your snap position. How far into the route?
-   Where does the route description say you should be right now?
+STEM (while the observation shows "~Xs remaining, then cut to ..."):
+  - Keep climbing toward your cut DEPTH on the stem heading. Do NOT make your final break yet, and do NOT
+    call for the ball — the ball would arrive before your route develops, with the CB right on you.
+  - But do NOT run a sterile straight line — that lets the CB sit on your break. WORK him: jab a fake
+    direction for 1-2 steps then RETURN to the stem, or vary speed (tools are in the system prompt).
+    A fake is NOT your break: after it, get back on the stem and keep climbing.
+  - Aim to reach the CUT TARGET (time + depth, +/-0.4s / +/-2.5yd) having moved the CB's weight the wrong way.
 
-2. WHERE IS THE CB? Upfield, behind, left, right of you? What heading is the CB running?
-   Is the CB's body already committed one direction?
+FINAL BREAK + CALL (when the observation says "this is your final break", i.e. you've reached the CUT TARGET
+window — or EARLIER only if CB rec > 0 from a genuine wrong-way commit):
+  - Make your break and call for the ball.
+  - Real separation = body gap ~1.5yd+ WITH CB rec > 0. A gap while CB rec = 0 is NOT separation (he closes it
+    in ~1s); the pre-snap cushion is not earned separation.
+  - HEADING ON THE CALL STEP LOCKS for the play. Output your BREAK heading, NOT the stem heading.
+    (slant: call heading=45.  curl: call heading=180.)
+  - No-cut route (go): there is no break — call only when you've clearly outrun the CB and the gap is GROWING.
 
-3. WHAT DO YOU NEED TO DO NEXT? Check YOUR HEADING NOW in the observation.
-   Are you in the stem phase or already in the final break?
+PLAN OUTPUT — 1-4 steps (each one 0.1s tick). After the plan you get a FRESH look at how the CB reacted,
+then plan again (only a thrown ball aborts it early).
+  - Climbing the stem with nothing to react to: up to 4 steps.
+  - Jabbing / reading the CB, or near your break/call: 1-2 steps, so you can read his reaction and respond.
+  - Put call_for_ball=true on the step you call; keep that plan to 1-2 steps so the locked heading is exact.
 
-4. HOW MUCH DECEPTION DO YOU NEED?
-   - Short routes (~5 yards): the stem IS the deception. One window is enough.
-   - Longer routes (~10-12 yards): maybe one additional fake. No more.
-   - Once the CB's hips are committed the wrong way, STOP faking and execute the route.
-   - Constant deception wastes steps and costs you burst when you need it most.
+wr_note: one short line — stem/break status + what you're doing now + next plan.
 
-5. UNDERSTAND WHAT "SEPARATION" ACTUALLY MEANS:
-   The body gap you see RIGHT NOW does not tell you whether you are open.
-   A 5-yard body gap where the CB has FULL BURST is NOT separation — the CB can close it in one second.
-   The pre-snap cushion (CB lining up 5 yards off) is NOT earned separation. You have done nothing yet.
-
-   TRUE separation = a gap the CB physically cannot close because their hips are committed the wrong way.
-   This only exists AFTER your stem has pulled the CB's weight upfield AND you have made your final cut.
-   - CB rec > 0 after your cut = their hips MAY be committed wrong. That is a CANDIDATE window — but
-     check what caused the recovery (see MOVE LOG below).
-   - CB rec = 0 and full burst = they can close freely regardless of gap size. You are not open yet.
-
-   Body gap >= 1.5 yards WITH CB rec > 0 = high-probability catch. Body gap alone means nothing.
-
-6. WHEN TO CALL FOR BALL:
-   Call 0.1-0.3s before you expect TRUE separation — which means one of exactly two windows:
-   - Window A: You are 0.1-0.2s BEFORE your final cut. You are confident the cut will commit their hips.
-     Call just before the cut so the QB is throwing as you break open.
-   - Window B: You JUST MADE your final cut and CB rec > 0. The gap is peaking right now.
-     Call immediately — it closes once they recover.
-
-   Do NOT call during the stem. Here is why: during the stem the CB is reading you and tracking upfield.
-   If you cut early (before the stem commits their hips), they have FULL BURST and can mirror your break.
-   The route only creates separation if the stem ran long enough to make them lean the wrong way first.
-   Calling during the stem means the ball arrives while you are still in the middle of a contested route.
-
-   VERTICAL/GO ROUTES (no cut planned — route says "run straight the entire play"):
-   There is no stem and no cut — separation comes from pure speed alone. The CB closes toward you
-   the entire flight (~1.5–2s). Call only when the CB cannot physically close the gap during flight:
-   - CB must be BEHIND you (heading 0°, you are upfield) and at least 5-6 yd back.
-   - CB must have ZERO burst recovery advantage — if CB has full burst, they are 1s from closing 9yd.
-   - A 3-4 yd gap with CB in full burst is NOT enough — on a 45yd deep ball they close it easily.
-   - Call when you have clearly outrun the CB and the gap is growing, not shrinking.
-
-=== HOW DECEPTION WORKS ===
-
-BURST STATUS — read this first:
-  CB BURST "RECOVERING — X steps left" -> CB cannot accelerate freely. This is your window.
-  CB BURST "FULL burst available" -> CB is set and can match any move instantly. Earn a window first.
-  YOUR BURST "RECOVERING" -> you just cut and are paying the cost. Do not snap again yet.
-
-MOVE LOG — read the rec column:
-  CB rec > 0 last step: your previous move MAY have cost the CB their burst — but ask WHY.
-    GENUINE COMMIT: CB heading in the 2-3 steps BEFORE rec appeared was significantly different from
-      your break direction (e.g., CB was heading upfield at ~0° and you are about to break sideways).
-      That means the CB was running the wrong way and had to turn hard. THAT is your window.
-    TRACKING WOBBLE: CB heading in those steps was approximately the same as yours (CB following you,
-      headings within ~45° of each other). Their rec came from a minor step-adjustment while staying
-      with you — they are still positioned to contest. This is NOT a committed hip. Wait.
-    Rule: Check the last 2-3 CB headings before rec appeared. If the CB was running roughly the same
-      direction as you, their recovery is tracking noise, not commitment.
-  CB rec = 0 every step: your fakes are not landing. Fake wasn't deep enough, or CB isn't reacting.
-  YOUR rec > 0: you just cut. Let it clear before another cut.
-
-FAKE DEPTH:
-  A 10-30 degree drift is noise — the CB ignores it. A real fake must reach ~270deg (left) or
-  ~90deg (right). Check the move log: if CB rec stayed 0 after your "fake," it wasn't deep enough.
-
-FAKE PURPOSE:
-  Every fake has ONE goal: commit the CB's hips the WRONG way for your FINAL break direction.
-  If your final break is 45deg, fake toward ~225deg (opposite) first.
-  Faking aimlessly wastes steps and leaves the CB free to react.
-
-=== YOUR NOTE ===
-
-One line, under ~120 chars. Required content: deception status + current action + next plan.
-
-Format: "[deception: done/needed/not needed yet] | [what you are doing NOW] | [what you plan NEXT]"
-
-Examples:
-  "deception: not needed yet (t=0.4, early stem) | running 0deg | holding stem until ~t=1.0 then break"
-  "deception: done at t=0.9 (CB rec=3 after jab) | on final break 45deg | calling now, gap peaks in ~0.2s"
-  "deception: needed — CB rec=0 after fake, fake didn't land | going deeper to 270deg | snap break next step if CB commits"
-  "deception: done | called at t=1.1 | accelerating to catch point on 45deg heading"
-
-NOTE GROUNDING: your note must be consistent with the move log. If the log has no rows yet,
-you have taken zero actions — start fresh. If the log shows your heading never left 0deg but
-your note says "jabbed left," the note is wrong — correct it.
-
-=== CALL RULES ===
-
-STEP 0 — ROUTE PHASE CHECK (read this first every step):
-  Look at "YOUR HEADING NOW" in the observation.
-  - If it says "~Xs remaining, then cut to Yd" → you are in an INTERMEDIATE phase. Do NOT call.
-    The upcoming cut is setup for the real route, not the route itself. Calling here means the ball
-    arrives before the actual break happens — the CB will be in perfect position to contest.
-    No matter what the CB is doing, no matter the body gap: you cannot call yet.
-  - If it says "this is your final break. Run it." → you are on the actual route. Now evaluate calling.
-
-Call 0.1-0.3s before you expect TRUE separation. Valid windows:
-  - 0.1-0.2s before your final cut: you have run the stem, CB hips are being committed upfield, cut is imminent.
-  - Just after your final cut: CB rec > 0 confirms hips are committed wrong — AND the MOVE LOG check
-    (above) confirms it was a genuine commit, not a tracking wobble. Gap is peaking. Call now.
-
-CRITICAL — HEADING WHEN CALLING:
-  Your "heading" output on the call step is LOCKED for the rest of the play. The QB throws to your
-  projected trajectory based on that heading. Output the WRONG heading and the ball goes to the
-  wrong spot — no catch is possible.
-
-  The TIMING rules above (0.1-0.2s before cut, or just after cut) do NOT change. Only the heading.
-
-  Window A (calling 0.1-0.2s BEFORE your final cut):
-    You are still running the stem heading. But your heading output must be your BREAK HEADING —
-    the direction you are about to cut to — NOT your current stem heading.
-    Example: stem is 0°, final cut to 45° (slant). Call step output: heading=45.
-    Example: stem is 0°, final cut to 180° (curl). Call step output: heading=180.
-    The QB sees your break heading and throws to where you will be running after the cut.
-    Outputting your stem heading (0°) locks you on the wrong trajectory.
-    IMPORTANT: Do NOT call more than 0.2s early just because you know the break heading.
-    Early calls mean the ball arrives while you are still in cut recovery — CB closes that window.
-
-  Window B (calling just after your final cut):
-    You are already on the break heading. Output that heading. No change needed.
-
-Pre-snap body gap is NOT a valid call signal. The CB has full burst and has not been committed anywhere.
-Body gap only matters AFTER the stem has pulled the CB upfield and you have made your break.
-
-=== OUTPUT: A PLAN, NOT ONE STEP ===
-
-You do not re-decide every 0.1s. Emit an ordered PLAN of up to 10 per-step actions
-(10 steps = 1.0s). Each step is one 0.1s tick. The plan runs to completion and then
-you get a FRESH observation — including how the CB reacted — before planning again.
-The only thing that aborts the plan early is the ball being thrown.
-
-HOW MANY STEPS:
-  - Default ~5 steps.
-  - Key the count to the route description / where you are:
-    Long-stem routes (post, go, comeback, corner) have a long stride before any cut —
-    commit ~8 steps during that stem. You know you are running straight; be confident.
-  - Near your break, or about to call for the ball → plan only 1-2 steps to stay precise.
-  - Set call_for_ball=true on whichever step you mean to call. When you call, keep the
-    plan short (1-2 steps) so the locked heading is exact.
-
-Commit confidently during the stem; stay fine-grained near the break.
-
-Respond with JSON only:
+JSON only:
 {"plan": [{"heading": 0, "throttle": "accelerate", "facing": 0, "call_for_ball": false}], "wr_note": "...", "reasoning": "..."}
