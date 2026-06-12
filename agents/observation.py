@@ -200,19 +200,29 @@ def build_qb_observation(
         straight_route = bool(route_phases) and all(
             abs((hdg - 0.0 + 180.0) % 360.0 - 180.0) <= 30.0 for _, hdg in route_phases
         )
-        # Is the route's defining break actually VISIBLE yet? Compare WR heading to the final break heading.
+        # Is the route's defining break actually VISIBLE yet? A break is confirmed only when the WR's
+        # heading has SWUNG ONTO the break AND left the stem — not merely when a shallow break angle
+        # (slant 45°, post 30°) happens to sit near the upfield stem heading. Require the heading to
+        # (a) sit on the break, (b) have persisted there for 2+ of the last 3 reads (no one-step plant
+        # flash), and (c) be a real departure from the stem (a confirmed cut, or heading well off the stem).
         break_visible = None
         if not straight_route and route_phases and expected_open_t is not None and expected_open_t < 9.0:
             final_break_hdg = route_phases[-1][1]
-            hdg_gap = abs((wr.heading - final_break_hdg + 180.0) % 360.0 - 180.0)
-            break_visible = hdg_gap <= 50.0
+            stem_hdg = route_phases[0][1]
+            gap_to_break = abs((wr.heading - final_break_hdg + 180.0) % 360.0 - 180.0)
+            gap_to_stem = abs((wr.heading - stem_hdg + 180.0) % 360.0 - 180.0)
+            recent_hdgs = [h["wr_hdg"] for h in (history or [])[-2:]] + [wr.heading]
+            near_break = sum(
+                1 for hh in recent_hdgs
+                if abs((hh - final_break_hdg + 180.0) % 360.0 - 180.0) <= 35.0
+            )
+            departed_stem = (detected_cut_t is not None) or (gap_to_stem >= 25.0)
+            break_visible = gap_to_break <= 35.0 and near_break >= 2 and departed_stem
         if straight_route:
             lines += [
-                "DIRECTION CHECK: this is a STRAIGHT route — no break. The WR's direction is confirmed from the snap "
-                "(straight upfield). There is nothing to wait for; openness here is purely a footrace.",
-                "Make the prediction now: he is open the moment he has overtaken the CB with separation that will hold or "
-                "grow. Project both forward — if the WR is pulling away (faster, or the CB is in recovery), throw and lead "
-                "him deep so he runs under it. Do NOT wait for a break or a call that is not coming on a go route.",
+                "DIRECTION CHECK: STRAIGHT route — no break, no cut coming. His direction is confirmed from the snap; "
+                "openness is a pure footrace. Once the WR is 10+ yards downfield, anticipate the moment his speed "
+                "opens an exploitable gap on the cushion and lead him deep — the pre-snap cushion is not that gap.",
             ]
         elif break_visible is False:
             lines += [
@@ -588,7 +598,7 @@ def _wr_facing_modifier(wr: PlayerState, qb: PlayerState) -> tuple[str, float]:
 
 
 _ROUTE_GEOMETRY: dict[str, str] = {
-    "go": "FLY ROUTE — run straight upfield at full speed the ENTIRE play. NO cut. Create separation through pure speed. Call when you have a step on the CB.",
+    "go": "GO / FLY — the first ~10 yards are the stem; the 'break' is simply to keep running straight. Beat the CB deep with pure speed. Somewhere in the stem the WR can sell a fake break (a sudden head/shoulder fake without turning) to flip the CB's hips while he accelerates straight past.",
     "slant": "SLANT — stem upfield 2-3 steps, then cut sharp diagonally ACROSS the field (heading ~135deg or ~45deg toward the QB side). Low-depth crossing route.",
     "curl": "CURL — stem upfield 4-6 steps, then HOOK BACK toward the QB (heading ~180deg). You turn around and come back to the ball. Final heading is roughly back toward QB.",
     "comeback": "COMEBACK — stem upfield 6-8 steps toward the sideline, then break BACK toward the sideline at the same depth (heading ~270deg if left, ~90deg if right). You stop going upfield and come back flat.",
@@ -874,6 +884,11 @@ def build_wr_observation(
         lines += [
             msg,
             "QB threw to where you were going — hold this heading. Cutting now will cause a miss.",
+        ]
+    elif cut_time >= 9.0:
+        lines += [
+            "CALL FOR BALL: once you are 10+ yards into the stem and feel your speed is about to break the cushion — "
+            "call so the QB can lead you deep. Pre-snap cushion is not earned separation; earn it with your pace.",
         ]
     else:
         lines += [

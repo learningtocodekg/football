@@ -392,10 +392,18 @@ def run_play(
                         t=t,
                     )
                 else:
+                    # Project the WR off his COMMITTED direction. Once he has called, his heading is
+                    # locked to the call heading — use that, not the noisy instantaneous heading, so the
+                    # arc-options table (what the QB actually throws from) matches where he is really going.
+                    wr_proj_heading = (
+                        wr_call_heading_pending
+                        if (wr_call_visible and wr_call_heading_pending is not None)
+                        else states["WR1"].heading
+                    )
                     qb_action = qb_agent.decide(
                         obs, states["QB"].x, states["QB"].y,
                         wr_x=states["WR1"].x, wr_y=states["WR1"].y,
-                        wr_heading=states["WR1"].heading, wr_speed=states["WR1"].speed,
+                        wr_heading=wr_proj_heading, wr_speed=states["WR1"].speed,
                         wr_cut_recovery=states["WR1"].cut_recovery,
                         wr_max_speed=attrs["WR1"].max_speed,
                         cb_x=states["CB1"].x if "CB1" in states else None,

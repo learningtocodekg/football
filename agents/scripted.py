@@ -75,8 +75,10 @@ ROUTE_DESCRIPTIONS: dict[str, dict] = {
     },
     "go": {
         "description": (
-            "Speed only — no cuts. Win by outrunning the CB vertically. "
-            "Call when you feel you have a step on him."
+            "The first ~10 yards are the stem; the break is just to keep running straight. Win with pure speed. "
+            "Once you are past 10 yards and feel your pace is about to break the cushion, call for the ball so the "
+            "throw leads you deep — don't call on the pre-snap cushion. A fake break during the stem (sell a cut, "
+            "then keep sprinting straight) turns the CB's hips and buys you the step."
         ),
     },
     "double_move": {

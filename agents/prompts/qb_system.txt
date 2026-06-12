@@ -141,6 +141,14 @@ window and throw on anticipation without it. Every step you then hold lets the C
 DECISION LOGIC:
 - Throw once you can predict the catch point: direction confirmed (route + heading history or the call) AND
   projected separation at arrival is there.
+- TWO WAYS TO BE WRONG, and they are NOT symmetric. Throw too LATE and the CB closes a window that was
+  real — you lose some yards on a contested ball. Throw too EARLY — before the WR's direction has actually
+  settled onto the break, or by projecting off a single transient plant-step heading — and you throw to a
+  spot the WR never reaches: that is an incompletion or a pick, not a near miss. "Confirmed" means the break
+  heading has HELD for a couple of reads, not flashed for one step. Until the direction is confirmed you have
+  nothing to predict — there is no window yet, so holding costs you almost nothing. Once it IS confirmed,
+  don't dawdle: project the separation and throw. The discipline is in WHEN you start predicting, not in
+  waiting for permission.
 - After the cut, use burst/recovery data to project separation at arrival. Current separation is NOT enough.
 - Lead the receiver to his FUTURE position, not where he is now.
 - If CB is in recovery right now: even a close window will open further during ball flight — throw earlier.

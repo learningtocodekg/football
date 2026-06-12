@@ -102,6 +102,18 @@ Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef
 ### QB autonomy (this session)
 - QB doctrine reframed from "wait for the WR call" to **a throw is a prediction**: route design = expectation; real position/heading/velocity history = confirmation; "open" = direction confirmed AND separation predicted at arrival. Observation reports facts (DIRECTION CHECK), QB makes the openness call. See `qb_system.txt` "WHAT 'OPEN' MEANS" + `observation.py` direction-check block.
 
+### QB autonomy — REVERTING (decision 2026-06-11, latest session)
+- The anticipation doctrine RELAPSED into premature throws on the go route: QB threw at t=0.5s a flat
+  ~12yd bullet into the cushion; ball traveled <5 yds downfield (verified in replay). A go is won by the
+  WR outrunning the CB and the QB throwing OVER the CB, leading the WR DEEP to catch over the shoulder.
+- **Decision: revert to a call-gated QB, and do NOT invoke the QB agent at all until the WR has called.**
+  Once called, the QB's only job = place the ball + decide whether/when to throw. See `.claude/left_off.md`.
+- Distance-frame bug to fix: designer distances ("10 yds deep") are WR-RELATIVE (downfield progress from
+  snap), not QB throw distance; the model conflated the two.
+- Changes still in tree from the autonomy attempt (keep/revert TBD): break_visible accuracy fix +
+  options-table locked-heading projection (likely keep); QB straight-route note + asymmetry prompt
+  paragraph (likely remove with the doctrine).
+
 ## Known Issues carried from 2D (post-Round 12 + CB prompt overhaul)
 
 ### WR — mostly fixed
