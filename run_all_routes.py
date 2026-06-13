@@ -81,9 +81,10 @@ def main():
     for route, r in results.items():
         outcome = r.get("outcome", "?")
         tel = r.get("telemetry", {})
-        sep = tel.get("max_separation", "?")
+        sep_throw = tel.get("sep_at_throw", "?")
+        sep_catch = tel.get("sep_at_catch", "?")
         throw_t = tel.get("throw_t", "?")
-        print(f"  {route:<14} {outcome:<14} max_sep={sep} yd  throw_t={throw_t}s")
+        print(f"  {route:<14} {outcome:<14} sep@throw={sep_throw} -> sep@catch={sep_catch} yd  throw_t={throw_t}s")
 
     return results
 

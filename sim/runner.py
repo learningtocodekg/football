@@ -252,6 +252,8 @@ def run_play(
     move_history: list[dict] = []
     telemetry: dict = {
         "max_separation": 0.0,
+        "sep_at_throw": None,
+        "sep_at_catch": None,
         "throw_t": None,
         "throw_distance": None,
         "throw_arc": None,
@@ -448,6 +450,10 @@ def run_play(
                                        "mph": round(ball.speed_yd_s * YD_S_TO_MPH, 1),
                                        "eta": round(ball.eta, 2), "dist": round(dist, 1)})
                         telemetry["throw_t"] = t
+                        if "CB1" in states:
+                            telemetry["sep_at_throw"] = round(math.hypot(
+                                states["WR1"].x - states["CB1"].x,
+                                states["WR1"].y - states["CB1"].y), 2)
                         telemetry["throw_distance"] = round(dist, 1)
                         telemetry["throw_arc"] = arc
                         telemetry["target_z"] = round(ball.landing_z, 2)
@@ -528,6 +534,7 @@ def run_play(
                     ball=ball,
                 )
                 outcome = result["outcome"]
+                telemetry["sep_at_catch"] = result.get("separation")
                 events.append({"type": "RESOLUTION", **result})
                 recorder.record_step(t, "END", sack_clock,
                     [_player_snap(p, states[p], actions[p]) for p in states],
@@ -552,10 +559,27 @@ def run_play(
                 jam_steps_remaining -= 1
                 if jam_steps_remaining == 0:
                     print(f"  t={t:.1f}  [JAM CLEARED] WR free")
-            states["WR1"] = wr_agent.apply_decision(
-                wr_decision_this_step, states["WR1"], attrs["WR1"], DT,
-                ball_in_air=ball_in_air,
-            )
+            if ball_in_air:
+                # WR runs full speed to the ball (throttle decision removed in flight) and is
+                # clamped so it can't run past the catch point. The old brake-to-fixed-spot
+                # behavior bled speed and let the CB close — this keeps the separation the QB
+                # threw into. Heading/facing stay LLM-driven for bad-throw adjustment.
+                wr_decision_this_step = {**wr_decision_this_step, "throttle": "accelerate"}
+                wr_old = states["WR1"]
+                new_wr = wr_agent.apply_decision(
+                    wr_decision_this_step, wr_old, attrs["WR1"], DT, ball_in_air=True,
+                )
+                d_old = math.hypot(wr_old.x - ball.landing_x, wr_old.y - ball.landing_y)
+                d_new = math.hypot(new_wr.x - ball.landing_x, new_wr.y - ball.landing_y)
+                if d_new > d_old:
+                    # reached closest approach to the catch point — hold, don't overshoot
+                    new_wr.x, new_wr.y, new_wr.speed = wr_old.x, wr_old.y, 0.0
+                states["WR1"] = new_wr
+            else:
+                states["WR1"] = wr_agent.apply_decision(
+                    wr_decision_this_step, states["WR1"], attrs["WR1"], DT,
+                    ball_in_air=ball_in_air,
+                )
         else:
             states["WR1"] = wr_agent.move(t, states["WR1"], attrs["WR1"], DT)
 

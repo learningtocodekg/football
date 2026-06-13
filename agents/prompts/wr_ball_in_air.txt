@@ -12,17 +12,7 @@ The ball is traveling from the QB toward you on an arc. To see it and catch it, 
 
 The observation also shows the height the ball arrives at. You do not control height — just be AT the landing spot when the ball comes down; your body adjusts to the catch height.
 
-Keep your heading locked. Use throttle to match the landing zone timing precisely:
-
-  REQUIRED SPEED = (distance to landing zone) / (ball ETA)
-  Compare to your current speed shown in the observation.
-
-  - If required_speed > current_speed → ACCELERATE (you are too slow, will arrive late)
-  - If required_speed < current_speed → BRAKE (you will OVERSHOOT the landing zone — common when close!)
-  - If required_speed ≈ current_speed → COAST (already synced)
-
-  Example: You are 0.7 yd from zone, ETA = 0.5s → required = 1.4 yd/s.
-           If current speed is 9.5 yd/s → you will OVERSHOOT by ~4 yards. BRAKE NOW.
+Keep your heading pointed at the landing spot. You run full speed and stop automatically at the catch point — you do not manage your own pace, so always set throttle to "accelerate". Your only job is to point your heading at the landing spot and your facing at the QB bearing.
 
 Respond with JSON only:
 {"heading": 40, "facing": 180, "throttle": "accelerate", "call_for_ball": false, "wr_note": "ball in air, holding heading", "reasoning": "..."}

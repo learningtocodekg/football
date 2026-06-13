@@ -11,11 +11,30 @@ _PASS2_TEMPLATE = (Path(__file__).parent / "prompts" / "qb_pass2.txt").read_text
 ARC_ORDER = ["bullet", "drive", "touch", "loft"]
 
 
+def _proj_distance(speed0: float, vmax: float, tau: float,
+                   cut_recovery: int = 0, ramp: float = 0.6, safety: float = 0.9) -> float:
+    """Forward yards the WR covers in tau seconds, accelerating from speed0 toward vmax. The runner
+    drives the WR at full speed in the air, so the landing point must be solved for that motion —
+    projecting at the (often post-cut, low) instantaneous speed places the ball short and the WR
+    arrives early and stalls. A WR mid-cut-recovery accelerates slower, so the ramp is lengthened by
+    the recovery time; `safety` (<1) keeps the model conservative — over-projecting lands the ball
+    out of reach (incomplete), under-projecting only costs a brief early arrival (contested)."""
+    vmax = max(vmax, speed0)
+    ramp_eff = ramp + cut_recovery * 0.1
+    if tau <= ramp_eff:
+        d = speed0 * tau + 0.5 * (vmax - speed0) * (tau * tau / ramp_eff)
+    else:
+        d = 0.5 * (speed0 + vmax) * ramp_eff + vmax * (tau - ramp_eff)
+    return d * safety
+
+
 def _meeting_options(
     qb_x: float, qb_y: float,
     wr_x: float, wr_y: float,
     wr_heading: float, wr_speed: float,
     throw_power: float,
+    wr_max_speed: float = 9.5,
+    wr_cut_recovery: int = 0,
     target_z: float = DEFAULT_TARGET_Z,
     t_now: float = 0.0,
     open_window: tuple[float, float] | None = None,
@@ -33,8 +52,9 @@ def _meeting_options(
     hy = math.cos(math.radians(wr_heading))
 
     def residual(arc: str, tau: float):
-        px = wr_x + hx * wr_speed * tau
-        py = wr_y + hy * wr_speed * tau
+        travel = _proj_distance(wr_speed, wr_max_speed, tau, wr_cut_recovery)
+        px = wr_x + hx * travel
+        py = wr_y + hy * travel
         d = math.hypot(px - qb_x, py - qb_y)
         sol = solve_arc(d, arc, target_z)
         if sol is None:
@@ -100,7 +120,7 @@ def _meeting_options(
     lines += [
         "",
         "Each row is the self-consistent meeting point: throw that arc now and it lands where the WR's "
-        "locked line will be at the arrival time shown (assuming he holds ~current speed). Flatter arcs "
+        "locked line will be at the arrival time shown (assuming he runs to top speed). Flatter arcs "
         "meet him sooner and shallower; higher arcs meet him deeper and later. Pick the arc whose arrival "
         "falls in the window you identified.",
     ]
@@ -152,7 +172,8 @@ class QBAgent:
         self.call_count += 1
         options, options_text = _meeting_options(
             qb_x, qb_y, wr_x, wr_y, wr_heading, wr_speed,
-            self.throw_power,
+            self.throw_power, wr_max_speed=wr_max_speed,
+            wr_cut_recovery=wr_cut_recovery,
             t_now=t, open_window=p1.get("open_window"),
         )
         if not options:

@@ -1,5 +1,21 @@
 # Build State
-Current phase: A4 — 3D. QB prompting fully REDONE (2026-06-12) + routes made physics-realistic. Live: slant CATCH, go deep-throw fixed (PBU pending a WR air-phase fix). Full 10-route A4 suite NOT yet re-run.
+Current phase: A4 — 3D. Air-phase + meeting-point physics fixed MECHANICALLY (2026-06-13). Full 10-route suite (gpt-5-nano, seed 42) = 6C/3PBU/1DROP, zero INCOMPLETE; separation now grows in flight. Remaining losses are multi-break routes that throw before the final cut + beat-the-coverage QB decisions.
+
+## Air-phase + solver mechanical fix — 2026-06-13 (current ball-placement design)
+- **WR air-phase throttle REMOVED.** Runner drives the WR at full speed to the catch point in
+  BALL_IN_AIR and clamps it against overshoot (freeze at closest approach). LLM keeps heading/facing.
+  Killed the "WR brakes to match landing timing → CB closes" bleed. Brake/required-speed math deleted
+  from `wr_ball_in_air.txt`. [`sim/runner.py` move block]
+- **QB meeting-point solver projects WR in-stride.** `_proj_distance()` (`qb_agent.py`) replaces the
+  old constant-instantaneous-speed projection: ramps from current speed to top speed, lengthened by
+  cut-recovery time, scaled by conservative `safety=0.9`. `wr_max_speed`+`wr_cut_recovery` threaded
+  from `decide()`. Conservative on purpose — over-projection = ball out of reach (INCOMPLETE);
+  under-projection = brief early arrival (contested, still often a catch). Fixes BOTH the early-freeze
+  (PBU) and the overshoot (INCOMPLETE) failure modes.
+- **Telemetry:** `sep_at_throw` / `sep_at_catch` added (decisive numbers); `max_separation` is the
+  play-peak and does not track the outcome. `run_all_routes.py` prints sep@throw -> sep@catch.
+- **Open blocker:** multi-break routes (drag/corner/post_corner/double_move) throw before the WR's
+  final cut — solver can't foresee a second cut after release. WR-call-timing problem, next up.
 
 ## QB redo + realistic routes — 2026-06-12 (this is the current QB design)
 - **Routes redefined by real NFL depth, cut TIMES derived from the run physics** (`scripted.py ROUTES`):
@@ -17,8 +33,8 @@ Current phase: A4 — 3D. QB prompting fully REDONE (2026-06-12) + routes made p
   (arc↔timing↔coordinate) the model can't solve mentally. **Caveat: assumes constant WR speed → exact for
   verticals, wrong for settle routes (curl/comeback) until a decel model is added.**
 - schema: `parse_qb_pass1` requires `open_window` (target_area dropped); `parse_qb_pass2` = arc + target_coord.
-- **Open blocker:** WR air-phase brakes off a go (`required_speed=dist/ETA` throttles down to a fixed spot) →
-  deep ball PBU'd even though placed right. WR-side, next up.
+- **~~Open blocker~~ FIXED 2026-06-13:** WR air-phase brake (`required_speed=dist/ETA`) + early-arrival
+  freeze + solver constant-speed projection — all resolved mechanically. See top section.
 
 ## Realism work — 2026-06-11 (merged to main)
 - **P1 WR plan cadence**: WRAgent emits a PLAN of 1–4 per-step actions (`schema.parse_wr_plan`), consumed
