@@ -1,61 +1,56 @@
 # Left Off
-Date: 2026-06-13
+Date: 2026-06-13 (session 2)
 
-This session: ran the full 10-route A4 suite, diagnosed the deep-ball / air-phase failures from the
-replay JSONs, and fixed them MECHANICALLY in the runner + solver (not via prompts). Philosophy shift
-(user): keep LLM freedom in *what it does*, but *restrict its options* — move brittle physics
-decisions out of the prompt and into the deterministic runner so they can't regress from model
-variance. This is what stops the fix-one-break-another loop.
+This session: user reviewed the 6C/3PBU/1DROP suite and named specific route faults. Fixed the two real
+ones — **go** (QB fundamental misunderstanding) and **comeback** (settle route) — and re-ran the full
+suite: **9C/1PBU**, every flagged route now a CATCH, no regressions. All fixes are prompt-understanding
++ one mechanical solver change (no WR call-timing code gates — see memory no-phase-gate).
 
-## What got done (all deterministic; prompts shrank, not grew)
-- **Fix 1 — WR air-phase throttle removed.** In BALL_IN_AIR the runner now drives the WR at full
-  speed toward the catch point and CLAMPS it so it can't overshoot the landing (freezes at closest
-  approach). The LLM keeps heading/facing freedom (bad-throw adjustment) but no longer chooses
-  throttle. Killed the universal "WR brakes to match landing timing → CB closes" bleed. The
-  required-speed/brake math was DELETED from `wr_ball_in_air.txt` (prompt got shorter).
-  [`sim/runner.py` move block ~line 546-568]
-- **Fix 3 — QB meeting-point solver projects the WR in-stride.** `_meeting_options` (`qb_agent.py`)
-  used the WR's *instantaneous* speed at release (often low, mid-cut-recovery) → placed the ball
-  short → WR arrived early and froze. New `_proj_distance()` projects a ramp from current speed to
-  top speed, **lengthened by cut-recovery time** and scaled by a conservative `safety=0.9`. Threaded
-  `wr_max_speed` + `wr_cut_recovery` from `decide()` into the solver. Conservative bias is
-  deliberate: over-projecting lands the ball out of reach (INCOMPLETE, always a loss);
-  under-projecting only costs a brief early arrival (contested, often still a catch).
-- **Fix 2 — honest telemetry.** Added `sep_at_throw` and `sep_at_catch` (decisive numbers).
-  `max_separation` is the play-peak and is useless for judging outcomes (it clustered at 5.02/3.04).
-  `run_all_routes.py` summary now prints `sep@throw -> sep@catch`.
+## What got done
+- **Go — FIXED (the priority).** The QB was bulleting into the CB's cushion at t=0.9: it read sep=3.96
+  as "open" when the CB was still 3.8yd DOWNFIELD (in front, off-coverage cushion). Taught the QB that
+  separation with the CB in front is a CUSHION, not a beaten man — a deep ball is only "over the top"
+  once the WR is EVEN WITH/PAST the CB, and a SHRINKING sep with the CB in front is the cushion closing,
+  not a window. Edits: `qb_system.txt` ("WHO IS CLOSER TO THE CATCH POINT" block) + `qb_pass1.txt`
+  (direction-of-separation note + a cushion-hold example + a corrected even/past throw example; deleted
+  the old incoherent "CB a step behind on a go" example that taught the wrong lesson). Validated:
+  **5/5 hold** on the exact failing geometry (deterministic harness), live **CATCH** (QB held the bullet,
+  waited for WR to pass CB, threw a touch over the top). In the suite, go sep GROWS in flight 2.14->3.52.
+- **Comeback — FIXED.** It's a STOP route but the WR sprinted 24yd through the 225° break and the QB
+  lofted a rainbow to chase. Root cause: the meeting-point solver projects the WR IN-STRIDE, so it
+  placed the ball where he'd be if he kept running, and the air-phase logic then dragged him there.
+  Made the solver **settle-aware**: `SETTLE_ROUTES={"comeback"}` + `SETTLE_DISTANCE=1.5` in `qb_agent.py`
+  — for a settle route every arc meets the WR at the FIXED settle spot (break point + 1.5yd), only the
+  arrival time changes. Threaded `route` through `QBAgent.decide()` and the runner. Also rewrote the
+  comeback route description (`scripted.py`) so the WR brakes/settles, and the QB geometry hint
+  (`observation.py`) so it bullets the settle spot. Live: a TRUE comeback — WR settles ~1.5yd back at
+  (14.7,60.9) and sits (speed 0), QB bullets right there.
+- **Regression caught + fixed mid-session:** the go cushion-caution bled into the comeback (QB held 1.3s
+  waiting for the WR to "pass the CB" on a route where he never does). Fixed by scoping the caution to
+  "a ball thrown BEYOND the CB" vs "underneath/settle routes (comeback/curl)" in both qb_system + pass1.
+  Re-confirmed go still 5/5 hold after the qualifier.
 
-## Results (gpt-5-nano, seed 42) — progression across the session
-- Baseline (start of session): **4C / 5PBU / 1INT**
-- After Fix 1 only: 5C/5PBU — air bleed gone, but WR now arrived early and FROZE at the spot (CB
-  closed during the dead time; comeback froze a full 1.0s).
-- After Fix 1 + naive ramp: 5C/1PBU/1INT/3INC — freeze fixed but ramp OVER-projected → undershoot →
-  ball out of reach (INCOMPLETE) on cut-recovery / double-move routes.
-- After Fix 1 + conservative cut-recovery ramp (final): **6C / 3PBU / 1DROP**, zero INCOMPLETE.
-  Separation now GROWS in flight (comeback 2.93→7.62, curl 2.89→6.82). Verified from JSON that all
-  non-catches REACHED the ball (final WR-to-ball 0.18-0.37yd, only the single clamp step frozen) —
-  the remaining losses are genuine coverage contests, not freeze/overshoot artifacts.
+## Suite result (gpt-5-nano, seed 42): 9C / 1PBU  (was 6C/3PBU/1DROP)
+slant C, comeback C, go C, double_move C, curl C(7.47), zig C, drag C, post_corner C(1.61->1.9), in C.
+Only loss: **corner PBU** (sep 2.03->0.85) — a genuine deep-coverage contest, NOT flagged by the user.
 
 ## Broken / Open
-- **Multi-break routes throw before the final cut.** drag / corner / post_corner / double_move are
-  the remaining non-catches. The WR executes a SECOND cut AFTER the QB throws (speed drops to ~0
-  mid-flight) — the solver cannot foresee it, so projection error is large there (corner +3.85yd in
-  the deterministic check). This is a WR-call-timing / route-phase problem (WR calling for the ball
-  before its last break), NOT ball-placement physics. Right next layer if pursued.
-- **go is a coverage contest now, not a checkdown.** This run go=PBU (threw deep ~17.7yd, WR reached
-  the ball at 0.34yd but CB in phase, sep@catch 0.44). The old "go is a 9yd checkdown" illusion is
-  gone; losing it now is the QB throwing a catchable deep ball into tight man — a beat-coverage
-  problem, governed by LLM decision freedom.
-- LLM nondeterminism: gpt-5-nano varies run-to-run even at fixed seed. Single-run route outcomes are
-  noisy; the mechanical fixes were validated DETERMINISTICALLY against recorded trajectories
-  (projected vs actual WR travel) to avoid chasing model noise. Do the same when iterating.
-- Ollama path unchanged (lenient text parsers, `--ollama`).
+- **corner PBU** — deep break to 315°; CB recovers and contests (sep@catch 0.85). Coverage contest,
+  governed by QB/CB decisioning, not a mechanical bug. The remaining single loss.
+- **post_corner / zig** — CATCH this run but user says they're not "real" routes and low-worry; the post
+  part of post_corner and the in-then-out of zig may not fully execute. Parked per user.
+- **curl** still runs back ~6yd (180°) rather than truly settling 2yd — it's a settle route too but was
+  NOT added to SETTLE_ROUTES (user said curl is "much better," avoid regressing a working route).
+  Easy extension if desired: add "curl" to SETTLE_ROUTES.
+- LLM nondeterminism persists — go/comeback were validated DETERMINISTICALLY (exact failing geometry)
+  to avoid chasing model noise; the suite is a single noisy sample on top.
 
 ## NEXT STEP
-**Gate the WR's `call_for_ball` on having no remaining cuts** (only call once on the FINAL break) so
-the QB stops throwing into a developing double-move on drag/corner/post_corner/double_move. That's
-the sole remaining mechanical lever; everything else left is beat-the-coverage QB decisioning.
+**Address the corner PBU** — the lone remaining loss. It's the same deep-ball family as go but with a
+315° break: check whether the QB throws over the top late enough (WR past the CB) or forces it into the
+recovering CB. Likely a pass1 timing read on the deep corner, not a placement bug.
 
 ## Housekeeping
 - Scratch files still in repo root: `kg_qb_prompt.txt`, `*_step_example.txt`, `curl_check.py`,
-  `show_wr_obs.py`, `wr_obs.txt`, `run_log_42.txt`. Delete when convenient (not touched this session).
+  `show_wr_obs.py`, `wr_obs.txt`, `run_log_42.txt`. Delete when convenient.
+- New replays this session: `replays/{go,comeback}_42_fix*.json` (verification runs).

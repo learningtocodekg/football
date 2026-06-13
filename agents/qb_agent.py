@@ -10,6 +10,12 @@ _PASS2_TEMPLATE = (Path(__file__).parent / "prompts" / "qb_pass2.txt").read_text
 
 ARC_ORDER = ["bullet", "drive", "touch", "loft"]
 
+# Routes where the WR plants and STOPS (comes back to the ball) instead of running
+# through the break. For these the in-stride projection over-shoots wildly, so the
+# meeting point is the settle spot: the break point + a short settle distance.
+SETTLE_ROUTES = {"comeback"}
+SETTLE_DISTANCE = 1.5  # yd the WR drifts past the break before stopping
+
 
 def _proj_distance(speed0: float, vmax: float, tau: float,
                    cut_recovery: int = 0, ramp: float = 0.6, safety: float = 0.9) -> float:
@@ -38,6 +44,7 @@ def _meeting_options(
     target_z: float = DEFAULT_TARGET_Z,
     t_now: float = 0.0,
     open_window: tuple[float, float] | None = None,
+    settle_distance: float | None = None,
 ) -> tuple[list[dict], str]:
     """For each arc, solve for the self-consistent point where a ball released NOW lands on the
     WR's locked line W(tau) = W_now + heading*speed*tau. The unknown is the arrival time tau:
@@ -52,7 +59,12 @@ def _meeting_options(
     hy = math.cos(math.radians(wr_heading))
 
     def residual(arc: str, tau: float):
-        travel = _proj_distance(wr_speed, wr_max_speed, tau, wr_cut_recovery)
+        # Settle routes: the WR stops at the settle spot, so the meeting point is fixed
+        # (break point + settle distance), independent of how long the ball hangs.
+        travel = (
+            settle_distance if settle_distance is not None
+            else _proj_distance(wr_speed, wr_max_speed, tau, wr_cut_recovery)
+        )
         px = wr_x + hx * travel
         py = wr_y + hy * travel
         d = math.hypot(px - qb_x, py - qb_y)
@@ -117,13 +129,21 @@ def _meeting_options(
         )
     if unreachable:
         lines.append(f"  OUT OF RANGE (cannot reach his line on this arc): {', '.join(unreachable)}")
-    lines += [
-        "",
-        "Each row is the self-consistent meeting point: throw that arc now and it lands where the WR's "
-        "locked line will be at the arrival time shown (assuming he runs to top speed). Flatter arcs "
-        "meet him sooner and shallower; higher arcs meet him deeper and later. Pick the arc whose arrival "
-        "falls in the window you identified.",
-    ]
+    if settle_distance is not None:
+        lines += [
+            "",
+            "He is SETTLING (a stop route): every arc meets him at the same spot - where he plants and "
+            "stops, just past his break. The arc only changes WHEN the ball gets there, not where. Pick "
+            "the flattest arc that arrives in your window so the ball drives in before the CB recovers.",
+        ]
+    else:
+        lines += [
+            "",
+            "Each row is the self-consistent meeting point: throw that arc now and it lands where the WR's "
+            "locked line will be at the arrival time shown (assuming he runs to top speed). Flatter arcs "
+            "meet him sooner and shallower; higher arcs meet him deeper and later. Pick the arc whose arrival "
+            "falls in the window you identified.",
+        ]
     return options, "\n".join(lines)
 
 
@@ -149,7 +169,7 @@ class QBAgent:
                wr_cut_recovery: int = 0, wr_max_speed: float = 9.5,
                cb_x: float | None = None, cb_y: float | None = None,
                cb_heading: float | None = None, cb_speed: float | None = None,
-               t: float = 0.0) -> dict:
+               t: float = 0.0, route: str = "") -> dict:
         system = _SYSTEM_PROMPT
 
         # ── Pass 1: the QB's own read — is the WR open, and WHEN? ─────────
@@ -175,6 +195,7 @@ class QBAgent:
             self.throw_power, wr_max_speed=wr_max_speed,
             wr_cut_recovery=wr_cut_recovery,
             t_now=t, open_window=p1.get("open_window"),
+            settle_distance=SETTLE_DISTANCE if route in SETTLE_ROUTES else None,
         )
         if not options:
             result = {"action": "hold",

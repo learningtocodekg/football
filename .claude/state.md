@@ -1,5 +1,23 @@
 # Build State
-Current phase: A4 — 3D. Air-phase + meeting-point physics fixed MECHANICALLY (2026-06-13). Full 10-route suite (gpt-5-nano, seed 42) = 6C/3PBU/1DROP, zero INCOMPLETE; separation now grows in flight. Remaining losses are multi-break routes that throw before the final cut + beat-the-coverage QB decisions.
+Current phase: A4 — 3D. Go (QB cushion-vs-beaten understanding) + comeback (settle-aware solver) FIXED
+(2026-06-13 s2). Full 10-route suite (gpt-5-nano, seed 42) = **9C/1PBU** (was 6C/3PBU/1DROP); only loss
+is corner (deep-coverage contest). Prior session: air-phase + meeting-point physics fixed mechanically.
+
+## Go + comeback fix — 2026-06-13 (session 2)
+- **Go QB understanding.** QB was bulleting into the CB's downfield cushion (read sep as "open" when the
+  CB was in front). qb_system.txt + qb_pass1.txt now teach: sep with the CB in FRONT is a cushion, not a
+  beaten man; a deep ball is "over the top" only once the WR is EVEN WITH/PAST the CB; a SHRINKING sep
+  with the CB in front is the cushion closing (not a window). Scoped to "ball thrown BEYOND the CB" so it
+  does NOT bleed into underneath/settle routes. Validated 5/5 hold on the failing geometry + live CATCH;
+  suite go sep GROWS in flight 2.14->3.52 (true over-the-top throw).
+- **Comeback = settle-aware solver.** `_meeting_options` accepted in-stride projection only, so on a stop
+  route it placed the ball where the WR would be if he kept running (the known settle-route caveat). Added
+  `SETTLE_ROUTES={"comeback"}` + `SETTLE_DISTANCE=1.5` in qb_agent.py: for a settle route every arc meets
+  the WR at the FIXED settle spot (break point + 1.5yd), only arrival time varies. `route` threaded through
+  `QBAgent.decide()` + runner. Comeback route description (scripted.py) rewritten so the WR brakes/settles;
+  QB geometry hint (observation.py) says bullet the settle spot. Live: WR settles ~1.5yd back, QB bullets it.
+- **Open:** corner PBU (deep 315° contest) is the lone remaining loss. curl NOT in SETTLE_ROUTES yet
+  (works, didn't want to regress it). No WR call-timing code gates were added (memory no-phase-gate).
 
 ## Air-phase + solver mechanical fix — 2026-06-13 (current ball-placement design)
 - **WR air-phase throttle REMOVED.** Runner drives the WR at full speed to the catch point in
@@ -205,6 +223,10 @@ Shadow model working: play_man on 8/10 routes, doom loop eliminated, sep at thro
 - CB overhaul (code+prompts, smoke tested): slant smoke CATCH sep=5.52 — CB correctly computed sprint_time > ETA → play_man. CUT CONFIRMED line working.
 - Round 15 (GPT-5-nano, seed 42, CB changes): **4C/1PBU/5INC** — regression from R14. Root cause: Window A heading lock bug (WR calling with stem heading 0° instead of break heading). R15 fixes landed: wr_live_free.txt heading note, wr_ball_in_air.txt brake guidance, cb_pass2.txt WR-ETA check. Two-route sanity: slant INT→PBU (improved), curl still INCOMPLETE (overshoot). Full re-run with fixes pending.
 - QB autonomy session (GPT-5-nano, seed 42, two-route sanity): **curl CATCH** (throw_t=2.7s, sep=5.02 — lead-hint call-heading fix + prediction doctrine) / **go SACK** (sep=6.62, QB never threw — straight-route fix added afterward, UNVERIFIED). Full suite not run.
+- Go + comeback session (GPT-5-nano, seed 42): **9C/1PBU** (was 6C/3PBU/1DROP). go CATCH (sep grows in
+  flight 2.14->3.52 = over-the-top deep ball), comeback CATCH (WR settles ~1.5yd back, bullet to spot),
+  curl/post_corner/zig/slant/double_move/drag/in all CATCH; only loss corner PBU (deep 315° contest).
+  go validated 5/5 hold deterministically on the failing cushion geometry.
 - WR stem-fix session (GPT-5-nano, seed 42, timestamped structured-output plan): **slant CATCH sep=4.35** — WR held stem to t=0.9, broke at cut window (was t=0.2), 0 parse errors. **go INCOMPLETE sep=2.34** — early-deep-throw FIXED (held stem, called t=0.9, throw t=1.5 not t=0.2) but lost to a separate loft hang-time/WR-overshoot issue (QB thread). Full suite not yet run.
 
 ## Not Started

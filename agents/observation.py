@@ -428,7 +428,7 @@ _ROUTE_GEOMETRY: dict[str, str] = {
     "slant":       "SLANT - 5yd stem, then a quick break inside across the field (45 deg). Short and fast.",
     "post":        "POST - 10yd stem, then break inside toward the goalpost (30 deg), heading deep.",
     "curl":        "CURL - 10yd stem, then hook back toward you (180 deg) and settle ~2yd back; he decelerates into it.",
-    "comeback":    "COMEBACK - 12yd stem, then plant and break back down toward the sideline (225 deg); he decelerates into it.",
+    "comeback":    "COMEBACK - 12yd stem, then plant and break back toward the sideline (225 deg) only 1-2yd and SETTLE/STOP, squaring up to you. He is coming BACK to the ball, not running away - put a firm BULLET on him where he settles (right around his break point); do NOT lead him further back or loft it.",
     "out":         "OUT - 10yd stem, then break flat to the sideline (270 deg).",
     "in":          "IN/DIG - 10yd stem, then cut hard inside across the field (90 deg).",
     "corner":      "CORNER - 10yd stem, then break to the deep sideline corner (315 deg).",

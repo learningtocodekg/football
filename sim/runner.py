@@ -419,7 +419,7 @@ def run_play(
                         cb_y=states["CB1"].y if "CB1" in states else None,
                         cb_heading=states["CB1"].heading if "CB1" in states else None,
                         cb_speed=states["CB1"].speed if "CB1" in states else None,
-                        t=t,
+                        t=t, route=route_name,
                     )
                 actions["QB"] = qb_action
                 p1 = qb_action.get("pass1")

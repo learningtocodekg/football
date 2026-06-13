@@ -72,9 +72,12 @@ ROUTE_DESCRIPTIONS: dict[str, dict] = {
     },
     "comeback": {
         "description": (
-            "Drive the CB deep into a backpedal. The more backward momentum he builds, "
-            "the harder it is for him to reverse when you stop and come back. "
-            "Call as soon as you've turned."
+            "This is a STOP route. Drive the CB deep into a backpedal, then plant and break "
+            "back toward your sideline - but only 1-2 yards, then STOP. Brake hard out of the "
+            "cut and settle in place, squaring up to face the QB; the ball comes back to YOU, "
+            "you do not keep running through the break. The CB's deep momentum can't reverse "
+            "in time - that gap is your window. Plant and call, then brake to settle (do not "
+            "keep sprinting back) so the QB can put a bullet on you where you stop."
         ),
     },
     "go": {

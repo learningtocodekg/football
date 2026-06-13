@@ -1,9 +1,9 @@
 {
   "header": {
     "seed": 42,
-    "scenario": "sim/scenarios/a4_wr_in.yaml",
+    "scenario": "sim/scenarios/a4_wr_go.yaml",
     "roster": "sim/rosters/default.yaml",
-    "down": 2,
+    "down": 1,
     "distance": 10
   },
   "steps": [
@@ -38,21 +38,21 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.1 Stem remains the setup; push forward on 0\u00b0 to gain depth toward ~9yd and pull CB upfield."
+          "reasoning": "t=0.1 Stem continues; nudge CB with speed since 10+ yards need to stem-heavy approach. Keep eyes on CB to read his hip turn; jab fakes optional but keep stem heading in case of real break."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            55.0
+            16.63,
+            53.0
           ],
           "heading": 90.0,
           "facing": 180.0,
           "speed": 1.3,
           "cut_recovery": 0,
-          "mode": "backpedal",
+          "mode": "normal",
           "action": "cover",
-          "reasoning": "Stem phase: shadow the WR, backpedal to keep hip on their hip while cushion remains; WR has zero committed cut yet."
+          "reasoning": "Stem phase: shadow the WR, maintain cushion. WR is just releasing with no sustained cut; stay back and ready without committing."
         }
       ],
       "ball": {
@@ -97,13 +97,13 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.2 Continue stem depth increase; keep CB reacting to vertical, preserving the window for a future 90\u00b0 break."
+          "reasoning": "t=0.2 Advancing toward 60-yard mark; monitor CB position; no final break yet; preserve top speed trajectory to maximize vertical separation before any potential cut."
         },
         {
           "id": "CB1",
           "pos": [
-            15.63,
-            55.18
+            16.63,
+            53.18
           ],
           "heading": 0.0,
           "facing": 180.0,
@@ -111,7 +111,7 @@
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: mirror cushion, WR shows no real cut yet; maintain hip shadow with slight x-tracking and remain ready to react to a real cut."
+          "reasoning": "Stem phase: WR heading ~0\u00b0 upfield; maintain shadow by backpedaling with eyes on WR and small x-tilt to track their position. No real cut yet; preserve burst for when they commit."
         }
       ],
       "ball": {
@@ -156,21 +156,21 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.3 Stem progression toward cut target; jab/fake could be considered later, but stay on current stem to maximize separation potential."
+          "reasoning": "t=0.3 Approaching stem completion window; prepare to enter final break next steps if CB shows commitment or rec>0; stay on 0\u00b0 heading until cadence signals."
         },
         {
           "id": "CB1",
           "pos": [
-            15.65,
-            55.45
+            16.63,
+            53.46
           ],
-          "heading": 5.0,
+          "heading": 0.0,
           "facing": 180.0,
-          "speed": 2.73,
+          "speed": 2.77,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR slightly to our right; maintain shadow with small 5\u00b0 tilt while backpedaling to keep cushion and preserve burst for real cut"
+          "reasoning": "WR is in stem with no real cut yet; maintain cushion and backpedal to keep eyes on WR while waiting for commit"
         }
       ],
       "ball": {
@@ -215,21 +215,21 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.4 Top of stem for now; ready to execute final break at ~1.6s with 90\u00b0 cut when CB rec>0; plan will adapt as CB reacts."
+          "reasoning": "t=0.4 Continue stem to keep CB engaged and preserve depth. No break yet; eyes on defender and field depth."
         },
         {
           "id": "CB1",
           "pos": [
-            15.65,
-            55.8
+            16.63,
+            53.81
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 3.44,
+          "speed": 3.54,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: mirror WR with cushion, stay on hip at ~0\u00b0 heading and 180\u00b0 facing; preserve burst for a real cut"
+          "reasoning": "Stem phase: WR running upfield at 0\u00b0. Maintain cushion on hip and stay backpedaling to keep full burst for a real cut."
         }
       ],
       "ball": {
@@ -274,21 +274,21 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.5 Continue stem toward 9yd depth; maintain upfield climb to pull CB with you. Keep eyes on CB; begin mild jab fake to hint at a cut but stay on stem."
+          "reasoning": "t=0.5 Maintain top-speed approach; wait for cushion breach as CB hips time. Monitor CB rec and spacing."
         },
         {
           "id": "CB1",
           "pos": [
-            15.65,
-            56.21
+            16.63,
+            54.23
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 4.08,
+          "speed": 4.16,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "STEM phase: WR heading 0\u00b0, no real cut yet. Maintain cushion, shadow on hip, ready to react but avoid commitment; keep BURST available."
+          "reasoning": "Stem phase: WR still running upfield, maintain cushion on their hip with backpedal and eyes on WR; no real cut yet"
         }
       ],
       "ball": {
@@ -333,21 +333,21 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.6 Maintain stem, execute a minimal mid-stem fake (0\u21920 heading) to force CB to react and potentially start reading hips, then re-commit to stem toward 9yd depth."
+          "reasoning": "t=0.6 Approach 10+ yards into stem; prepare for final break if cushion breaks, maintain discipline."
         },
         {
           "id": "CB1",
           "pos": [
-            15.69,
-            56.66
+            16.63,
+            54.7
           ],
-          "heading": 5.0,
+          "heading": 0.0,
           "facing": 180.0,
-          "speed": 4.5,
+          "speed": 4.66,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: WR still upfield with no real cut. Maintain cushion, tiny 5\u00b0 tilt to stay on WR's hip; avoid chasing jabs."
+          "reasoning": "Stem phase: WR not cut yet; maintain backpedal to stay on hip and preserve burst for a real cut."
         }
       ],
       "ball": {
@@ -392,21 +392,21 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.7 Hold stem; ensure you crest 7yd depth from line 16.0 before planned 90\u00b0 break window around t\u22481.6s; keep CB weight upfield."
+          "reasoning": "t=0.7 Cut window reached in stem; call for ball to allow QB to lead you deep if separation is present and CB rec > 0."
         },
         {
           "id": "CB1",
           "pos": [
-            15.69,
-            57.14
+            16.63,
+            55.2
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 4.84,
+          "speed": 5.06,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: maintain shadow, small 0\u00b0 tilt to track WR's x; no real cut yet, stay 0\u00b0 heading and backpedal"
+          "reasoning": "Stem phase: WR not committed yet; maintain shadow with 0\u00b0 heading, small lateral tilt if needed, keep cushion and full burst for real cut."
         }
       ],
       "ball": {
@@ -418,7 +418,13 @@
         ],
         "holder": "QB"
       },
-      "events": []
+      "events": [
+        {
+          "type": "WR_CALL_FOR_BALL",
+          "t": 0.6,
+          "heading": 0.0
+        }
+      ]
     },
     {
       "t": 0.7,
@@ -437,7 +443,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "Right now the WR is behind the CB and the separation is shrinking; there is no open window yet. A deep go would require the WR to be even with/past the CB and for separation to grow again, which will occur after the WR pulls even and starts pulling away. Wait 0.1s for a fresh read."
         },
         {
           "id": "WR1",
@@ -451,21 +457,21 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.8 Finalize stem progression toward 9yd target; preserve full burst potential for the first true break. Prepare to execute final 90\u00b0 break when CB hesitates and rec>0."
+          "reasoning": "You are already on the final cut and have created separation. The QB is throwing to your current heading; keep heading 0\u00b0 to maximize alignment with the throw. Facing 0\u00b0 helps with the catch, and accelerating maintains speed as you approach the landing zone. No further deception needed until after the catch."
         },
         {
           "id": "CB1",
           "pos": [
-            15.69,
-            57.66
+            16.63,
+            55.74
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 5.2,
+          "speed": 5.39,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: WR holds at 0\u00b0; keep cushion, backpedal with eyes on WR. No real cut detected yet; maintain shadow and readiness for a real cut."
+          "reasoning": "Stem phase: WR has not committed; maintain cushion and stay on hip with backpedal until a real cut is shown."
         }
       ],
       "ball": {
@@ -496,7 +502,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "WR is open only for 0.0-0.2s from now, but none of the arcs would have the ball arrive within that window (bullet 1.0s, drive 1.4s, touch 1.8s, loft 2.2s). Hold and wait for a new window."
         },
         {
           "id": "WR1",
@@ -510,21 +516,21 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.1 Continue stem; maintain depth toward ~9 yards; minor deception possible with a quick 60-90\u00b0 fake while keeping stem heading."
+          "reasoning": "QB threw to current heading; you already created separation. Do not change heading until ball lands. Accelerate to maintain pace and reach landing zone in bounds."
         },
         {
           "id": "CB1",
           "pos": [
-            15.69,
-            58.21
+            16.63,
+            56.3
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 5.5,
+          "speed": 5.65,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR in stem; maintain cushion, shadow on hip, no real cut yet"
+          "reasoning": "Stem phase: WR upfield with no sustained cut. Maintain cushion, stay shadow with backpedal to preserve burst for a real cut."
         }
       ],
       "ball": {
@@ -540,7 +546,7 @@
     },
     {
       "t": 0.9,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 4.1,
       "players": [
         {
@@ -555,7 +561,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
@@ -569,37 +575,56 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=0.2 Maintain stem, prepare for the cut window; no commitment to break yet to avoid early CB response."
+          "reasoning": "You already have separation after the sell; QB throw to current path. Hold heading, speed up to meet catch point at landing."
         },
         {
           "id": "CB1",
           "pos": [
-            15.69,
-            58.78
+            16.58,
+            56.88
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 5.74,
+          "heading": 355.0,
+          "facing": 198.0,
+          "speed": 5.73,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem stage: WR still straight upfield with no real cut. Stay on their hip with small lateral tracking (within 20\u00b0), maintain cushion, keep backpedaling to preserve FULL burst for when they commit."
+          "reasoning": "Stem phase: WR not cut yet, maintain cushion on hip. Backpedaling with eyes on WR; heading toward the ball landing zone to position for a possible play-man catch or PBU while preserving full burst for a later real cut."
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
           26.65,
           48.0,
-          0.0
+          2.2
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 1.778,
+        "arc": "touch"
       },
-      "events": []
+      "events": [
+        {
+          "type": "THROW",
+          "target": [
+            15.5,
+            69.1
+          ],
+          "arc": "touch",
+          "target_z": 2.0,
+          "mph": 33.5,
+          "eta": 1.78,
+          "dist": 23.9
+        }
+      ]
     },
     {
       "t": 1.0,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 4.0,
       "players": [
         {
@@ -614,7 +639,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
@@ -623,42 +648,48 @@
             55.91
           ],
           "heading": 0.0,
-          "facing": 0.0,
+          "facing": 124.0,
           "speed": 7.86,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=1.1 continue stem toward 9yd depth; keep CB engaged with small jab fake off stem to maintain separation setup."
+          "reasoning": "Per observation, keep heading fixed toward the landing spot and set facing to the QB bearing (124\u00b0). This preserves alignment with the ball arc and positions me to catch at the landing zone without drifting off path."
         },
         {
           "id": "CB1",
           "pos": [
-            15.69,
-            59.38
+            16.53,
+            57.47
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 5.94,
+          "heading": 355.0,
+          "facing": 355.0,
+          "speed": 5.93,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR stem ongoing with full burst; maintain shadow on hip, small x-tracking; wait for real cut"
+          "reasoning": "Ball in air; aim toward landing zone (355) to contest path. Maintain backpedal to shadow WR until real cut; swat not yet reachable (ball path distant)."
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          26.02,
+          49.19,
+          3.09
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 1.678,
+        "arc": "touch"
       },
       "events": []
     },
     {
       "t": 1.1,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.9,
       "players": [
         {
@@ -673,7 +704,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
@@ -682,42 +713,48 @@
             56.71
           ],
           "heading": 0.0,
-          "facing": 0.0,
+          "facing": 127.0,
           "speed": 8.1,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=1.2 maintain vertical push; watch CB hip response, stay on course, maintain distance for final break window."
+          "reasoning": "You are in go route stem; no final cut completed yet. Ball will land at ~69.1 yd upfield; keep straight heading 0\u00b0 to maximize speed downfield. Facing should match QB bearing (127\u00b0) to optimize vision while running."
         },
         {
           "id": "CB1",
           "pos": [
-            15.79,
-            59.95
+            16.48,
+            58.07
           ],
-          "heading": 10.0,
-          "facing": 180.0,
-          "speed": 5.83,
+          "heading": 355.0,
+          "facing": 355.0,
+          "speed": 6.09,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR remains on stem; small 5-10\u00b0 tilt to track their slight x-offset while backpedaling, stay shadow on hip and preserve full burst for real cuts"
+          "reasoning": "Ball in air; maintain stem discipline. No real WR cut yet (still 0\u00b0 stem). Face toward landing zone and keep backpedaling to stay on hip. Prepare swat if ball path comes within reach as it descends."
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          25.4,
+          50.37,
+          3.87
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 1.578,
+        "arc": "touch"
       },
       "events": []
     },
     {
       "t": 1.2,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.8,
       "players": [
         {
@@ -732,7 +769,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
@@ -741,42 +778,48 @@
             57.55
           ],
           "heading": 0.0,
-          "facing": 0.0,
+          "facing": 129.0,
           "speed": 8.3,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=1.3 tighten stem control; prepare for potential deceleration into final cut, ensure depth ~9yd by 1.6s."
+          "reasoning": "Keep heading fixed toward the landing spot (15.5,69.1). The ball is on its arc toward that spot; changing heading would derail alignment. Maintain speed toward the catch point, eyes on the QB bearing (129\u00b0) to watch the ball path and catch height. Ball arrives ~1.58s, you\u2019re positioned to reach landing zone at ~12.4 yd away; continue acceleration to ensure arrival."
         },
         {
           "id": "CB1",
           "pos": [
-            15.79,
-            60.53
+            16.42,
+            58.69
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 5.74,
+          "heading": 355.0,
+          "facing": 355.0,
+          "speed": 6.22,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "STEM: WR at 0\u00b0, backpedal with small lateral tracking; keep shadow on hip while WR remains unreleased. Maintain cushion; WR burst full but mirror patiently."
+          "reasoning": "Ball in air; INTENT=swat requires facing toward landing zone. Maintain backpedal shadow with heading/facing aligned at 355\u00b0 to contest the catch as WR bursts. Preserve cushion and avoid real cuts telltale by jab."
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          24.77,
+          51.56,
+          4.54
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 1.478,
+        "arc": "touch"
       },
       "events": []
     },
     {
       "t": 1.3,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.7,
       "players": [
         {
@@ -791,7 +834,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
@@ -800,42 +843,48 @@
             58.39
           ],
           "heading": 0.0,
-          "facing": 0.0,
+          "facing": 132.0,
           "speed": 8.48,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=1.4 hold stem, preserve depth and timing; still high CB attention for impending break at cut window."
+          "reasoning": "Maintain 0\u00b0 heading toward the landing spot while facing the QB bearing of 132\u00b0. The ball is on an arc to (15.5, 69.1) and will arrive in ~1.5s; keep sprinting at full speed to arrive on the spot and catch at the designated height. Ball was already called earlier; do not initiate another call."
         },
         {
           "id": "CB1",
           "pos": [
-            15.79,
-            61.12
+            16.37,
+            59.32
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 5.94,
+          "heading": 355.0,
+          "facing": 355.0,
+          "speed": 6.32,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: WR running upfield, no real cut yet. Maintain shadow, cushion, keep burst available."
+          "reasoning": "Ball high and arc inbound, WR not yet cut; maintain shadow, angle toward landing zone (swat if within reach)"
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          24.14,
+          52.75,
+          5.1
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 1.378,
+        "arc": "touch"
       },
       "events": []
     },
     {
       "t": 1.4,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.6,
       "players": [
         {
@@ -850,7 +899,7 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
@@ -859,42 +908,48 @@
             59.26
           ],
           "heading": 0.0,
-          "facing": 0.0,
+          "facing": 134.0,
           "speed": 8.63,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=1.5 Maintain stem depth and momentum to pull CB upfield; keep 9 yd depth and angle upfield to set up the 90\u00b0 break."
+          "reasoning": "Ball in flight to projected landing spot; maintain 0\u00b0 heading per observation. Facing set to QB bearing (134\u00b0) to maximize catch alignment. With full accelerate, we chase the catch window at ~1.4s and arrive at (15.5,69.1) as ball lands."
         },
         {
           "id": "CB1",
           "pos": [
-            15.79,
-            61.73
+            16.37,
+            59.95
           ],
           "heading": 0.0,
           "facing": 180.0,
-          "speed": 6.09,
+          "speed": 6.26,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR running straight upfield; maintain shadow with small 5-10\u00b0 tilt toward WR to stay on hip while backpedaling. No real cut yet; mirror patiently and keep full burst ready for real cut."
+          "reasoning": "WR has not committed a real cut; stay shadow (backpedal ~0\u00b0) with eyes on WR, preserve full burst for a real break"
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          23.51,
+          53.93,
+          5.56
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 1.278,
+        "arc": "touch"
       },
       "events": []
     },
     {
       "t": 1.5,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.5,
       "players": [
         {
@@ -909,57 +964,57 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "waiting for the WR to call for the ball"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
           "pos": [
-            16.49,
-            59.26
+            15.95,
+            60.12
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 4.89,
-          "cut_recovery": 3,
+          "heading": 357.0,
+          "facing": 137.0,
+          "speed": 8.64,
+          "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=1.6 Execute final break toward the right sideline as planned; CB should commit hips from the stem, creating window. Call when separation is present and break heading is set."
+          "reasoning": "Ball is on an arc to my projected spot. I must stay pointed at the landing zone to ensure I arrive at the catch spot as the ball descends. My heading to the landing point is ~357\u00b0 (slightly left of straight upfield), and my facing is the QB bearing (137\u00b0). Maintain accelerate to maximize speed into the catch window. No extra route changes or calls needed since the ball is arriving on target and I already signaled prior."
         },
         {
           "id": "CB1",
           "pos": [
-            15.79,
-            62.35
+            16.31,
+            60.57
           ],
-          "heading": 0.0,
-          "facing": 180.0,
-          "speed": 6.22,
+          "heading": 355.0,
+          "facing": 355.0,
+          "speed": 6.21,
           "cut_recovery": 0,
           "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Stem phase: shadow the WR, maintain cushion at heading ~0\u00b0, facing 180\u00b0. Slight tilt toward WR to stay on hip; WR is still in stem with full burst, no real cut yet."
+          "reasoning": "Stem phase: maintain shadow, slight tilt toward ball landing zone (355\u00b0) to prep for contested catch while not losing burst"
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          22.89,
+          55.12,
+          5.91
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 1.178,
+        "arc": "touch"
       },
-      "events": [
-        {
-          "type": "WR_CALL_FOR_BALL",
-          "t": 1.5,
-          "heading": 90.0
-        }
-      ]
+      "events": []
     },
     {
       "t": 1.6,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.4,
       "players": [
         {
@@ -974,51 +1029,57 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "CB is in front and closing; WR behind and moving laterally away from CB (WR at y=59.3, CB at y=62.4, both moving upfield but CB faster). Separation is not increasing toward 1.8+ with a deep throw; no open window for a ball past the CB within 0.3\u20132.5s"
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
           "pos": [
-            17.02,
-            59.26
+            15.91,
+            61.0
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 5.31,
-          "cut_recovery": 2,
+          "heading": 357.0,
+          "facing": 139.0,
+          "speed": 8.77,
+          "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "t=1.7 Hold heading through catch window; maintain break path and prepare to adjust to landing zone."
+          "reasoning": "Ball is on an arc to the landing spot; we stay on current heading toward the landing zone, maintain head and eye alignment with QB bearing (139). We are in position to catch as the ball arrives; no change in heading or call is needed."
         },
         {
           "id": "CB1",
           "pos": [
-            16.14,
-            62.35
+            16.31,
+            61.18
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 3.48,
-          "cut_recovery": 3,
-          "mode": "normal",
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 6.18,
+          "cut_recovery": 0,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR real cut to 90\u00b0; flip to match heading and close at full speed for an intercept opportunity"
+          "reasoning": "WR in stem (no real cut yet). Maintain shadow, cushion, wait for commitment; ball will land near 0.5s ahead, stay ready to react to a real cut or to contest the ball."
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          22.26,
+          56.31,
+          6.16
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 1.078,
+        "arc": "touch"
       },
       "events": []
     },
     {
       "t": 1.7,
-      "phase": "LIVE",
+      "phase": "BALL_IN_AIR",
       "sack_clock": 3.3,
       "players": [
         {
@@ -1033,45 +1094,51 @@
           "cut_recovery": 0,
           "mode": "normal",
           "action": "hold",
-          "reasoning": "No arc arrives within the 1.8-2.6s open window from now. All candidate throws would deliver the ball before the WR reaches the open window or after it closes. Hold to reassess at the next opportunity."
+          "reasoning": "ball in air"
         },
         {
           "id": "WR1",
           "pos": [
-            17.6,
-            59.26
+            15.86,
+            61.88
           ],
-          "heading": 90.0,
-          "facing": 15.0,
-          "speed": 5.81,
-          "cut_recovery": 1,
+          "heading": 357.0,
+          "facing": 140.0,
+          "speed": 8.88,
+          "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Ball is already in the air toward my current path. I should not change heading to preserve the throw target. Use accelerate to close the gap and adjust facing to align with where the ball will land to maximize catch probability."
+          "reasoning": "Ball trajectory and landing zone require holding current heading toward the landing spot. Facing is fixed at QB bearing ~140\u00b0. Maintain acceleration to reach the landing zone at 69.1 y by ~2.0s after release."
         },
         {
           "id": "CB1",
           "pos": [
-            16.54,
-            62.35
+            16.31,
+            61.81
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 3.98,
-          "cut_recovery": 2,
-          "mode": "normal",
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 6.29,
+          "cut_recovery": 0,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR made real cut to 90\u00b0, mirror their heading immediately and close at limited burst (RECOVERING ~43%)."
+          "reasoning": "WR has not committed to a real cut; maintain cushion while ball paths descend; prepare to contest at arrival but do not chase now."
         }
       ],
       "ball": {
-        "state": "held",
+        "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          0.0
+          21.63,
+          57.49,
+          6.3
         ],
-        "holder": "QB"
+        "landing": [
+          15.5,
+          69.1,
+          2.0
+        ],
+        "eta": 0.978,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1097,61 +1164,48 @@
         {
           "id": "WR1",
           "pos": [
-            18.24,
-            59.26
+            15.82,
+            62.78
           ],
-          "heading": 90.0,
-          "facing": 15.0,
-          "speed": 6.36,
+          "heading": 357.0,
+          "facing": 142.0,
+          "speed": 8.97,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "We already called for the ball at 1.5s and QB is throwing to the current path. Maintain heading to ensure catch; rotate facing toward the catch direction and accelerate to maximize separation if ball lands on path."
+          "reasoning": "Maintain heading toward the landing zone (356-357\u00b0) to meet the ball at the chest height; facing 142\u00b0 aligns with the QB bearing to see/track the arc. Ball arrives in ~0.98s, so keep full acceleration to arrive on time."
         },
         {
           "id": "CB1",
           "pos": [
-            17.0,
-            62.35
+            16.25,
+            62.43
           ],
-          "heading": 90.0,
-          "facing": 161.0,
-          "speed": 4.57,
-          "cut_recovery": 1,
-          "mode": "normal",
+          "heading": 354.0,
+          "facing": 354.0,
+          "speed": 6.21,
+          "cut_recovery": 0,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR real cut to 90\u00b0; switch to normal mode and mirror their heading to contest the ball and close on the target zone"
+          "reasoning": "Ball in air; align to landing zone for swat and stay on WR's hip. Shift heading to 354\u00b0 to face the zone while maintaining backpedal for keep vision."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          26.65,
-          48.0,
-          2.2
+          21.01,
+          58.68,
+          6.33
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.846,
-        "arc": "bullet"
+        "eta": 0.878,
+        "arc": "touch"
       },
-      "events": [
-        {
-          "type": "THROW",
-          "target": [
-            23.7,
-            59.3
-          ],
-          "arc": "bullet",
-          "target_z": 1.5,
-          "mph": 29.2,
-          "eta": 0.85,
-          "dist": 11.7
-        }
-      ]
+      "events": []
     },
     {
       "t": 1.9,
@@ -1175,46 +1229,46 @@
         {
           "id": "WR1",
           "pos": [
-            18.92,
-            59.26
+            15.77,
+            63.68
           ],
-          "heading": 90.0,
-          "facing": 143.0,
-          "speed": 6.82,
+          "heading": 357.0,
+          "facing": 144.0,
+          "speed": 9.05,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain the prescribed heading; ball is on a arc to the landing spot. Set facing to the exact QB bearing (143\u00b0) and accelerate to keep up with the ball while remaining on path. Do not call for the ball until the final cut; currently ball is in flight and we must be at the landing zone when it arrives."
+          "reasoning": "Ball in air, heading toward landing spot (357\u00b0) with QB bearing 144\u00b0. Maintain upfield sprint to landing zone; call only after final cut and separation."
         },
         {
           "id": "CB1",
           "pos": [
-            17.52,
-            62.35
+            16.25,
+            63.04
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 5.21,
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 6.15,
           "cut_recovery": 0,
-          "mode": "normal",
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR real cut established to 90\u00b0; switch to normal and close on intercept angle with them"
+          "reasoning": "Stem phase: shadow WR upfield; ball will land chest-high. Maintain cushion and wait for a real cut; prepare to swat if ball path comes within reach."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          26.3,
-          49.34,
-          2.52
+          20.38,
+          59.87,
+          6.25
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.746,
-        "arc": "bullet"
+        "eta": 0.778,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1240,46 +1294,46 @@
         {
           "id": "WR1",
           "pos": [
-            19.64,
-            59.26
+            15.72,
+            64.59
           ],
-          "heading": 90.0,
-          "facing": 146.0,
-          "speed": 7.21,
+          "heading": 357.0,
+          "facing": 145.0,
+          "speed": 9.11,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain 90\u00b0 heading toward landing spot; set facing to QB bearing 146\u00b0 to track ball; accelerate to max speed to arrive at landing zone."
+          "reasoning": "Heading toward landing spot (15.5,69.1). Ball arrives ~0.78s; maintain course and eyes on QB bearing (145) to catch at the landing zone."
         },
         {
           "id": "CB1",
           "pos": [
-            17.98,
-            62.13
+            16.17,
+            63.65
           ],
-          "heading": 116.0,
-          "facing": 116.0,
-          "speed": 5.11,
+          "heading": 353.0,
+          "facing": 353.0,
+          "speed": 6.07,
           "cut_recovery": 0,
-          "mode": "normal",
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR committed to 90\u00b0 cut; mirror and close toward ball landing zone to contest with swat due to ball arriving chest-high"
+          "reasoning": "Ball in air; align to landing zone (353\u00b0) and contest with swat when within arm reach; stay on WR's hip while backpedaling"
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          25.95,
-          50.67,
-          2.73
+          19.75,
+          61.05,
+          6.07
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.646,
-        "arc": "bullet"
+        "eta": 0.678,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1305,46 +1359,46 @@
         {
           "id": "WR1",
           "pos": [
-            20.4,
-            59.26
+            15.67,
+            65.51
           ],
-          "heading": 90.0,
-          "facing": 148.0,
-          "speed": 7.55,
+          "heading": 357.0,
+          "facing": 147.0,
+          "speed": 9.17,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Ball is arriving at landing spot (23.7,59.3). Maintain heading toward landing zone (east along +x). Facing should be toward QB bearing (~148\u00b0). You already called previously; do not call again."
+          "reasoning": "Ball arrives at landing zone (15.5,69.1) in ~0.68s. You should hold heading to the landing spot (357\u00b0) and set facing to the QB bearing (147\u00b0) to maximize catch probability, since you already called and the throw targets your path. Maintain acceleration to reach the spot in time. Do not adjust heading or call again; you will catch at the landing zone as long as you stay on path."
         },
         {
           "id": "CB1",
           "pos": [
-            18.48,
-            62.13
+            16.1,
+            64.26
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 5.04,
+          "heading": 353.0,
+          "facing": 353.0,
+          "speed": 6.2,
           "cut_recovery": 0,
-          "mode": "normal",
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR made real cut to 90\u00b0, switch to normal and mirror to close on intercept."
+          "reasoning": "Ball in air near zone; arm reach insufficient (distance 5.5 yd > 4.5 yd). Maintain backpedal shadow on WR, keep eyes on ball direction (353\u00b0) to contest when it descends."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          25.6,
-          52.01,
-          2.83
+          19.12,
+          62.24,
+          5.77
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.546,
-        "arc": "bullet"
+        "eta": 0.578,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1370,46 +1424,46 @@
         {
           "id": "WR1",
           "pos": [
-            21.18,
-            59.26
+            15.67,
+            66.42
           ],
-          "heading": 90.0,
-          "facing": 151.0,
-          "speed": 7.84,
+          "heading": 0.0,
+          "facing": 148.0,
+          "speed": 9.1,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Ball arriving at landing spot (23.7,59.3); current pos (20.4,59.3) with 3.3 yd gap. Maintain heading toward landing spot and set facing to QB bearing (151\u00b0) for catch timing. Ball ETA ~0.55s; accelerate to arrive on time."
+          "reasoning": "You already called for the ball at 0.6s with heading 0\u00b0, so hold that heading. Maintain facing at 148\u00b0 (QB bearing). Accelerate to reach the landing zone at 15.5,69.1 as ball arrives in ~0.58s; stay in bounds and prepare to catch."
         },
         {
           "id": "CB1",
           "pos": [
-            19.04,
-            62.13
+            16.02,
+            64.89
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 5.61,
+          "heading": 353.0,
+          "facing": 353.0,
+          "speed": 6.31,
           "cut_recovery": 0,
-          "mode": "normal",
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR real cut confirmed at t=1.5s; flip to matching heading (90\u00b0) and close at full speed to intercept."
+          "reasoning": "Ball will descend to chest-high; stay on WR's hip, align toward landing zone, prepare to swat as path comes within reach"
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          25.26,
-          53.34,
-          2.82
+          18.5,
+          63.43,
+          5.38
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.446,
-        "arc": "bullet"
+        "eta": 0.478,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1435,46 +1489,46 @@
         {
           "id": "WR1",
           "pos": [
-            21.99,
-            59.26
+            15.67,
+            67.33
           ],
-          "heading": 90.0,
-          "facing": 154.0,
-          "speed": 8.08,
+          "heading": 0.0,
+          "facing": 149.0,
+          "speed": 9.16,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain current heading toward the landing spot; adjust facing to QB bearing (154). Ball arrives in ~0.45s, keep speed toward catch without changing route."
+          "reasoning": "We already called at t=0.6s and should hold our final cut/heading. The ball is arriving at (15.5,69.1) with height 2.0, you are 2.7 yd from landing zone; maintain 0\u00b0 heading and 149\u00b0 facing to QB to maximize catch probability while letting speed carry you to the spot."
         },
         {
           "id": "CB1",
           "pos": [
-            19.65,
-            62.13
+            15.94,
+            65.52
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 6.1,
+          "heading": 353.0,
+          "facing": 353.0,
+          "speed": 6.39,
           "cut_recovery": 0,
-          "mode": "normal",
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR made a real cut to 90\u00b0. Switch to normal mode, mirror their heading, and close at full speed to intercept the ball."
+          "reasoning": "Ball in air; swat opportunity. Maintain shadow, face landing zone with 353\u00b0, backpedal to stay on hip while WR could cut; aim swat as ball arrives."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          24.91,
-          54.68,
-          2.71
+          17.87,
+          64.62,
+          4.87
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.346,
-        "arc": "bullet"
+        "eta": 0.378,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1500,46 +1554,46 @@
         {
           "id": "WR1",
           "pos": [
-            22.82,
-            59.26
+            15.67,
+            68.25
           ],
-          "heading": 90.0,
-          "facing": 158.0,
-          "speed": 8.29,
+          "heading": 0.0,
+          "facing": 150.0,
+          "speed": 9.21,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain path to landing zone (23.7,59.3). Ball arriving in ~0.35s; keep facing toward QB bearing 158 and keep heading on the landing spot. No change in route or call until open."
+          "reasoning": "Ball arriving at landing spot; maintain go path and max speed to reach the landing zone on time. No cut or call needed; CB is behind and you\u2019re on target to catch at 2.0 yd height."
         },
         {
           "id": "CB1",
           "pos": [
-            20.1,
-            61.82
+            15.86,
+            66.16
           ],
-          "heading": 125.0,
-          "facing": 125.0,
-          "speed": 5.4,
-          "cut_recovery": 1,
-          "mode": "normal",
+          "heading": 353.0,
+          "facing": 353.0,
+          "speed": 6.46,
+          "cut_recovery": 0,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Ball is arriving; WR real cut held. Switch to normal, mirror WR heading and contest ball by swatting toward landing zone (125\u00b0) with facing=125\u00b0 for alignment."
+          "reasoning": "Ball is descending to the zone; stay on WR's hip in backpedal while facing toward the landing zone to contest the ball on its descent and prepare a swat if path aligns"
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          24.56,
-          56.01,
-          2.49
+          17.24,
+          65.8,
+          4.26
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.246,
-        "arc": "bullet"
+        "eta": 0.278,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1565,46 +1619,46 @@
         {
           "id": "WR1",
           "pos": [
-            23.66,
-            59.26
+            15.67,
+            69.18
           ],
-          "heading": 90.0,
-          "facing": 161.0,
-          "speed": 8.47,
+          "heading": 0.0,
+          "facing": 152.0,
+          "speed": 9.25,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain heading to landing spot; ball arriving in ~0.25s; facing 161 (bearing to QB); be at (23.7,59.3) at catch height; continue burst to arrive in time"
+          "reasoning": "Ball arriving at (15.5,69.1); continue upfield to landing spot, maintain heading; eyes toward QB bearing 152."
         },
         {
           "id": "CB1",
           "pos": [
-            20.59,
-            61.82
+            15.78,
+            66.81
           ],
-          "heading": 90.0,
-          "facing": 90.0,
-          "speed": 4.89,
-          "cut_recovery": 1,
-          "mode": "normal",
+          "heading": 353.0,
+          "facing": 353.0,
+          "speed": 6.52,
+          "cut_recovery": 0,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Confirmed real cut; flip to match WR's heading (90\u00b0) and close at full speed for intercept opportunity."
+          "reasoning": "Ball arriving chest-high; maintain shadow with WR, stay aligned to swat path. Backpedal keeps vision on WR while keeping the ball in reach; prepare to swat if ball path remains within arm reach ( tempest: 0.28s ETA )"
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          24.21,
-          57.35,
-          2.17
+          16.62,
+          66.99,
+          3.54
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.146,
-        "arc": "bullet"
+        "eta": 0.178,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1630,46 +1684,46 @@
         {
           "id": "WR1",
           "pos": [
-            23.66,
-            59.26
+            15.67,
+            69.18
           ],
-          "heading": 90.0,
-          "facing": 165.0,
+          "heading": 0.0,
+          "facing": 153.0,
           "speed": 0.0,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Maintain final cut path and keep speed to arrive at landing zone. Facing adjusted to QB bearing (165). Ball will land at (23.7,59.3); maintain heading 90 to reach spot on arc."
+          "reasoning": "Ball is on target to landing zone; keep heading at 0\u00b0 to align with catch spot. Facing must be the QB bearing (153\u00b0). Accelerate to maintain top speed and reach the landing zone as the ball arrives."
         },
         {
           "id": "CB1",
           "pos": [
-            20.93,
-            61.54
+            15.7,
+            67.46
           ],
-          "heading": 129.0,
-          "facing": 129.0,
-          "speed": 4.44,
-          "cut_recovery": 1,
-          "mode": "normal",
+          "heading": 353.0,
+          "facing": 353.0,
+          "speed": 6.56,
+          "cut_recovery": 0,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "Ball arriving to zone 0.5s ahead; align body to zone for a potential swat/intercept and keep WR in sight on the hip."
+          "reasoning": "Ball will arrive chest-high within arm reach; swat at full extension while maintaining backpedal shadowing of the WR (keep hips ready for real cut)."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          23.86,
-          58.69,
-          1.74
+          15.99,
+          68.18,
+          2.72
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
-        "eta": 0.046,
-        "arc": "bullet"
+        "eta": 0.078,
+        "arc": "touch"
       },
       "events": []
     },
@@ -1695,53 +1749,53 @@
         {
           "id": "WR1",
           "pos": [
-            23.66,
-            59.26
+            15.67,
+            69.18
           ],
-          "heading": 90.0,
-          "facing": 165.0,
+          "heading": 0.0,
+          "facing": 153.0,
           "speed": 0.0,
           "cut_recovery": 0,
           "mode": "normal",
           "action": "run_route",
-          "reasoning": "Ball is in flight toward landing spot; you are already at the correct position with your heading fixed on the landing spot. Facing set to QB bearing (165). Maintain speed and orientation; no additional call is needed since you already signaled earlier and the ball will arrive at the projected spot."
+          "reasoning": "Move toward landing spot (15.5,69.1) from current position (15.7,69.2). The required delta is small (-0.2, -0.1), so the optimal heading is slightly downfield and to the left (roughly 243\u00b0). Maintain heading to the landing spot and keep facing QB at 153\u00b0. Ball is coming in ~0.08s; accelerate to ensure arrival at catch point without overshooting."
         },
         {
           "id": "CB1",
           "pos": [
-            20.93,
-            61.54
+            15.7,
+            67.46
           ],
-          "heading": 129.0,
-          "facing": 129.0,
-          "speed": 4.44,
-          "cut_recovery": 1,
-          "mode": "normal",
+          "heading": 353.0,
+          "facing": 353.0,
+          "speed": 6.56,
+          "cut_recovery": 0,
+          "mode": "backpedal",
           "action": "cover",
-          "reasoning": "WR real cut to 90\u00b0, switch to chase with them; ball arriving soon, contest with swat if in reach"
+          "reasoning": "Ball in range z<=3.0 and landing zone within 1.7 yd; maintain shadowing and attempt swat toward landing zone."
         }
       ],
       "ball": {
         "state": "in_air",
         "pos": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
         "landing": [
-          23.7,
-          59.3,
-          1.5
+          15.5,
+          69.1,
+          2.0
         ],
         "eta": 0.0,
-        "arc": "bullet"
+        "arc": "touch"
       },
       "events": [
         {
           "type": "RESOLUTION",
           "outcome": "CATCH",
-          "separation": 3.56,
-          "landing_z": 1.5
+          "separation": 1.72,
+          "landing_z": 2.0
         }
       ]
     }
@@ -1749,24 +1803,24 @@
   "footer": {
     "outcome": "CATCH",
     "telemetry": {
-      "max_separation": 5.02,
-      "sep_at_throw": 3.27,
-      "sep_at_catch": 3.56,
-      "throw_t": 1.8,
-      "throw_distance": 11.7,
-      "throw_arc": "bullet",
-      "target_z": 1.5,
+      "max_separation": 3.04,
+      "sep_at_throw": 2.04,
+      "sep_at_catch": 1.72,
+      "throw_t": 0.9,
+      "throw_distance": 23.9,
+      "throw_arc": "touch",
+      "target_z": 2.0,
       "sack": false,
       "qb_calls": 5,
       "qb_parse_errors": 0,
-      "wr_calls": 17,
+      "wr_calls": 24,
       "wr_parse_errors": 0,
       "cb_calls": 30,
       "cb_parse_errors": 0,
       "cb_intent": "swat",
-      "wr_call_t": 1.5,
+      "wr_call_t": 0.6,
       "broken_play": false,
-      "detected_cut_t": 1.5
+      "detected_cut_t": null
     }
   }
 }

@@ -4,12 +4,17 @@ Your WR is locked on his break. From the positions, headings, and speeds above a
 
 Decide whether a window is coming - a stretch of time when the WR will have 1.8+ yd of separation from the CB. Account for ball travel time: you are looking ~0.3 to 2.5 seconds ahead.
 
+Watch the DIRECTION separation is moving, not just its size. If the CB is downfield of your WR (in front, in his cushion) and the separation is SHRINKING in the trend table, that gap is the cushion closing - it is NOT a throwing window, because a ball thrown past the CB drops where he is already waiting. On a deep route a real window opens only after the WR pulls EVEN WITH/PAST the CB and separation starts GROWING again; report THAT later span, not the closing cushion. (This applies ONLY to a ball thrown PAST the CB. If your WR is breaking BACK to settle SHORT of the CB - a comeback or curl - the opposite is true: a downfield CB is good, underneath is open, so report the window NOW as he plants - do not wait for him to pass anyone.)
+
 - If you do NOT see a clean window: hold. You get a fresh read 0.1s later.
 - If you DO: report WHEN he is open as a time span in SECONDS FROM NOW. You do not pick a spot - once you know when he is open, step 2 shows you where each throw type lands on his path.
 
 Examples:
-  WR (16,60) heading 0 at 9.0 yd/s, CB (16,62) heading 0 at 8.5 yd/s, sep 2.0 and growing (CB a step behind on a go): he keeps pulling away, so he is open deep from now on.
-    {"action": "thinking", "open_window": [1.0, 2.6], "reasoning": "WR is faster and already a step clear; separation only grows as they run, open deep through the next ~2.5s"}
+  WR (16,55) heading 0 at 7.6 yd/s, CB (16,59) heading 0 at 5.6 yd/s, sep 4.0 on a go: the number looks open, but the CB is still 4 yd DOWNFIELD of the WR - sitting in his cushion, closer to any deep ball than the WR is.
+    {"action": "hold", "reasoning": "the 4yd 'separation' is the CB's cushion - he is still in front of my WR, so a deep ball drops right to him. Wait for the WR to eat the cushion and get even with/past him"}
+
+  WR (16,63) heading 0 at 9.0 yd/s, CB (16,62) heading 0 at 7.5 yd/s on a go: the WR has now run EVEN WITH/past the CB and is the faster man, so HE is the one closer to a deep ball and pulling away.
+    {"action": "thinking", "open_window": [0.8, 2.4], "reasoning": "WR is past the CB's hip and faster; he keeps pulling away, so a ball lofted deep over the CB is his - open from ~0.8s on"}
 
   WR (20,58) heading 90 at 8.0 yd/s just broke on a dig, CB (18,58) heading 90 at 6.0 yd/s still turning: WR crosses into space while the CB recovers, then the CB re-closes.
     {"action": "thinking", "open_window": [0.4, 1.0], "reasoning": "CB is a step behind and still turning; WR clear for ~0.4 to 1.0s before the CB catches the angle"}
