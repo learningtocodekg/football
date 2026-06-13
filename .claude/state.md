@@ -1,5 +1,24 @@
 # Build State
-Current phase: A4 — 3D (arc physics + QB arc/z interface landed, commit fe02ef6; first live 3D slant = CATCH; all three viewers 3D-ready and human-verified; full 10-route 3D baseline NOT yet run — going route-by-route)
+Current phase: A4 — 3D. QB prompting fully REDONE (2026-06-12) + routes made physics-realistic. Live: slant CATCH, go deep-throw fixed (PBU pending a WR air-phase fix). Full 10-route A4 suite NOT yet re-run.
+
+## QB redo + realistic routes — 2026-06-12 (this is the current QB design)
+- **Routes redefined by real NFL depth, cut TIMES derived from the run physics** (`scripted.py ROUTES`):
+  slant 5yd/1.0s, post 10yd/1.8s, curl 10yd/1.8s/180, comeback 12yd/1.9s/225, out 1.6s/270, corner 1.8s/315,
+  in 1.6s/90, drag 4yd/0.9s, zig/double_move/post_corner retimed; out/corner headings fixed (were swapped).
+  `_est_yards` rewritten to the exponential burst-accel model (was overstating depth ~25%).
+- **QB system prompt** = timeless context only (field/good-throw/separation@1.8&1.0 center-to-center/route
+  frame/arc basics). **LEAD HINT + DIRECTION CHECK deleted.** Lean factual observation (no pre-chewed verdict).
+- **QB gated on the WR call** (`runner.py`): LLM QB not invoked until the WR calls; ScriptedQB unaffected.
+- **Two-step flow:** PASS 1 = the QB's own read — raw facts only, outputs `open_window [t_from,t_to]` (sec from
+  now) or hold; judging openness is the QB's job, NO sep handed to it. PASS 2 = landing physics only —
+  `_meeting_options` (qb_agent.py) solves per arc for the self-consistent point where a ball released now meets
+  the WR's locked line (bisection on arrival time tau s.t. flight_time(dist to W(tau))==tau); shows meeting
+  coord + arrival(+s) + range, **no CB/sep**. QB picks arc + target_coord. Resolves the deep-ball catch-22
+  (arc↔timing↔coordinate) the model can't solve mentally. **Caveat: assumes constant WR speed → exact for
+  verticals, wrong for settle routes (curl/comeback) until a decel model is added.**
+- schema: `parse_qb_pass1` requires `open_window` (target_area dropped); `parse_qb_pass2` = arc + target_coord.
+- **Open blocker:** WR air-phase brakes off a go (`required_speed=dist/ETA` throttles down to a fixed spot) →
+  deep ball PBU'd even though placed right. WR-side, next up.
 
 ## Realism work — 2026-06-11 (merged to main)
 - **P1 WR plan cadence**: WRAgent emits a PLAN of 1–4 per-step actions (`schema.parse_wr_plan`), consumed

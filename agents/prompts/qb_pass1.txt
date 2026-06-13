@@ -1,21 +1,21 @@
-STEP 1 of 2 - IS THERE A WINDOW?
+STEP 1 of 2 - IS THE WR OPEN, AND WHEN?
 
-Your WR is locked on his break. Project both players forward from the positions, headings, and speeds above, and from the trend in the recent-movement table: the WR keeps running his locked heading; the CB chases from where he is.
+Your WR is locked on his break. From the positions, headings, and speeds above and the trend in the recent-movement table, project both players forward YOURSELF: the WR keeps running his locked heading at roughly his current speed; the CB chases from where he is now.
 
-Is a window coming - a stretch of time in the next ~0.3 to 1.5 seconds when the WR will have 1.8+ yd of separation - that you could land the ball in? The ball needs travel time, so the real question is "will he be open soon, when, and where."
+Decide whether a window is coming - a stretch of time when the WR will have 1.8+ yd of separation from the CB. Account for ball travel time: you are looking ~0.3 to 2.5 seconds ahead.
 
-- If there is NO clear window yet: hold. You get a fresh read 0.1s later.
-- If there IS: give the time span he will be open and the spot to aim (where he will be during that span).
+- If you do NOT see a clean window: hold. You get a fresh read 0.1s later.
+- If you DO: report WHEN he is open as a time span in SECONDS FROM NOW. You do not pick a spot - once you know when he is open, step 2 shows you where each throw type lands on his path.
 
 Examples:
-  WR (16.0, 60.0) heading 0 deg at 9.0 yd/s, CB (16.0, 62.0) heading 0 deg at 8.5 yd/s, sep 2.0 and growing (CB a step behind on a go):
-    {"action": "thinking", "target_area": [16.0, 68.0], "open_window": [0.9, 1.5], "reasoning": "WR is pulling away deep, 2+ yd clear from ~0.9s on, running through roughly (16,66) to (16,70)"}
+  WR (16,60) heading 0 at 9.0 yd/s, CB (16,62) heading 0 at 8.5 yd/s, sep 2.0 and growing (CB a step behind on a go): he keeps pulling away, so he is open deep from now on.
+    {"action": "thinking", "open_window": [1.0, 2.6], "reasoning": "WR is faster and already a step clear; separation only grows as they run, open deep through the next ~2.5s"}
 
-  WR (20.0, 58.0) heading 90 deg at 8.0 yd/s just broke on a dig, CB (18.0, 58.0) heading 90 deg at 6.0 yd/s still turning, sep 2.0:
-    {"action": "thinking", "target_area": [27.0, 58.5], "open_window": [0.5, 0.9], "reasoning": "WR crosses into space while the CB is still recovering the turn, open ~0.5 to 0.9s around (26-29, 58)"}
+  WR (20,58) heading 90 at 8.0 yd/s just broke on a dig, CB (18,58) heading 90 at 6.0 yd/s still turning: WR crosses into space while the CB recovers, then the CB re-closes.
+    {"action": "thinking", "open_window": [0.4, 1.0], "reasoning": "CB is a step behind and still turning; WR clear for ~0.4 to 1.0s before the CB catches the angle"}
 
-  WR (16.0, 57.0) heading 0 deg at 9.0 yd/s, CB (16.0, 57.6) heading 0 deg at 9.0 yd/s, sep 0.6 and flat (CB stride for stride):
-    {"action": "hold", "reasoning": "no separation, CB is matching him step for step, no window yet"}
+  WR (16,57) heading 0 at 9.0 yd/s, CB (16,57.6) heading 0 at 9.0 yd/s, sep 0.6 and flat (stride for stride): no separation now or coming.
+    {"action": "hold", "reasoning": "CB is matching him step for step, no window"}
 
 Hold:   {"action": "hold", "reasoning": "..."}
-Window: {"action": "thinking", "target_area": [x, y], "open_window": [t_from, t_to], "reasoning": "..."}
+Window: {"action": "thinking", "open_window": [t_from, t_to], "reasoning": "..."}

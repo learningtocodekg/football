@@ -68,22 +68,15 @@ def parse_qb_pass1(raw: str) -> dict | None:
     reasoning = str(obj.get("reasoning", ""))
     if act == "hold":
         return {"action": "hold", "reasoning": reasoning}
-    if act == "thinking":
-        ta = obj.get("target_area")
-        if not (isinstance(ta, list) and len(ta) == 2):
-            return None
-        result = {
-            "action": "thinking",
-            "target_area": [float(ta[0]), float(ta[1])],
-            "reasoning": reasoning,
-        }
+    if act in ("thinking", "throw", "window", "go"):
         ow = obj.get("open_window")
-        if isinstance(ow, list) and len(ow) == 2:
-            try:
-                result["open_window"] = (float(ow[0]), float(ow[1]))
-            except (TypeError, ValueError):
-                pass
-        return result
+        if not (isinstance(ow, list) and len(ow) == 2):
+            return None
+        try:
+            window = (float(ow[0]), float(ow[1]))
+        except (TypeError, ValueError):
+            return None
+        return {"action": "thinking", "open_window": window, "reasoning": reasoning}
     return None
 
 

@@ -423,7 +423,8 @@ def run_play(
                 p1 = qb_action.get("pass1")
                 if p1 and p1["action"] == "thinking":
                     r = p1["reasoning"]
-                    print(f"  t={t:.1f}  QB pass1  -> thinking target={p1['target_area']} | {r}")
+                    win = p1.get("open_window")
+                    print(f"  t={t:.1f}  QB pass1  -> open window={win} | {r}")
                 r = qb_action["reasoning"]
                 print(f"  t={t:.1f}  QB pass2  -> {qb_action['action']!r:8}  | {r}")
 

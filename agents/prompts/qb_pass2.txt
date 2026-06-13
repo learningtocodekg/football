@@ -1,16 +1,16 @@
 STEP 2 of 2 - PICK THE THROW.
 
-You read the WR getting open around your target, during the window you named. Here is every arc you can throw to that spot. Each row shows the flight time, when the ball would ARRIVE (now + flight time), where the WR and CB will be then, and the separation at arrival:
+You decided the WR is open during the window you named. You do not have to project anything now - here is the physics. Each row is one arc, and shows the exact spot where that arc, if you release it NOW, lands on the WR's path, plus how long it takes to get there:
 
 {options_block}
 
-Pick the arc whose ball ARRIVES while the WR is open - separation 1.8+ if you can get it, 1.0 to 1.8 is contested. Among arcs that arrive in the window, prefer the flattest one that is not flagged as tippable in the lane, since a flatter ball gives the CB less time to close.
+A flatter arc (bullet) gets there sooner and meets him shallower; a higher arc (loft) hangs longer and meets him deeper - so the arc you pick decides WHEN the ball arrives. Choose the arc whose arrival lands inside the window you identified (so the ball gets there while he is open), and that you trust to clear the CB.
 
-Then set the exact landing spot (target_coord): lead the WR a step in his direction and shade it to the side away from the CB. Keep it within ~1 yd of where the WR will actually be, or he cannot reach it.
+Your landing spot (target_coord) should be that arc's meeting point. You may shade it a little - a touch further along his path to lead him, or to the side away from the CB so his body shields it - but keep it within ~1 yd of the meeting point or he cannot run onto it.
 
-Catch height (target_z, default 1.5 = chest): raise it toward 2.5-3.0 only if the CB will arrive tight and you want to put the ball where only your WR can reach.
+Catch height (target_z, default 1.5 = chest): raise it toward 2.5-3.0 only to drop the ball where a tight CB cannot reach.
 
-If no arc arrives with the WR open, hold and read again next step.
+If no arc arrives while he is open, hold and read again next step.
 
 Hold:  {"action": "hold", "reasoning": "..."}
 Throw: {"action": "throw", "arc": "<bullet|drive|touch|loft>", "target_coord": [x, y], "target_z": 1.5, "reasoning": "..."}

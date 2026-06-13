@@ -1,72 +1,63 @@
 # Left Off
 Date: 2026-06-12
 
-## What We Worked On
-WR thread (QB was being redone in a separate chat). Chased down WHY the WR breaks its route
-absurdly early — on the slant it cut at t=0.2 / ~0.6yd when the route is a 5yd / ~1.0s stem —
-and fixed it **without** breaking the high-freedom principle (guide via information, never
-enforce a decision in code). The fix that finally worked: **timestamped plan steps + Pydantic
-structured outputs.**
+Two parallel threads ran this session: a **WR thread** (stem-discipline fix, committed `20eb439`)
+and a **QB thread** (this chat: prompt redo + realistic routes + deep-ball meeting-point solver).
 
-## Root Cause (confirmed by reading config → observation → behavior)
-- Config is correct: `ROUTES["slant"] = [(1.0, 0.0), (999, 45.0)]` → cut_time 1.0s, ~5yd depth.
-- The observation correctly told the WR `CUT TARGET: break to 45° at t≈1.0s, ~5yd`. So timing/
-  yardage were NOT missing.
-- The WR LLM ignored it. Two compounding mechanisms:
-  1. **Blind batched plan.** The LIVE-free phase makes ONE plan call (`wr_agent.decide`) that
-     returns up to 4 steps served from a queue with no fresh CB look. The model baked the
-     break+call into step 3/4 of its very first plan at t=0.0 — committing the cut sight-unseen.
-  2. **Cloned reasoning** (`parse_wr_plan`) stamped one plan-level string onto every step, so the
-     replay showed "maintain stem" on the very step that broke — masking what happened.
+## QB THREAD (this chat) — what got done
+Executed the planned QB-prompting redo end-to-end, made the routes physics-realistic, then solved
+the deep-ball catch-22 with a meeting-point solver.
+- **Routes retuned to real NFL depths, physics-derived cut times** [in 20eb439]: slant 5yd/1.0s,
+  post 10yd/1.8s, curl 10yd/1.8s/180, comeback 12yd/1.9s/225, out 1.6s/270, corner 1.8s/315,
+  in 1.6s/90, drag 4yd/0.9s, zig/double_move/post_corner retimed; out/corner headings fixed (were
+  swapped). `_est_yards` rewritten to the real exponential burst-accel model (was +25% on depth).
+- **QB system prompt** cut from ~180 sprawling lines to timeless context only. **LEAD HINT + editorial
+  DIRECTION CHECK deleted.** Lean factual observation; separation framed center-to-center w/ real
+  1.8 / 1.0 thresholds. **QB gated on the WR call** (runner; ScriptedQB unaffected). [20eb439]
+- **Two-step flow + meeting-point solver** [THIS commit]:
+  - **Pass 1 = the QB's own read.** Raw facts only (no projected sep). Outputs `open_window`
+    `[t_from,t_to]` in SECONDS FROM NOW, or hold. Judging the window is the QB's job.
+  - **Pass 2 = landing physics only.** `_meeting_options` (qb_agent.py) solves per arc for the
+    self-consistent point where a ball released NOW meets the WR's locked line — bisection on arrival
+    time `tau` s.t. `flight_time(dist to W(tau)) == tau`. Shows meeting coord + arrival(+s) + range,
+    **no CB/sep** (that would re-answer the openness call the QB owns). QB picks arc + target_coord.
+  - schema: `parse_qb_pass1` requires `open_window` (target_area dropped); `parse_qb_pass2` =
+    arc + target_coord.
 
-## What Got Done — the fix (in the tree)
-- **`agents/schema.py`** — `WRStep` / `WRPlan` Pydantic models + `wr_plan_steps()` converter.
-  Each step: `t, heading, throttle(Literal), facing, call_for_ball, reasoning`. `parse_wr_plan`
-  (Ollama text fallback) now tags each step with its own `t` and per-step reasoning.
-- **`agents/llm_client.py`** — `call_llm_structured()` using `chat.completions.parse` with the
-  Pydantic schema as `response_format` (OpenAI structured outputs, guaranteed shape — no regex).
-- **`agents/wr_agent.py`** — `decide()` free phase: OpenAI → structured path (`WRPlan`); Ollama →
-  keeps lenient `call_llm` + `parse_wr_plan`.
-- **`agents/prompts/wr_live_free.txt`** — plan output is now a list of TIMESTAMPED steps. Window
-  is `[T+0.1, T+0.4]` (1–4 steps), each step tagged with absolute `t` and its own one-line
-  reasoning; JSON example includes `t`.
-- **`agents/observation.py`** — concrete `PLAN WINDOW: you are at t=…, plan may cover t+0.1…t+0.4;
-  your break at t≈X is INSIDE/BEYOND this window` line. Also REVERTED an earlier REQUIRE/MUST
-  detour back to factual/consequence framing (see below).
+## WR THREAD (separate chat, committed 20eb439) — what got done
+WR broke routes absurdly early (slant cut at t=0.2/~0.6yd vs a 5yd/1.0s stem). Config + observation
+were already correct; the WR LLM ignored them. Root cause: the LIVE-free phase batches ONE plan of
+up to 4 steps served queue-less, and the model baked the break+call into step 3/4 of its FIRST plan
+at t=0.0 (cut sight-unseen); cloned plan-level reasoning masked it in the log. **Fix: timestamped
+plan steps via Pydantic structured outputs** (`call_llm_structured` / `chat.completions.parse`) —
+each step must emit its absolute `t`, so the model can't pretend a 4-step (0.4s) plan reaches the
+1.0s break. Slant: CATCH sep 4.35, WR held stem to t=0.9. Freedom intact (it re-plans and *chooses*
+to hold). Failed detours: REQUIRE/MUST language (reverted), consequence reframe alone, tick-math
+fact alone (model rationalized a short stem) — only the forced timestamp stuck.
 
-## Result — IT WORKED (slant)
-slant seed 42, gpt-5-nano: **CATCH, sep 4.35, 0 parse errors.** WR held the 0° stem to **t=0.9**,
-broke to 45° and called at the cut window (was t=0.2). `detected_cut_t=0.9`, throw_t=1.0,
-throw_distance 12.2yd (a real slant from depth). Per-step reasoning now reads against the clock
-(`t=0.7 eyes still on break point ~1.0s`). Freedom intact — it re-plans each tick and *chooses*
-to hold the stem; we made the clock legible, didn't force it.
+## Live results (gpt-5-nano, seed 42)
+- **Slant: CATCH sep 2.27** — gated QB waited for call, anticipated its own window, threw a leading
+  bullet away from CB. 0 QB parse errors.
+- **Go: the early-deep-throw bug is GONE and the meeting-point fix WORKS.** WR held the 0deg stem,
+  called t=1.6; QB pass1 computed its own window (0.18-2.4s), pass2 threw **29.6yd DEEP to (16,75.6)**
+  vs the old 17.6yd-short loft to (16,62). Outcome = **PBU sep 0.41**, downstream not the QB.
 
-## Go route — early-throw bug FIXED, but play INCOMPLETE for a SEPARATE reason
-go seed 42: WR held stem, called at t=0.9, QB threw at **t=1.5 (not the old t=0.2 bomb)** —
-the original go-route early-deep-throw is gone. BUT outcome = **INCOMPLETE, sep 2.34**, due to a
-downstream QB/air issue, NOT the stem: QB threw a **17.6yd loft** that hangs ~1.9s; the WR reaches
-the fixed landing spot way too early (~t=2.0, ball ETA still ~1.4s), then thrashes
-brake→accelerate and **overshoots**. Also 1 `[QB pass1 parse error] raw=` (empty response).
-→ **User parked the loft/air-timing issue for the QB thread.**
-
-## Detours that FAILED (don't repeat)
-- **REQUIRE/MUST language** in prompt+obs (forbid breaking before the window): works against the
-  high-freedom principle — reverted.
-- **Factual consequence reframe alone**: WR still broke at t=0.3.
-- **Tick-math fact alone** ("break is ~7 ticks away, a 4-step plan can't reach it"): BACKFIRED —
-  the model *rationalized* a 0.3–0.4s stem, using the new info to justify the early break instead
-  of extending. Lesson: information about timing didn't stick until each step was forced to carry
-  its absolute `t` (structured output) — then the model couldn't pretend a short plan reached 1.0s.
+## Broken / Open (the go-completion blocker first)
+- **WR air-phase brakes off the go.** Ball-in-air controller does `required_speed = dist/ETA` and
+  throttles DOWN to not overshoot the landing spot — right on a curl, suicidal on a go (kills the
+  speed advantage, CB stays glued). This is why the deep ball PBU'd. **Top blocker for go catches.**
+- **Meeting-point solver assumes constant WR speed** — exact for verticals, WRONG for routes where
+  the WR decelerates/settles (curl, comeback). Needs a settle model before those place correctly.
+- Full 10-route A4 suite NOT yet run with all this. Verified on slant (CATCH) + go (deep throw).
+- 1 empty-response QB pass1 parse error seen (known LLM hiccup; holds that step).
 
 ## NEXT STEP
-**Run the full 10-route A4 suite (seed 42, gpt-5-nano) to confirm the timestamped/structured-output
-WR holds its stem on every route and check for regressions.** The fix is verified only on slant
-(CATCH) and the go stem so far. `python run_all_routes.py`.
+**Fix the WR air-phase so it runs THROUGH a deep ball at speed instead of decelerating to a fixed
+spot, then re-run the go to confirm CATCH.** After that: run the full 10-route A4 suite
+(`python run_all_routes.py`, seed 42) to check both threads for regressions, and add a settle/decel
+model to `_meeting_options` for curl/comeback.
 
-## Open / Future
-- Loft hang-time vs WR air-arrival overshoot + QB under-leading a deep ball → **QB thread**.
-- Save-to-memory pending: "timestamped Pydantic structured-output plan is what finally held the WR
-  stem (freedom-preserving)" — durable finding worth recording.
-- Ollama path uses the lenient text parser (no structured outputs via openai-compat); only
-  exercised if `--local`.
-- LLM nondeterminism: single runs aren't proof; suite run will be more telling.
+## Housekeeping
+- `kg_qb_prompt.txt` / `*_step_example.txt` scratch files — verify gone / delete if still around.
+- Ollama path still uses the lenient text parsers (no structured outputs); only hit with `--local`.
+- LLM nondeterminism: single runs aren't proof; the suite run will be more telling.
