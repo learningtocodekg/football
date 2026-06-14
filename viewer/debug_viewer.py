@@ -40,6 +40,7 @@ GRAY        = (140, 140, 140)
 DARK_GRAY   = (60, 60, 60)
 BLACK       = (0, 0, 0)
 YELLOW      = (255, 215, 0)
+BACKPEDAL_CLR = (0, 230, 230)  # ring around a player running backwards (mode=backpedal)
 BG_PANEL    = (22, 22, 28)
 BG_HEADER   = (12, 12, 18)
 BG_TAB_ACT  = (50, 90, 160)
@@ -272,6 +273,12 @@ class DebugViewer:
         pts = [(int(tip[0]), int(tip[1])), (int(left[0]), int(left[1])), (int(right[0]), int(right[1]))]
         pygame.draw.polygon(self.screen, color, pts)
         pygame.draw.polygon(self.screen, WHITE, pts, 1)
+
+        # Backpedal indicator: cyan ring around a player running backwards
+        if p.get("mode") == "backpedal":
+            pygame.draw.circle(self.screen, BACKPEDAL_CLR, (sx, sy), size + 4, 2)
+            self._txt("BP", (sx - 7, sy - 22), color=BACKPEDAL_CLR, font=self.font_sm)
+
         self._txt(pid, (sx + 9, sy - 6), color=WHITE, font=self.font_sm)
 
     def draw_ball(self, ball: dict):

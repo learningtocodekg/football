@@ -30,6 +30,7 @@ BALL_CLR     = (139,  69,  19)
 TRAIL_CLR    = (255, 255, 255, 80)
 ARC_CLR      = (255, 215,   0)
 REASON_CLR   = (255, 255, 100)
+BACKPEDAL_CLR = (  0, 230, 230)  # ring around a player running backwards (mode=backpedal)
 SIDEBAR_BG   = ( 18,  18,  18)
 WHITE        = (255, 255, 255)
 GRAY         = (140, 140, 140)
@@ -164,6 +165,11 @@ class GridironRenderer:
                             [(int(tip[0]), int(tip[1])),
                              (int(left[0]), int(left[1])),
                              (int(right[0]), int(right[1]))], 1)
+
+        # Backpedal indicator: cyan ring around a player running backwards
+        if p.get("mode") == "backpedal":
+            pygame.draw.circle(self.screen, BACKPEDAL_CLR, (sx, sy), size + 4, 2)
+            self._txt("BP", (sx - 7, sy - 24), color=BACKPEDAL_CLR)
 
         # ID
         self._txt(pid, (sx + 10, sy - 7), color=WHITE)
@@ -341,6 +347,9 @@ class GridironRenderer:
         line("+/-    fps",         color=GRAY)
         line("R      field text",  color=GRAY)
         line("Q/Esc  quit",        color=GRAY)
+        y += 8
+        line("LEGEND", color=GRAY)
+        line("cyan ring = backpedal", color=BACKPEDAL_CLR, font=self.font_sm)
         y += 8
         line(f"fps={self.fps}  field_text={'ON' if self.show_reasoning else 'off'}", color=GRAY)
 

@@ -33,6 +33,7 @@ OFFENSE_COLOR = color.rgb32(30, 144, 255)
 DEFENSE_COLOR = color.rgb32(220, 50, 50)
 BALL_COLOR = color.rgb32(170, 90, 30)
 ARC_COLOR = color.rgb32(255, 215, 0)
+BACKPEDAL_COLOR = color.rgb32(0, 230, 230)  # body tint while running backwards (mode=backpedal)
 
 
 class UrsinaReplay:
@@ -89,16 +90,25 @@ class UrsinaReplay:
         # distorted by the body cube's non-uniform scale), with the body as a child.
         self.player_entities: dict[str, Entity] = {}
         self.player_labels: dict[str, Text] = {}
+        self.player_bodies: dict[str, Entity] = {}
+        self.player_team_color: dict[str, object] = {}
+        self.player_bp_tags: dict[str, Text] = {}
         for p in self.steps[0]["players"]:
             pid = p["id"]
             clr = OFFENSE_COLOR if pid in ("QB", "WR1") else DEFENSE_COLOR
             holder = Entity(position=Vec3(p["pos"][0], 0.0, p["pos"][1]))
-            Entity(model="cube", scale=(0.8, 2.0, 0.5), color=clr,
-                   parent=holder, y=1.0)
+            body = Entity(model="cube", scale=(0.8, 2.0, 0.5), color=clr,
+                          parent=holder, y=1.0)
             self.player_entities[pid] = holder
+            self.player_bodies[pid] = body
+            self.player_team_color[pid] = clr
             label = Text(text=pid, parent=holder, y=2.6, scale=14,
                          billboard=True, origin=(0, 0), color=color.white)
             self.player_labels[pid] = label
+            bp_tag = Text(text="BP", parent=holder, y=3.0, scale=16,
+                          billboard=True, origin=(0, 0), color=BACKPEDAL_COLOR,
+                          enabled=False)
+            self.player_bp_tags[pid] = bp_tag
 
     def _build_ball(self):
         self.ball_entity = Entity(model="sphere", scale=0.45, color=BALL_COLOR,
@@ -157,6 +167,14 @@ class UrsinaReplay:
                 continue
             ent.position = Vec3(p["pos"][0], 0.0, p["pos"][1])
             ent.rotation_y = p.get("heading", 0.0)
+            # Backpedal indicator: tint the body cyan + show a floating "BP" tag
+            backpedal = p.get("mode") == "backpedal"
+            body = self.player_bodies.get(p["id"])
+            if body is not None:
+                body.color = BACKPEDAL_COLOR if backpedal else self.player_team_color[p["id"]]
+            tag = self.player_bp_tags.get(p["id"])
+            if tag is not None:
+                tag.enabled = backpedal
 
         ball = step["ball"]
         bp = ball["pos"]

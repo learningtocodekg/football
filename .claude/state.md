@@ -1,9 +1,22 @@
 # Build State
-Current phase: A4 — 3D. **WR route execution rebuilt as a SOFT RAIL (2026-06-14 s3)** — the long-standing
-"WR ignores route geometry" problem is RESOLVED. All 6 routes the user flagged (go, comeback, curl, zig,
-double_move + corner) now run with CORRECT SHAPES, not lucky catches. Judge plays by route/accuracy/coverage/
-air-play, NOT the catch/PBU label (memory feedback-outcome-vs-quality). Lone open item: post_corner QB
-deep-throw accuracy on multi-break routes (WR is open).
+Current phase: A4 — 3D. **Project considered essentially DONE (2026-06-14 s4).** WR route execution was
+rebuilt as a SOFT RAIL (s3) — the long-standing "WR ignores route geometry" problem is RESOLVED. All 10
+routes run with CORRECT SHAPES, not lucky catches. Judge plays by route/accuracy/coverage/air-play, NOT the
+catch/PBU label (memory feedback-outcome-vs-quality). The two non-catches (curl PBU, post_corner INCOMPLETE)
+are open-WR losses to CB/WR LLM nondeterminism, accepted as such.
+
+## Session 4 (2026-06-14) — verification + backpedal UI indicator
+- **venv is `.venv`** (not `venv`): `./.venv/Scripts/python.exe`.
+- **curl earlier-throw hint verified** (throw_t 2.2→2.0, fires on the hook). This run = PBU (CB closed the
+  settle window); nondeterministic vs s3's CATCH 1.79. The re-run OVERWROTE `replays/curl_42.json`.
+- **post_corner cause corrected:** NOT a solver-can't-see-the-2nd-cut bug (the WR's heading was already on
+  the final 315° leg at throw). Real cause = WR air-phase LLM reversed to heading 225° mid-flight + braked,
+  and the overshoot-freeze clamp locked him 3.5yd short of a catchable deep ball. Accepted as hallucination.
+- **WR-faster-than-CB explained:** attrs differ (WR 9.5/14/85 vs CB 9.0/13/80) AND the backpedal cap
+  (`BACKPEDAL_SPEED_FRACTION=0.75`) limits a pedaling CB to ~6.75 yd/s vs WR 9.5. By design, not a bug.
+- **Backpedal indicator added to all 3 viewers:** 3D ursina = cyan body tint + floating "BP" tag (reverts
+  to team color when running forward); 2D pygame + debug_viewer = cyan ring + "BP" label (+ pygame legend).
+  3D version NOT yet visually confirmed by the user.
 
 ## WR soft rail + QB throw-timing — 2026-06-14 (session 3) — CURRENT WR DESIGN
 - **Why:** the WR's one `heading` output carried two fighting jobs (run the route AND juke); no prompt could

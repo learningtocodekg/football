@@ -1,66 +1,50 @@
 # Left Off
-Date: 2026-06-14 (session 3)
+Date: 2026-06-14 (session 4)
 
-This session: the user reframed the whole eval — **a CATCH is not a good play and a PBU is not a bad one**;
-judge by route correctness, ball accuracy, coverage, and air-play (see memory feedback-outcome-vs-quality).
-Under that lens the 9C/1PBU suite was mostly broken routes that happened to be caught. We did a ground-up
-fix of WR route execution via a **soft rail**, plus QB throw-timing fixes. Result: the 6 routes the user
-flagged as broken now run with CORRECT SHAPES (not lucky catches).
-
-## The core idea (memory: project-wr-soft-rail)
-The WR's one `heading` output was doing two fighting jobs — RUN THE ROUTE and JUKE. No prompt phrasing
-could make the model do both, so it abandoned the route to juke. Fix: **split them.** The engine guarantees
-the route SHAPE as a backstop (with advance warning in a ROUTE STATUS obs line); juke/read/call stay free.
+Short session. Mostly verification + a UI ask. The user now considers the project **essentially done**
+(Phase A4: all 10 routes run with CORRECT SHAPES; the two non-catches are open-WR losses to LLM
+nondeterminism, which the user accepts as "regular LLM hallucination").
 
 ## What got done
-- **`RouteRail`** (`agents/scripted.py`): per-play soft rail. govern() corrects the WR's decision each tick;
-  status() narrates the backstop. Mechanics: **depth-gated stem** (break only after running the route's
-  designed depth = `_burst_distance(stem_dur)`, early read past 70%); **duration-held fakes**; **early break
-  only from the stem (leg0)** so a fake can't be short-circuited; **STEM_CONE=25°** feint limit (a hard turn
-  sheds ~40% speed, so wider weaving dawdled the stem and arrived late — this was the curl/double_move killer
-  at cone 45–70); **positional leash** (2yd lateral / 0.75yd backward) on the final leg/go; **settle** stop
-  for comeback/curl. Forced accelerate on non-final legs.
-- **Call gate** (user-approved override of no-phase-gate; memory project-wr-call-gate): a call is HELD until
-  the FINAL break (stem finished); for a settle route it fires AS THE WR HOOKS (not after fully planted) so
-  the ball arrives while the CB's deep momentum carries him past. Early calls are deferred and auto-fire.
-- **QB window-filter** (`qb_agent._meeting_options`; memory project-qb-window-filter): pass2 is only offered
-  arcs that ARRIVE inside pass1's open window; if none fit, hold. Mechanically enforces deep-ball cushion
-  discipline. DISABLED for settle routes (a stopped WR waits for the ball). Fixed the go PBU→CATCH.
-- **QB lob heuristic** (`qb_pass2.txt`; memory feedback-qb-lob-over-cb): when the CB is BETWEEN the WR and
-  the QB (in the lane), throw a LOB over his head, not a flat bullet. Verified: go now throws a `touch` arc.
-- WR prompt (`wr_live_free.txt`) slimmed to juke / read / call (the rail does route execution now).
-- 11 deterministic rail unit tests (`tests/test_route_rail.py`) — all pass (no LLM).
-- Deleted dead `_phase_instruction`/`_est_yards` from observation.py; centralized SETTLE_* in scripted.py.
-
-## Per-route result (gpt-5-nano, seed 42) — judged by SHAPE, not just outcome
-- go: **CATCH 2.29**, real straight go, QB lobs (`touch`) over the trailing CB ✓ (was: WR bailed to 90°)
-- comeback: **CATCH 2.1**, true 12yd stem → break back → plant & sit ✓ (was: caught at LOS)
-- curl: **CATCH 1.79**, clean stem → hook → settle, throw on the hook ✓ (was: never sat)
-- zig: **CATCH 2.92**, runs BOTH moves (jab + out) ✓ user: "perfect" (was: skipped the in-part)
-- double_move: **CATCH 7.02**, clean fake holds → snap back deep → CB beaten ✓ (was: thrown on the dig)
-- corner: **CATCH 1.81** ✓ user: "good" (was: the lone PBU 0.85)
-- slant / drag / in: CATCH, still good ✓
-- post_corner: user says "perfect" (route runs stem→fake→corner, WR open). One auto-run was INCOMPLETE on
-  the QB's deep-corner throw placement (WR was open, sep ~3) — a QB meeting-solver projection limit, not a
-  route bug.
+- **Setup:** the venv is `.venv` (NOT `venv`) — `./.venv/Scripts/python.exe`. (Saved to memory.)
+- **curl earlier-throw hint VERIFIED.** Re-ran curl: throw now fires at **throw_t=2.0 "as he hooks"**
+  (was 2.2) — the qb_pass2 hint took effect. Outcome this run was **PBU** (CB in play_man closed the
+  settle window to sep 0.5 at catch) vs last session's CATCH 1.79 — same route, different CB roll, pure
+  nondeterminism. ⚠️ **This re-run OVERWROTE `replays/curl_42.json`** — the repo copy is now the PBU, not
+  the CATCH. Re-run curl if you want a catch replay to view.
+- **post_corner cause CORRECTED — the old handoff note was WRONG.** left_off (s3) blamed "the solver
+  can't foresee the second cut." The replay disproves it: the WR's 2nd cut to the corner happened at
+  t=2.0, the throw was at t=2.5 with the WR's heading **already locked on the final 315° leg** — so the
+  solver's projection *direction* was correct. The real loss: at **t=3.3 mid-flight the WR's air-phase LLM
+  turned to heading 225° (back toward the QB) and braked to 0** while a catchable deep ball was still
+  3.5yd ahead; the runner's overshoot-freeze clamp then locked him there. He re-accelerated too late and
+  finished **2.55yd from the ball → INCOMPLETE**, despite being open (sep 3.28 at throw). Secondary: the
+  solver projected ~9.2yd of air travel, leaving no reach margin to absorb the stall. User: leave it,
+  it's regular LLM hallucination.
+- **Answered "why does the WR look so much faster than the CB?"** Two reasons: (1) attributes are NOT
+  equal — WR 9.5/14/85 (speed/accel/agility) vs CB 9.0/13/80; (2) the dominant effect is the **backpedal
+  speed cap** `BACKPEDAL_SPEED_FRACTION=0.75` — a backpedaling CB tops out at 9.0×0.75 ≈ **6.75 yd/s**
+  while the WR sprints at 9.5. Confirmed in the go replay (WR ramps to 8.5, CB flatlines ~6.0). Not a bug
+  — coverage physics working as designed.
+- **NEW: backpedal indicator in all three viewers.**
+  - 3D `render/renderer_ursina.py` (the "game" the user watches): body **tints cyan** while
+    `mode=="backpedal"` + a floating **"BP"** billboard tag; reverts to team color when he turns to run.
+  - 2D `render/renderer_pygame.py` + `viewer/debug_viewer.py`: cyan **ring + "BP" label** (+ legend line
+    in the pygame sidebar).
+  - First attempt only touched the 2D viewers → user saw nothing because they watch the 3D ursina one;
+    added it there too. All three compile.
 
 ## Broken / Open
-- **curl earlier-throw hint UNVERIFIED live.** Added to qb_pass2 ("settle window is brief, throw as he
-  hooks") but the verifying run got cut by the 599s batch timeout (go ran, curl did not). The curl replay
-  in the repo is the prior CATCH 1.79 (throw at t=2.2 on the hook — already decent). Re-run to confirm.
-- **post_corner throw accuracy**: QB meeting-point solver mis-places the throw after the multi-break deep
-  corner (WR open). The known multi-break projection limit — pass2 projects the WR in-stride and can't
-  foresee the path after a late second cut. Lone real open item.
-- comeback can break a touch shallow (~8yd) when the 70%-depth early-read fires; raise the floor if deeper
-  comebacks are wanted (user didn't flag it).
-- LLM nondeterminism persists; rail mechanics are validated DETERMINISTICALLY by the unit tests on top.
+- **3D backpedal indicator NOT YET VISUALLY CONFIRMED.** User was going to run
+  `./.venv/Scripts/python.exe -m render.renderer_ursina replays/go_42.json` and report. If it shows up,
+  this session is fully closed. (User also offered the option of a ground ring instead of the body tint.)
+- `replays/curl_42.json` is now a PBU (overwrote the CATCH). Cosmetic — route shape is still correct.
+- post_corner INCOMPLETE stands, accepted as nondeterministic LLM hallucination (route correct, WR open).
+
+## Suite status (seed 42, by SHAPE not label)
+8 CATCH (slant, drag, go, in, zig, comeback, corner, double_move) + curl PBU + post_corner INCOMPLETE —
+all 10 routes run correct shapes; both non-catches are open-WR losses to CB/WR LLM nondeterminism.
 
 ## NEXT STEP
-**Re-run curl to verify the earlier-throw hint, then tackle post_corner throw accuracy** — make the QB
-meeting-point solver project the WR along his FINAL leg (post-second-cut) on multi-break routes, so the
-deep-corner throw lands where the (open) WR actually ends up.
-
-## Workflow note
-Each route is ~3–5 min of LLM latency, so `run_all_routes.py` fits only ~2 routes per 599s Bash timeout;
-it runs routes in the ARG order given, and the first (slow) route can eat the budget and leave later ones
-STALE — always check replay mtimes before trusting results.
+**Confirm the 3D backpedal cyan-tint/BP-tag renders correctly** (user to run the ursina viewer). If good,
+the project is at its done state. Nothing else is queued — the user believes we're done.
