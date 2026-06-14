@@ -2,6 +2,7 @@ import math
 from pathlib import Path
 from .llm_client import call_llm, call_llm_structured
 from .schema import parse_wr_pre_snap, parse_wr_live, parse_wr_plan, WRPlan, wr_plan_steps
+from .scripted import RouteRail
 from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff
 
 _SYSTEM_PROMPT = (Path(__file__).parent / "prompts" / "wr_system.txt").read_text()
@@ -30,6 +31,7 @@ class WRAgent:
         self.cut_time = cut_time
         self.cut_heading = cut_heading
         self.upfield_yards = upfield_yards
+        self.rail = RouteRail(route)
 
         self.call_count = 0
         self.parse_errors = 0
@@ -58,53 +60,59 @@ class WRAgent:
         self._pre_snap_plan = result["plan"]
         return result
 
-    def decide(self, observation: str, ball_in_air: bool = False, t: float = 0.0) -> dict:
+    def decide(self, observation: str, ball_in_air: bool = False, t: float = 0.0,
+               wr_state: PlayerState | None = None) -> dict:
         """Per-step decision. Returns heading, facing, throttle, call_for_ball.
 
         In the LIVE-free phase the WR emits a multi-step PLAN; subsequent steps are
         served from the queue WITHOUT an LLM call. The plan is aborted only when the
-        ball is thrown.
+        ball is thrown. The soft RAIL governs the returned step in the free/committed
+        phases (guarantees the route shape) — but not in flight or on a broken play.
         """
         if ball_in_air:
             self._plan = []
             return self._finalize(self._llm_decision(observation, _BALL_IN_AIR_PROMPT), t)
 
-        # LIVE, ball held — serve a queued plan step if one is waiting.
-        if self._plan:
-            return self._finalize(self._plan.pop(0), t)
-
         if self.broken_play:
             return self._finalize(self._llm_decision(observation, _LIVE_BROKEN_PROMPT), t)
-        if self.called_for_ball:
-            return self._finalize(self._llm_decision(observation, _LIVE_COMMITTED_PROMPT), t)
 
-        # Free phase: request a PLAN, queue the tail, return the first step.
-        self.call_count += 1
-        if self.provider == "ollama":
-            raw = call_llm(_SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT,
-                           self.model, self.reasoning_effort, self.provider)
-            plan = parse_wr_plan(raw)
+        # Choose the raw step: a queued plan step, the committed-phase LLM step, or a
+        # fresh free-phase plan.
+        if self._plan:
+            step = self._plan.pop(0)
+        elif self.called_for_ball:
+            step = self._llm_decision(observation, _LIVE_COMMITTED_PROMPT)
         else:
-            plan_obj = call_llm_structured(
-                _SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT, WRPlan,
-                self.model, self.reasoning_effort,
-            )
-            plan = wr_plan_steps(plan_obj) if plan_obj is not None else None
-        if not plan:
-            self.parse_errors += 1
-            print(f"  [WR plan parse error] raw={raw[:120]!r}")
-            fallback_heading = self.locked_heading if self.locked_heading is not None else 0.0
-            return {
-                "heading": fallback_heading,
-                "facing": fallback_heading,
-                "throttle": "accelerate",
-                "call_for_ball": False,
-                "reasoning": "parse_error",
-                "wr_note": self.wr_note,
-            }
+            self.call_count += 1
+            if self.provider == "ollama":
+                raw = call_llm(_SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT,
+                               self.model, self.reasoning_effort, self.provider)
+                plan = parse_wr_plan(raw)
+            else:
+                plan_obj = call_llm_structured(
+                    _SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT, WRPlan,
+                    self.model, self.reasoning_effort,
+                )
+                plan = wr_plan_steps(plan_obj) if plan_obj is not None else None
+            if not plan:
+                self.parse_errors += 1
+                fallback_heading = self.locked_heading if self.locked_heading is not None else 0.0
+                return {
+                    "heading": fallback_heading,
+                    "facing": fallback_heading,
+                    "throttle": "accelerate",
+                    "call_for_ball": False,
+                    "reasoning": "parse_error",
+                    "wr_note": self.wr_note,
+                }
+            self._plan = plan[1:]
+            step = plan[0]
 
-        self._plan = plan[1:]
-        return self._finalize(plan[0], t)
+        # Soft rail: guarantee the route's shape (auto-break / auto-settle / juke-return)
+        # before the call is registered, so the locked call heading matches the real path.
+        if step is not None and wr_state is not None:
+            step = self.rail.govern(t, wr_state, step)
+        return self._finalize(step, t)
 
     def _llm_decision(self, observation: str, prompt: str) -> dict | None:
         """Single per-step LLM decision (ball-in-air / broken / committed phases)."""

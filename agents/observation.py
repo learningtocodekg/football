@@ -439,51 +439,6 @@ _ROUTE_GEOMETRY: dict[str, str] = {
 }
 
 
-def _est_yards(threshold: float, from_rest: bool = True, max_speed: float = 9.5, accel: float = 14.0) -> int:
-    """Estimate yards traveled over `threshold` seconds under the real burst-accel model.
-
-    engine.physics.apply_action accelerates with burst = accel * (1 - v/max_speed), so speed
-    approaches max_speed asymptotically: v(t) = max_speed * (1 - e^(-k t)), k = accel/max_speed.
-    Integrating gives distance. (The old constant-accel-to-cap model overshot ~25%.)
-    """
-    if not from_rest or accel <= 0 or max_speed <= 0:
-        return round(max_speed * threshold)
-    k = accel / max_speed
-    dist = max_speed * threshold - (max_speed / k) * (1.0 - math.exp(-k * threshold))
-    return round(dist)
-
-
-def _phase_instruction(route_phases: list[tuple[float, float]], cut_time: float, cut_heading: float) -> str:
-    """Generate a concrete, specific one-paragraph route instruction from the phase schedule."""
-    if not route_phases:
-        return f"Run {cut_heading:.0f}° ({_heading_label(cut_heading)}) the entire play."
-    if len(route_phases) == 1 and route_phases[0][0] >= 999:
-        h = route_phases[0][1]
-        return f"Run {h:.0f}° ({_heading_label(h)}) the entire play — no cuts."
-
-    parts = []
-    for i, (threshold, heading) in enumerate(route_phases):
-        label = _heading_label(heading)
-        is_final = threshold >= 999
-        if i == 0:
-            if is_final:
-                parts.append(f"Run {heading:.0f}° ({label}) the entire play.")
-            else:
-                yards = _est_yards(threshold, from_rest=True)
-                parts.append(f"Head {heading:.0f}° ({label}) for ~{yards} yards (~{threshold:.1f}s).")
-        elif is_final:
-            parts.append(
-                f"Around t={cut_time:.1f}s — when you feel a {heading:.0f}° cut would give "
-                f"you enough separation — cut to {heading:.0f}° ({label}) and continue through the catch."
-            )
-        else:
-            prev_t = route_phases[i - 1][0]
-            dt = threshold - prev_t
-            yards = _est_yards(dt, from_rest=False)
-            parts.append(f"Then head {heading:.0f}° ({label}) for ~{yards} yards (~{dt:.1f}s).")
-    return " ".join(parts)
-
-
 def build_wr_pre_snap_observation(
     wr: PlayerState,
     wr_attrs: PlayerAttrs,
@@ -576,6 +531,7 @@ def build_wr_observation(
     route_description: dict | None = None,
     pre_snap_plan: str = "",
     wr_start: tuple[float, float] | None = None,
+    rail_status: str = "",
 ) -> str:
     wr_accel_str = _accel_status(wr.cut_recovery)
 
@@ -602,57 +558,17 @@ def build_wr_observation(
             "",
         ]
 
-    # ── Route description (always first) ─────────────────────────────────────
-    mech = _phase_instruction(all_phases, cut_time, cut_heading)
+    # ── Route description + rail backstop (always first) ─────────────────────
     ctx = (route_description.get("description", "") if route_description else "")
-    lines += [f"ROUTE: {route}", f"  {mech}"]
+    lines += [f"ROUTE: {route}"]
     if ctx:
         lines.append(f"  WHY: {ctx}")
+    if rail_status and not wr_called_for_ball and not broken_play and ball.state != "in_air":
+        lines.append(f"  {rail_status}")
+        lines.append(
+            f"  PLAN WINDOW: you are at t={t:.1f}s — plan t={t + 0.1:.1f} through t={t + 0.4:.1f} (1-4 steps)."
+        )
     lines.append("")
-
-    # ── Current heading instruction (only while route is free / not committed) ─
-    if not wr_called_for_ball and not broken_play and ball.state != "in_air":
-        current_phase_idx = len(all_phases) - 1
-        for i, (threshold, _) in enumerate(all_phases):
-            if t < threshold:
-                current_phase_idx = i
-                break
-        phase_thresh, phase_heading = all_phases[current_phase_idx]
-        is_final = phase_thresh >= 999
-        if is_final:
-            lines += [
-                f"YOUR HEADING NOW: {phase_heading:.0f}° ({_heading_label(phase_heading)}) — this is your final break. Run it.",
-                f"  PLAN WINDOW: you are at t={t:.1f}s — this plan may cover t={t + 0.1:.1f} through t={t + 0.4:.1f} (1-4 steps). "
-                f"You are in the cut window now.",
-                "",
-            ]
-        else:
-            time_left = phase_thresh - t
-            next_heading = all_phases[current_phase_idx + 1][1] if current_phase_idx + 1 < len(all_phases) else phase_heading
-            snap_y = wr_start[1] if wr_start else wr.y
-            cut_depth = _est_yards(phase_thresh, from_rest=True,
-                                   max_speed=wr_attrs.max_speed, accel=wr_attrs.acceleration)
-            earliest_depth = max(0.0, cut_depth - 2.5)
-            wr_depth_now = wr.y - snap_y
-            stem_left = max(0.0, cut_depth - wr_depth_now)
-            ticks_to_break = max(0, round(time_left / 0.1))
-            lines += [
-                f"YOUR HEADING NOW: {phase_heading:.0f}° ({_heading_label(phase_heading)}) | ~{time_left:.1f}s remaining, then cut to {next_heading:.0f}°",
-                f"  CUT TARGET: your break is at t≈{phase_thresh:.1f}s and ~{cut_depth}yd downfield (y≈{snap_y + cut_depth:.0f}), "
-                f"margin ±0.4s / ±2.5yd. You are {wr_depth_now:.0f}yd into the stem — about {stem_left:.0f}yd of stem left.",
-                f"  The stem is what creates the separation: it pulls the CB's weight upfield so your break leaves him behind. "
-                f"Break short of ~{earliest_depth:.0f}yd and the CB is still on your hip when the ball arrives — the route never "
-                f"developed, no separation. That margin is your room to feel the timing; a CB wrong-way commit (rec>0) is what "
-                f"lets you break sooner.",
-            ]
-            break_in_window = phase_thresh <= t + 0.4 + 1e-9
-            lines.append(
-                f"  PLAN WINDOW: you are at t={t:.1f}s — this plan may cover t={t + 0.1:.1f} through t={t + 0.4:.1f} (1-4 steps). "
-                f"Your break at t≈{phase_thresh:.1f}s is {'INSIDE' if break_in_window else 'BEYOND'} this window"
-                + ("." if break_in_window
-                   else f"; a break or call placed in this plan fires at t≤{t + 0.4:.1f}s, before the cut window.")
-            )
-            lines.append("")
 
     # ── Pre-snap plan + note ──────────────────────────────────────────────────
     lines += [

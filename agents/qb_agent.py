@@ -3,6 +3,7 @@ from pathlib import Path
 from .llm_client import call_llm
 from .schema import parse_qb_pass1, parse_qb_pass2
 from engine.ball import solve_arc, max_ball_speed, DEFAULT_TARGET_Z
+from .scripted import SETTLE_ROUTES, SETTLE_DISTANCE
 
 _SYSTEM_PROMPT = (Path(__file__).parent / "prompts" / "qb_system.txt").read_text()
 _PASS1_PROMPT  = (Path(__file__).parent / "prompts" / "qb_pass1.txt").read_text()
@@ -10,11 +11,8 @@ _PASS2_TEMPLATE = (Path(__file__).parent / "prompts" / "qb_pass2.txt").read_text
 
 ARC_ORDER = ["bullet", "drive", "touch", "loft"]
 
-# Routes where the WR plants and STOPS (comes back to the ball) instead of running
-# through the break. For these the in-stride projection over-shoots wildly, so the
-# meeting point is the settle spot: the break point + a short settle distance.
-SETTLE_ROUTES = {"comeback"}
-SETTLE_DISTANCE = 1.5  # yd the WR drifts past the break before stopping
+# SETTLE_ROUTES / SETTLE_DISTANCE are imported from scripted.py (centralized so the
+# QB target spot and the WR rail's stop point agree).
 
 
 def _proj_distance(speed0: float, vmax: float, tau: float,
@@ -94,39 +92,57 @@ def _meeting_options(
         feasible = spd is not None and spd <= v_max
         return tau, px, py, d, feasible
 
+    # The window-filter only makes sense for a MOVING WR (the throw must arrive while he
+    # is in his open stretch). A settle route's WR is STOPPED at the spot — he waits for
+    # the ball — so every feasible arc is fine and we do not filter by the window.
+    apply_window = open_window is not None and settle_distance is None
+
     options: list[dict] = []
     unreachable: list[str] = []
+    out_of_window: list[str] = []
     for arc in ARC_ORDER:
         r = meet(arc)
         if r is None or not r[4]:
             unreachable.append(arc)
             continue
         tau, px, py, d, _feas = r
-        options.append({
+        in_window = (not apply_window) or open_window[0] <= tau <= open_window[1]
+        opt = {
             "arc": arc,
             "label": arc,
             "target": [round(px, 1), round(py, 1)],
             "tau": round(tau, 2),
             "arrival_t": round(t_now + tau, 2),
             "dist": round(d, 1),
-            "in_window": open_window is not None and open_window[0] <= tau <= open_window[1],
-        })
+            "in_window": in_window,
+        }
+        # Only arcs that actually arrive inside the QB's stated open window are
+        # selectable. A ball that lands before the window means the CB is still on
+        # top of the WR; one that lands after means he's run out of the throw. If
+        # none fit, the QB holds — which is exactly the deep-ball cushion discipline.
+        if in_window:
+            options.append(opt)
+        else:
+            out_of_window.append(f"{arc} (+{tau:.1f}s)")
 
     win_str = (
         f"  (you said he is open {open_window[0]:.1f}-{open_window[1]:.1f}s from now)"
         if open_window is not None else ""
     )
     lines = [
-        f"  Where each arc, released NOW, lands on the WR's path:{win_str}",
+        f"  Arcs that land on the WR's path INSIDE your open window:{win_str}",
         "  arc       meets WR at        arrives in   throw dist",
         "  ------    ---------------    ----------   ----------",
     ]
     for o in options:
-        mark = "  <-- arrives in your window" if o["in_window"] else ""
         lines.append(
             f"  {o['arc']:<8}  ({o['target'][0]:.1f},{o['target'][1]:.1f})".ljust(30)
-            + f"   +{o['tau']:<4.1f}s    {o['dist']:.1f} yd{mark}"
+            + f"   +{o['tau']:<4.1f}s    {o['dist']:.1f} yd"
         )
+    if not options:
+        lines.append("  (none — no arc arrives inside your window; hold and re-read)")
+    if out_of_window:
+        lines.append(f"  OUTSIDE your window (not offered): {', '.join(out_of_window)}")
     if unreachable:
         lines.append(f"  OUT OF RANGE (cannot reach his line on this arc): {', '.join(unreachable)}")
     if settle_distance is not None:
@@ -141,8 +157,9 @@ def _meeting_options(
             "",
             "Each row is the self-consistent meeting point: throw that arc now and it lands where the WR's "
             "locked line will be at the arrival time shown (assuming he runs to top speed). Flatter arcs "
-            "meet him sooner and shallower; higher arcs meet him deeper and later. Pick the arc whose arrival "
-            "falls in the window you identified.",
+            "meet him sooner and shallower; higher arcs meet him deeper and later. Every arc listed above "
+            "already lands inside your window — pick the one that best shields the ball from the CB, or hold "
+            "if none is clean.",
         ]
     return options, "\n".join(lines)
 
@@ -199,7 +216,8 @@ class QBAgent:
         )
         if not options:
             result = {"action": "hold",
-                      "reasoning": "WR's path is out of throwing range on every arc",
+                      "reasoning": "no arc lands on the WR's path inside the open window "
+                                   "(too early = CB still on him, too late = he runs out of it) — holding",
                       "pass1": p1}
             self.last_action = result
             return result

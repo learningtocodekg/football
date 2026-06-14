@@ -1,45 +1,34 @@
 ROUTE RUNNING — per-step decision.
 
-GOAL: get open at your route's BREAK, then call. You are always in one of two phases (the observation's
-"YOUR HEADING NOW" line tells you which): the STEM, or the FINAL BREAK.
+The engine runs your route's SHAPE for you as a backstop: the ROUTE STATUS line tells you what
+leg you're on, when you'll AUTO-BREAK (and to what heading), or when you'll AUTO-SETTLE. You do not
+have to hit the cut perfectly — if you do nothing, the route still happens on time. That frees you to
+focus on the two things that are YOURS:
 
-STEM (while the observation shows "~Xs remaining, then cut to ..."):
-  - Keep climbing toward your cut DEPTH on the stem heading. Breaking here is bad football: the ball would arrive
-    before your route develops, with the CB right on you. The stem is the setup — it pulls the CB's weight upfield
-    so your break leaves him behind; skip it and there is no separation to throw into.
-  - But do NOT run a sterile straight line — that lets the CB sit on your break. WORK him: jab a fake
-    direction for 1-2 steps then RETURN to the stem, or vary speed (tools are in the system prompt).
-    A fake is NOT your break: after it, get back on the stem and keep climbing.
-  - The CUT TARGET (time + depth, +/-0.4s / +/-2.5yd) is your room to feel the timing — reach it having moved the
-    CB's weight the wrong way. A CB wrong-way commit (rec > 0) is what opens the break sooner; a CB rec of 0 means
-    the cushion is unearned and the break is not there yet.
+1) BEAT THE CB. The stem is not a sterile straight line — work him. Jab, stutter, vary speed, sell a
+   fake any direction, whatever moves his weight the wrong way so your break leaves him behind. You
+   have full freedom here; the engine only steers you back to the route if you wander off it for too
+   long (it warns you first). A CB wrong-way commit (his rec > 0) is the separation you're hunting.
 
-FINAL BREAK + CALL (when the observation says "this is your final break", i.e. you've reached the CUT TARGET
-window — or EARLIER only if CB rec > 0 from a genuine wrong-way commit):
-  - Make your break and call for the ball.
-  - Real separation = body gap ~1.5yd+ WITH CB rec > 0. A gap while CB rec = 0 is NOT separation (he closes it
-    in ~1s); the pre-snap cushion is not earned separation.
-  - HEADING ON THE CALL STEP LOCKS for the play. Output your FINAL break heading directly — even if it is
-    MORE than 90deg from your current heading. The engine pivots you there over the next 1-2 steps; you do
-    NOT have to output a reachable intermediate. Outputting an intermediate turn heading sends you the wrong
-    way and locks you there. A curl hooks back to 180 (toward the QB): output heading=180, NOT 270 — 270
-    runs you to the sideline (that is an out, not a curl). (slant break=45. curl break=180. comeback break=180.)
-  - No-cut route (go): there is no break — call only when you've clearly outrun the CB and the gap is GROWING.
+2) TIME THE BREAK + CALL.
+   - BREAK: when ROUTE STATUS says "BREAK NOW available", you may trigger the cut EARLY by outputting
+     the break heading — do this if the CB has already committed (rec > 0). If you wait, the engine
+     auto-breaks you at the deadline anyway. (Output the FINAL break heading directly; the engine
+     pivots you there over 1-2 steps.)
+   - CALL: you can ONLY call once your route's FINAL break is made — i.e. you are committing the final
+     break THIS step, or have already broken it (the stem is finished). You cannot call during the stem
+     or a fake; if you ask early, the call is HELD and fires the moment your route is ready, so call when
+     you mean it and trust the timing. Call with real separation — a body gap ~1.5yd+ WITH the CB's
+     rec > 0 (a gap while his rec = 0 is not earned; he closes it in ~1s). On a settle route, call as you
+     PLANT. On a go, call once you've clearly outrun him and the gap is GROWING. Your heading on the call
+     step LOCKS for the throw.
 
-PLAN OUTPUT — a short list of TIMESTAMPED steps, each 0.1s apart. The observation header shows your current time T,
-and a PLAN WINDOW line gives the exact range. You may plan ONLY from T+0.1 up to a maximum of T+0.4 — that is 1 to 4
-steps. Output just one step (T+0.1) or commit several ahead (through T+0.4). You CANNOT plan past T+0.4; after these
-steps you get a FRESH look at how the CB reacted and plan again (a thrown ball aborts the plan early).
-  - Tag every step with its absolute time t (T+0.1, T+0.2, ...). Before you place a break or a call on a step,
-    compare that step's t against your CUT TARGET time. If your break time is LATER than T+0.4, it does NOT fit in
-    this plan — this plan is stem-only, and you break in a LATER plan once T has advanced into the cut window.
-  - Climbing the stem with nothing to react to: commit all 4 steps (through T+0.4).
-  - Jabbing / reading the CB, or near your break/call: 1-2 steps, so you can read his reaction and respond.
-  - Put call_for_ball=true only on a step whose t is inside the cut window; keep that plan to 1-2 steps so the
-    locked heading is exact.
-  - Each step carries its OWN one-line reasoning for that tick.
+PLAN OUTPUT — a short list of TIMESTAMPED steps, each 0.1s apart, from T+0.1 up to T+0.4 (1-4 steps).
+Tag every step with its absolute time t. Commit several steps when just climbing/jabbing the stem;
+keep it to 1-2 steps when near your break or call so your locked heading is exact. Each step carries
+its own one-line reasoning. A thrown ball aborts the plan.
 
-wr_note: one short line — stem/break status + what you're doing now + next plan.
+wr_note: one short line — what you're doing now + your next intent.
 
 JSON only (t = absolute time of each step):
 {"plan": [{"t": 0.1, "heading": 0, "throttle": "accelerate", "facing": 0, "call_for_ball": false, "reasoning": "..."}], "wr_note": "..."}

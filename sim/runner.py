@@ -344,8 +344,10 @@ def run_play(
                     route_description=route_desc_data,
                     pre_snap_plan=wr_agent._pre_snap_plan,
                     wr_start=wr_start_pos,
+                    rail_status=wr_agent.rail.status(t, states["WR1"]),
                 )
-                wr_decision = wr_agent.decide(wr_obs, ball_in_air=False, t=t)
+                wr_decision = wr_agent.decide(wr_obs, ball_in_air=False, t=t,
+                                              wr_state=states["WR1"])
                 r = wr_decision.get("reasoning", "")
                 call_flag = " [CALL FOR BALL]" if wr_decision.get("call_for_ball") else ""
                 print(f"  t={t:.1f}  WR move   -> hdg={wr_decision['heading']:.0f}deg "

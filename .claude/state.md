@@ -1,7 +1,27 @@
 # Build State
-Current phase: A4 — 3D. Go (QB cushion-vs-beaten understanding) + comeback (settle-aware solver) FIXED
-(2026-06-13 s2). Full 10-route suite (gpt-5-nano, seed 42) = **9C/1PBU** (was 6C/3PBU/1DROP); only loss
-is corner (deep-coverage contest). Prior session: air-phase + meeting-point physics fixed mechanically.
+Current phase: A4 — 3D. **WR route execution rebuilt as a SOFT RAIL (2026-06-14 s3)** — the long-standing
+"WR ignores route geometry" problem is RESOLVED. All 6 routes the user flagged (go, comeback, curl, zig,
+double_move + corner) now run with CORRECT SHAPES, not lucky catches. Judge plays by route/accuracy/coverage/
+air-play, NOT the catch/PBU label (memory feedback-outcome-vs-quality). Lone open item: post_corner QB
+deep-throw accuracy on multi-break routes (WR is open).
+
+## WR soft rail + QB throw-timing — 2026-06-14 (session 3) — CURRENT WR DESIGN
+- **Why:** the WR's one `heading` output carried two fighting jobs (run the route AND juke); no prompt could
+  do both, so it abandoned the route. Split them: engine guarantees the route SHAPE; juke/read/call stay free.
+- **`RouteRail` (agents/scripted.py).** govern() corrects the WR's decision each tick as a backstop; status()
+  narrates it (ROUTE STATUS obs line). Depth-gated stem (`_burst_distance(stem_dur)`, early read >70%);
+  duration-held fakes; early break only from leg0; STEM_CONE=25° feint limit (wide weave sheds ~40% speed/turn
+  and dawdles the stem — was the curl/double_move killer); positional leash (LEASH_DISTANCE 2.0 / BACK_TOL
+  0.75) on final leg & go; settle stop (comeback/curl) at SETTLE_DISTANCE 1.5.
+- **Call gate** (user-approved; otherwise no-phase-gate stands): call HELD until the final break; settle routes
+  fire the call AS THE WR HOOKS (ball arrives while CB carried past). Deferred early calls auto-fire.
+- **QB window-filter** (qb_agent._meeting_options): pass2 only offered arcs arriving inside pass1's open
+  window; none → hold (enforces deep-ball cushion discipline). DISABLED for settle routes.
+- **QB lob heuristic** (qb_pass2): CB between WR and QB (in lane) → lob/loft over his head, not a flat bullet.
+- WR prompt slimmed (juke/read/call only). tests/test_route_rail.py = 11 deterministic tests, all pass.
+- Results (seed 42): go C2.29(lob), comeback C2.1, curl C1.79, zig C2.92, double_move C7.02, corner C1.81,
+  slant/drag/in C. post_corner: route perfect/WR open, one run INCOMPLETE on QB deep-corner placement.
+- SUPERSEDES the s2 "go/comeback fix" below and the project-wr-broken memory.
 
 ## Go + comeback fix — 2026-06-13 (session 2)
 - **Go QB understanding.** QB was bulleting into the CB's downfield cushion (read sep as "open" when the
