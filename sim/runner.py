@@ -245,8 +245,9 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
                         phase = PlayPhase.BALL_IN_AIR
                         actions["QB"] = {"action": "hold", "reasoning": "ball in air"}
 
-            # ── CB ──
-            if cb_agent is not None:
+            # ── CB ── (skip step 0: give the CB one tick of WR movement to read first,
+            # so it isn't deciding blind at the snap; it holds its pre-snap stance for 0.1s)
+            if cb_agent is not None and step >= 1:
                 cb_obs = build_cb_observation(t, states["CB1"], attrs["CB1"], states["WR1"], ball,
                                               wr_history=move_history, ball_total_eta=ball_total_eta,
                                               detected_cut_t=detected_cut_t)
