@@ -11,6 +11,15 @@ from agents.observation_common import (
 )
 
 
+def _break_depth(route: str) -> float | None:
+    """Designed downfield depth (yd) at which the route's FIRST break happens, or None for a
+    no-break route (go). Derived from the phase table the route is defined by."""
+    phases = ROUTES.get(route)
+    if not phases or len(phases) < 2:
+        return None
+    return phases[0][0] * 5.0  # phase-0 end time * ~5 yd/s burst ≈ stem depth
+
+
 def _route_shape(route: str) -> str:
     """One-line designed shape of the route from its phase table (info, not a rail)."""
     phases = ROUTES.get(route)
@@ -52,6 +61,15 @@ def build_wr_free_observation(
         lines.append(f"  WHY: {desc}")
     if wr_start:
         lines.append(f"SNAP: ({wr_start[0]:.1f}, {wr_start[1]:.1f}) — you are {depth:.1f}yd downfield of it.")
+    bd = _break_depth(route)
+    if bd is not None:
+        gap = bd - depth
+        if gap > 0.5:
+            lines.append(f"BREAK DEPTH: your break is ~{bd:.0f}yd downfield — {gap:.1f}yd to go. Keep stemming.")
+        else:
+            lines.append(f"BREAK DEPTH: ~{bd:.0f}yd — you are THERE. Make your one decisive break now and call for the ball.")
+    else:
+        lines.append("This route has NO break — beat him deep with pure speed, then call when your pace breaks the cushion.")
     lines += [
         "",
         f"YOU: pos=({wr.x:.1f},{wr.y:.1f}) speed={wr.speed:.1f}yd/s heading={wr.heading:.0f}° "

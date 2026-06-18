@@ -42,6 +42,10 @@ def build_cb_observation(
 ) -> str:
     sep = dist(cb, wr)
     bearing_to_wr = math.degrees(math.atan2(wr.x - cb.x, wr.y - cb.y)) % 360.0
+    dy = wr.y - cb.y
+    wr_rel = ("UPFIELD of you (you must open and run, not backpedal)" if dy > 0.3
+              else ("EVEN with you" if abs(dy) <= 0.3 else "BEHIND you, toward the QB"))
+    bp_speed = cb_attrs.max_speed * BACKPEDAL_SPEED_FRACTION
     # WR projected 0.5s ahead on current heading/speed — the lead point you must cover.
     wr_hdg = math.radians(wr.heading)
     proj_x = wr.x + math.sin(wr_hdg) * wr.speed * 0.5
@@ -61,8 +65,12 @@ def build_cb_observation(
         "GEOMETRY:",
         f"  separation {sep:.1f}yd (body gap {body_gap(sep):.1f}yd)  |  bearing you→WR {bearing_to_wr:.0f}°",
         f"  WR projected in 0.5s: ({proj_x:.1f},{proj_y:.1f})  |  heading to that point: {intercept:.0f}°",
-        f"  your speeds: forward {cb_attrs.max_speed:.1f}, backpedal {cb_attrs.max_speed*BACKPEDAL_SPEED_FRACTION:.1f} yd/s",
+        f"  your speeds: forward {cb_attrs.max_speed:.1f}, backpedal {bp_speed:.1f} yd/s",
+        f"  WR is {abs(dy):.1f}yd {wr_rel} and moving {wr.speed:.1f}yd/s.",
     ]
+    if cb.mode == "backpedal" and wr.speed > bp_speed + 0.3:
+        lines.append(f"  Your backpedal tops out at {bp_speed:.1f}yd/s — below his {wr.speed:.1f}; "
+                     f"staying in backpedal here, he pulls away.")
     if wr.cut_recovery >= 2:
         lines.append(f"  !! WR is hip-committed for {wr.cut_recovery} steps — close hard now.")
 
