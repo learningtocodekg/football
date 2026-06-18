@@ -1,172 +1,64 @@
-import math
+"""WR agent (freedom branch). Free phase: per-step heading/throttle/juke + a call_for_ball that
+locks an end_route. Ball-in-air: comes alive to adjust to the throw. No rail — the route shape is
+context in the prompt, not an enforced cage."""
 from pathlib import Path
-from .llm_client import call_llm, call_llm_structured
-from .schema import parse_wr_pre_snap, parse_wr_live, parse_wr_plan, WRPlan, wr_plan_steps
-from .scripted import RouteRail
+
+from .llm_client import call_llm
+from .schema import parse_wr_free, parse_wr_air
 from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff
 
-_SYSTEM_PROMPT = (Path(__file__).parent / "prompts" / "wr_system.txt").read_text()
-_PRE_SNAP_PROMPT = (Path(__file__).parent / "prompts" / "wr_pre_snap.txt").read_text()
-_LIVE_FREE_PROMPT = (Path(__file__).parent / "prompts" / "wr_live_free.txt").read_text()
-_LIVE_COMMITTED_PROMPT = (Path(__file__).parent / "prompts" / "wr_live_committed.txt").read_text()
-_LIVE_BROKEN_PROMPT = (Path(__file__).parent / "prompts" / "wr_live_broken.txt").read_text()
-_BALL_IN_AIR_PROMPT = (Path(__file__).parent / "prompts" / "wr_ball_in_air.txt").read_text()
+_SYSTEM = (Path(__file__).parent / "prompts" / "wr_system.txt").read_text()
+_FREE = (Path(__file__).parent / "prompts" / "wr_free.txt").read_text()
+_AIR = (Path(__file__).parent / "prompts" / "wr_air.txt").read_text()
+
+_THROTTLE_TO_ENGINE = {"accelerate": "accelerate", "coast": "hold", "brake": "brake"}
 
 
 class WRAgent:
-    def __init__(
-        self,
-        model: str = "gpt-5-nano",
-        reasoning_effort: str | None = "low",
-        provider: str = "openai",
-        route: str = "slant",
-        cut_time: float = 2.0,
-        cut_heading: float = 40.0,
-        upfield_yards: float = 5.0,
-    ):
+    def __init__(self, model="gpt-5-nano", reasoning_effort="low", provider="openai", route="slant"):
         self.model = model
         self.reasoning_effort = reasoning_effort
         self.provider = provider
         self.route = route
-        self.cut_time = cut_time
-        self.cut_heading = cut_heading
-        self.upfield_yards = upfield_yards
-        self.rail = RouteRail(route)
-
         self.call_count = 0
         self.parse_errors = 0
-
-        # Play state
-        self.called_for_ball: bool = False
+        self.called_for_ball = False
         self.call_t: float | None = None
         self.call_heading: float | None = None
-        self.locked_heading: float | None = None
-        self.broken_play: bool = False
-        self.detected_cut_t: float | None = None
-        self._pre_snap_plan: str = ""
-        self.last_action: dict = {}
-        self.wr_note: str = ""  # persistent scratchpad, updated each step
-        self._plan: list[dict] = []  # queued LIVE-free steps (no LLM call to consume)
+        self.end_route: dict | None = None
 
-    def pre_snap(self, observation: str) -> dict:
+    def decide_free(self, observation: str, t: float = 0.0) -> dict:
         self.call_count += 1
-        raw = call_llm(_SYSTEM_PROMPT, observation + "\n\n" + _PRE_SNAP_PROMPT,
+        raw = call_llm(_SYSTEM, observation + "\n\n" + _FREE,
                        self.model, self.reasoning_effort, self.provider)
-        result = parse_wr_pre_snap(raw)
+        result = parse_wr_free(raw)
         if result is None:
             self.parse_errors += 1
-            print(f"  [WR pre-snap parse error] raw={raw[:120]!r}")
-            return {"plan": "run the route", "reasoning": "parse_error"}
-        self._pre_snap_plan = result["plan"]
-        return result
-
-    def decide(self, observation: str, ball_in_air: bool = False, t: float = 0.0,
-               wr_state: PlayerState | None = None) -> dict:
-        """Per-step decision. Returns heading, facing, throttle, call_for_ball.
-
-        In the LIVE-free phase the WR emits a multi-step PLAN; subsequent steps are
-        served from the queue WITHOUT an LLM call. The plan is aborted only when the
-        ball is thrown. The soft RAIL governs the returned step in the free/committed
-        phases (guarantees the route shape) — but not in flight or on a broken play.
-        """
-        if ball_in_air:
-            self._plan = []
-            return self._finalize(self._llm_decision(observation, _BALL_IN_AIR_PROMPT), t)
-
-        if self.broken_play:
-            return self._finalize(self._llm_decision(observation, _LIVE_BROKEN_PROMPT), t)
-
-        # Choose the raw step: a queued plan step, the committed-phase LLM step, or a
-        # fresh free-phase plan.
-        if self._plan:
-            step = self._plan.pop(0)
-        elif self.called_for_ball:
-            step = self._llm_decision(observation, _LIVE_COMMITTED_PROMPT)
-        else:
-            self.call_count += 1
-            if self.provider == "ollama":
-                raw = call_llm(_SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT,
-                               self.model, self.reasoning_effort, self.provider)
-                plan = parse_wr_plan(raw)
-            else:
-                plan_obj = call_llm_structured(
-                    _SYSTEM_PROMPT, observation + "\n\n" + _LIVE_FREE_PROMPT, WRPlan,
-                    self.model, self.reasoning_effort,
-                )
-                plan = wr_plan_steps(plan_obj) if plan_obj is not None else None
-            if not plan:
-                self.parse_errors += 1
-                fallback_heading = self.locked_heading if self.locked_heading is not None else 0.0
-                return {
-                    "heading": fallback_heading,
-                    "facing": fallback_heading,
-                    "throttle": "accelerate",
-                    "call_for_ball": False,
-                    "reasoning": "parse_error",
-                    "wr_note": self.wr_note,
-                }
-            self._plan = plan[1:]
-            step = plan[0]
-
-        # Soft rail: guarantee the route's shape (auto-break / auto-settle / juke-return)
-        # before the call is registered, so the locked call heading matches the real path.
-        if step is not None and wr_state is not None:
-            step = self.rail.govern(t, wr_state, step)
-        return self._finalize(step, t)
-
-    def _llm_decision(self, observation: str, prompt: str) -> dict | None:
-        """Single per-step LLM decision (ball-in-air / broken / committed phases)."""
-        self.call_count += 1
-        raw = call_llm(_SYSTEM_PROMPT, observation + "\n\n" + prompt,
-                       self.model, self.reasoning_effort, self.provider)
-        result = parse_wr_live(raw)
-        if result is None:
-            self.parse_errors += 1
-            print(f"  [WR live parse error] raw={raw[:120]!r}")
-        return result
-
-    def _finalize(self, step: dict | None, t: float) -> dict:
-        """Apply call_for_ball, update scratchpad/last_action, return the step."""
-        if step is None:
-            fallback_heading = self.locked_heading if self.called_for_ball else 0.0
-            return {
-                "heading": fallback_heading or 0.0,
-                "facing": fallback_heading or 0.0,
-                "throttle": "accelerate",
-                "call_for_ball": False,
-                "reasoning": "parse_error",
-            }
-
-        if step["call_for_ball"] and not self.called_for_ball:
+            print(f"  [WR free parse error] raw={raw[:120]!r}")
+            return {"heading": 0.0, "facing": 0.0, "throttle": "accelerate",
+                    "call_for_ball": False, "end_route": None, "reasoning": "parse_error"}
+        if result["call_for_ball"] and not self.called_for_ball:
             self.called_for_ball = True
-            self.call_heading = step["heading"]
-            self.locked_heading = step["heading"]
             self.call_t = t
+            self.call_heading = result["end_route"]["heading"]
+            self.end_route = result["end_route"]
+        return result
 
-        self.wr_note = step.get("wr_note", "") or self.wr_note
-        self.last_action = step
-        return step
+    def decide_air(self, observation: str) -> dict:
+        self.call_count += 1
+        raw = call_llm(_SYSTEM, observation + "\n\n" + _AIR,
+                       self.model, self.reasoning_effort, self.provider)
+        result = parse_wr_air(raw)
+        if result is None:
+            self.parse_errors += 1
+            print(f"  [WR air parse error] raw={raw[:120]!r}")
+            return {"heading": 0.0, "facing": 0.0, "throttle": "accelerate", "reasoning": "parse_error"}
+        return result
 
-    def apply_decision(
-        self,
-        decision: dict,
-        state: PlayerState,
-        attrs: PlayerAttrs,
-        dt: float = 0.1,
-        ball_in_air: bool = False,
-    ) -> PlayerState:
+    def apply_decision(self, decision: dict, state: PlayerState, attrs: PlayerAttrs,
+                       dt: float = 0.1) -> PlayerState:
         target_heading = float(decision.get("heading", state.heading))
-
         target_facing = float(decision.get("facing", target_heading))
-        throttle = decision.get("throttle", "accelerate")
-        engine_throttle = "brake" if throttle == "brake" else "accelerate"
-
-        turn = angle_diff(target_heading, state.heading)
-        turn = max(-90.0, min(90.0, turn))
-
-        return apply_action(state, attrs, turn, engine_throttle, dt, new_facing=target_facing)
-
-    def trigger_broken_play(self) -> None:
-        if not self.broken_play:
-            self.broken_play = True
-            print("  [WR] BROKEN PLAY triggered")
+        throttle = _THROTTLE_TO_ENGINE.get(decision.get("throttle", "accelerate"), "accelerate")
+        turn = max(-90.0, min(90.0, angle_diff(target_heading, state.heading)))
+        return apply_action(state, attrs, turn, throttle, dt, new_facing=target_facing)

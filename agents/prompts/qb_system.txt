@@ -1,29 +1,25 @@
-You are the quarterback in a 1-on-1 passing drill. Your receiver (WR) runs a route; one cornerback (CB) covers him. Your job: throw the ball so your WR catches it and the CB cannot get to it.
+You are an NFL quarterback in a 1-on-1 passing drill. Your receiver runs a route; one cornerback
+covers him. You throw so your WR catches it and the CB can't.
 
-THE FIELD: x = 0 to 53.3 yd (sideline to sideline). y is upfield - your WR runs toward higher y. Heading: 0 deg = straight upfield, 90 deg = right, 180 deg = back toward you, 270 deg = left. Ball height z is in yards; players can reach up to z = 3.0.
+You are only brought in once the WR has CALLED for the ball — he has committed to his final break and
+his path is now locked (only his speed can still change). You learn which direction he committed to
+and that the call happened ~0.2s ago.
 
-WHAT MAKES A GOOD THROW:
-- It LEADS the receiver. The ball takes time to travel and the WR keeps moving, so throw to where he WILL BE when the ball arrives, not where he is now. He should run onto the ball without breaking stride.
-- It stays AWAY FROM THE CB. The farther the catch point is from the CB, the higher the catch chance. Shade the ball to the side of the WR away from the CB so the WR's body shields it.
+You do NOT aim coordinates. Like a real QB pressing a receiver's button, you make TWO choices:
+- WHEN to release (this step, or hold and re-read), and
+- the ARC: a BULLET (flat, fast) or a LOB (high, soft).
+The engine then leads the WR automatically and places the ball on the chosen arc — it tells you, for
+each arc, exactly where the ball would meet him, how long it hangs, how far the throw is, and whether
+it's within your arm's range.
 
-SEPARATION is the distance, center-to-center, between your WR and the CB at the moment the ball arrives. It is the single biggest factor in a catch:
-- 1.8 yd or more: the WR is clean, the CB cannot reach it. Catch.
-- 1.0 to 1.8 yd: contested. Catchable with good placement away from the CB, but the CB can fight for it.
-- 1.0 yd or less: the CB is on top of him. The ball is likely knocked down or intercepted.
-You are not throwing to "open" as something you wait to see. You are PREDICTING where separation will be 1.8+ when the ball gets there.
+Reading it:
+- A BULLET gives the CB the least time to react but has a limited range and a flat path; it shines
+  when the WR is open right now and in range.
+- A LOB reaches deep and drops over the top, but the long hang time lets the CB close; it's for the
+  deep ball the WR runs onto.
+- "Open" means the WR will have separation at the MEETING POINT when the ball arrives — not just
+  right now. A big cushion with the CB sitting between the WR and the ball is closing, not open.
 
-WHO IS CLOSER TO THE CATCH POINT (this decides every deep ball): separation is only a distance - it does not say who reaches the landing spot first. If the CB is still DOWNFIELD of your WR (he lined up off in a cushion and your WR has not run past him yet), then the CB is CLOSER to where a deep ball comes down than your WR is, and he will settle under it while the ball is in the air - the throw-time separation collapses to zero by the catch. A big separation number in that situation is the CB's cushion, not your WR beating him. The deep ball is ON only once your WR has eaten the cushion and is EVEN WITH OR PAST the CB, so the CB is now trailing and your faster WR is the one closer to the deep ball. Then you throw it OVER the top - a higher arc that drops beyond the CB - and let your WR run under it. Until your WR gets even with/past his man, hold; the clock gives you time.
+Hold if neither throw is clean, but don't sit forever — the sack clock is running.
 
-This whole caution is ONLY about a ball thrown BEYOND the CB (deep, over the top). If instead your WR breaks BACK toward you and settles SHORT of the CB - a comeback, curl, or hook - then a downfield CB is exactly right: he is carried away from the ball, underneath is wide open. Do NOT wait for the WR to "pass" the CB there (he never will - he is coming back). Throw a firm bullet to the settle point the instant he plants, before the CB can drive back down on it.
-
-THE ROUTE: you are told which route your WR is running and its shape. Route distances are relative to where the WR lined up (e.g. "10 yards up" means 10 yards downfield of HIS start, not how far you throw). A route is a stem (the initial push upfield, part of the route developing) and then a final break. A go route has no break: just a ~10-yard stem, then he keeps sprinting deep. The WR is AI-driven, so his timing varies by about +/-0.4s and his depth by about +/-2.5 yd from the plan. Trust where he actually is.
-
-THE THROW - ARC AND HEIGHT:
-- You choose the ARC (the launch angle). You do not set the ball speed; the physics sets the speed and flight time for each arc.
-- Flatter arc (bullet) = fastest arrival and the least time for the CB to close, but it stays at a reachable height the whole way, so a defender in its path can tip it. Higher arc (loft) = hangs longer (the CB keeps closing while it hangs) but drops over an underneath defender. Drive and touch are in between.
-- A long throw may be out of range on a flat arc but reachable on a higher one. You will be shown which arcs are possible.
-- Catch height (z): chest-high is easiest. Place it high only to take a tight CB out of the play (harder catch for your WR, but the CB cannot reach it).
-
-You decide in two steps each time you are asked: first whether a throwing window exists and when, then - if it does - which arc and exactly where to put the ball.
-
-Respond ONLY with a single valid JSON object. No text before or after it.
+Respond ONLY with one JSON object. No text before or after it.

@@ -7,15 +7,14 @@ CATCH_RADIUS = 1.3    # yards — ball must land within this of WR
 PBU_PROXIMITY = 1.5   # yards — CB must be within this center-to-center for a PBU attempt
 PBU_LANE_RANGE = 1.5  # yards — CB within this of the ball's flight path counts as contesting
 
-CB_ARM_REACH = 1.0    # yards — full arm reach for PBU (swat)
-CB_HALF_REACH = 0.5   # yards — half arm reach for INT (go_for_pick)
-CB_FACING_CONE = 60.0 # degrees — CB must face within this of ball direction for PBU/INT
+CB_HALF_REACH = 0.5   # yards — half arm reach for INT (go_for_pick at full extension)
+CB_FACING_CONE = 60.0 # degrees — CB must face within this of ball direction for INT
 
 # ── Vertical reach (static model — no jump action; reach includes a routine hop) ──
 WR_VERTICAL_REACH = 3.0  # yards — max ball height the WR can catch
 CB_VERTICAL_REACH = 3.0  # yards — max ball height the CB can touch
 HIGH_BALL_Z = 2.4        # above this, the ball is a high-point throw: harder catch,
-                         # and the CB can only swat/pick at full extension (reduced odds)
+                         # and the CB cannot pick it (only the WR can high-point it)
 
 # ── Three-zone catch resolution thresholds (separation-at-arrival, yards) ──
 # Anchored to empirical data: sep >= 1.8yd at arrival = catch.
@@ -112,7 +111,7 @@ def resolve(
     cb_attrs: PlayerAttrs | None,
     landing_x: float,
     landing_y: float,
-    cb_intent: str,  # "play_man" | "go_for_pick" | "swat"
+    cb_intent: str,  # "play_man" | "go_for_pick"
     rng: random.Random,
     qb_x: float = 0.0,
     qb_y: float = 0.0,
@@ -142,7 +141,6 @@ def resolve(
 
     cb_can_contest = False
     cb_facing = False
-    cb_arm_pbu = False
     cb_arm_int = False
     if cb is not None and cb_attrs is not None:
         # In 3D the CB can only touch the ball if it is within vertical reach
@@ -153,7 +151,6 @@ def resolve(
         cb_in_lane = cb_vertical_ok and _cb_in_passing_lane(cb, landing_x, landing_y, wr)
         cb_can_contest = cb_close or cb_in_lane
         cb_facing = _cb_facing_ball(cb, landing_x, landing_y)
-        cb_arm_pbu = cb_facing and _cb_arm_reaches_lane(cb, landing_x, landing_y, wr, CB_ARM_REACH)
         cb_arm_int = cb_facing and _cb_arm_reaches_lane(cb, landing_x, landing_y, wr, CB_HALF_REACH)
 
     go_for_pick = cb_intent == "go_for_pick"
@@ -191,20 +188,10 @@ def resolve(
                 "landing_z": round(landing_z, 2)}
 
     # CB wins; type by intent (single deterministic branch, no extra roll).
-    if go_for_pick:
-        if int_ok:
-            return {"outcome": "INTERCEPTION", "separation": round(separation, 2),
-                    "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}
-        return {"outcome": "PBU", "separation": round(separation, 2),
+    # go_for_pick lands a pick only at full extension on a non-high ball; otherwise
+    # the gamble degrades to a deflection (PBU). play_man breaks the pass up.
+    if go_for_pick and int_ok:
+        return {"outcome": "INTERCEPTION", "separation": round(separation, 2),
                 "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}
-
-    if cb_intent == "swat":
-        if cb_arm_pbu:
-            return {"outcome": "PBU", "separation": round(separation, 2),
-                    "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}
-        return {"outcome": "DROP", "separation": round(separation, 2),
-                "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}
-
-    # play_man
     return {"outcome": "PBU", "separation": round(separation, 2),
             "p_catch": round(p_catch, 3), "landing_z": round(landing_z, 2)}

@@ -1,0 +1,28 @@
+Decide your move for THIS 0.1s step.
+
+You are running your route and working to beat the CB. Stay on the route's design while you create
+separation however you read the matchup. Don't call early on the pre-snap cushion — that gap is not
+earned. Call as/just-before your FINAL break, when you expect to be open in the next moment.
+
+Output JSON:
+{
+  "heading": <deg you move this step>,
+  "facing": <deg you face; usually = heading>,
+  "throttle": "accelerate" | "coast" | "brake",
+  "call_for_ball": false,
+  "reasoning": "<one short line>"
+}
+
+When you decide to call for the ball, set call_for_ball=true and ADD an end_route:
+{
+  "heading": <final break direction>,
+  "facing": <deg>,
+  "throttle": "accelerate",
+  "call_for_ball": true,
+  "end_route": {
+    "heading": <exact direction you commit to>,
+    "mode": "run" | "settle",
+    "settle_ticks": <int, only if mode is settle>
+  },
+  "reasoning": "<why now>"
+}

@@ -1,0 +1,12 @@
+The ball is in the air. Adjust to it and make the catch.
+
+Get to the landing spot, square up to look the ball in (use the facing the observation gives you),
+and high-point it over the CB if needed. If the throw is off, chase it.
+
+Output JSON:
+{
+  "heading": <deg you move this step>,
+  "facing": <deg you face — use the bearing-to-QB value given>,
+  "throttle": "accelerate" | "coast" | "brake",
+  "reasoning": "<one short line>"
+}

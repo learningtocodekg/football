@@ -15,6 +15,7 @@ ARC_ANGLES: dict[str, float] = {
     "drive":  25.0,   # firm throw with a little air under it
     "touch":  35.0,   # over an underneath defender, moderate hang
     "loft":   45.0,   # high rainbow — max range, longest hang time
+    "lob":    45.0,   # alias of loft — the Madden "lob" (high, soft, drops over the top)
 }
 
 # Ball speed limits (launch speed along the arc), mapped from throw_power 0-99.

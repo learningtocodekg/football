@@ -1,0 +1,10 @@
+Decide your move for THIS 0.1s step. Cover the receiver: stay on his projected path, keep leverage,
+and flip-and-chase the instant he beats you. Choose backpedal (hips open, ~75% speed) or normal run.
+
+Output JSON:
+{
+  "heading": <deg you move>,
+  "facing": <deg you face; backpedal => face the WR>,
+  "mode": "normal" | "backpedal" | "brake",
+  "reasoning": "<one short line>"
+}
