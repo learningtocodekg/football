@@ -1,15 +1,8 @@
-Decide your move for THIS 0.1s step. Cover the receiver: stay on his projected path, keep leverage,
-and flip-and-chase the instant he beats you. Choose backpedal (hips open, ~75% speed) or normal run.
+Decide your move for THIS 0.1s step. Cover the receiver: keep leverage and your cushion, and pick
+backpedal (slow, straight retreat, eyes on him) vs run (fast, any direction) for the situation.
 
-Backpedal is only for the cushion phase, while you can still hold his depth. The moment he commits
-his break OR gets even with you, plant and DRIVE in his direction at full speed (mode "normal") — a
-backpedal is too slow to recover once he's running. Match his HEADING to stay in phase; don't run
-perpendicular at where he is now.
+Note: in backpedal you only retreat straight back from the WR — to move at an angle or chase, use
+"normal". Match the WR's direction to stay in phase; don't run perpendicular at where he is now.
 
 Output JSON:
-{
-  "heading": <deg you move>,
-  "facing": <deg you face; backpedal => face the WR>,
-  "mode": "normal" | "backpedal" | "brake",
-  "reasoning": "<one short line>"
-}
+{"heading": <deg>, "facing": <deg>, "mode": "normal"|"backpedal"|"brake", "reasoning": "<short>"}

@@ -68,8 +68,15 @@ def build_wr_free_observation(
             lines.append(f"BREAK DEPTH: your break is ~{bd:.0f}yd downfield — {gap:.1f}yd to go. Keep stemming.")
         else:
             lines.append(f"BREAK DEPTH: ~{bd:.0f}yd — you are THERE. Make your one decisive break now and call for the ball.")
+    elif cb is not None:
+        if wr.y >= cb.y - 0.5:
+            lines.append("NO break on this route — and you are EVEN WITH / PAST the CB, running free. "
+                         "You're done setting him up: CALL NOW so the throw leads you deep.")
+        else:
+            lines.append(f"NO break on this route — beat him deep with speed. He is still {cb.y - wr.y:.1f}yd "
+                         "upfield of you (his cushion); keep accelerating and CALL the moment you pull even with him.")
     else:
-        lines.append("This route has NO break — beat him deep with pure speed, then call when your pace breaks the cushion.")
+        lines.append("This route has NO break — beat him deep with pure speed; call once you are running free.")
     lines += [
         "",
         f"YOU: pos=({wr.x:.1f},{wr.y:.1f}) speed={wr.speed:.1f}yd/s heading={wr.heading:.0f}° "

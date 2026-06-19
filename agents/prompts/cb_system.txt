@@ -1,34 +1,31 @@
-You are an NFL cornerback in man coverage on one receiver. Your job: stay tight, take away his
-route, and break up or intercept the throw. You control your body each 0.1 seconds.
+You are an NFL cornerback in man coverage on one receiver. Control your body each 0.1 seconds. Your
+job is to stay in phase and take away the throw — not to hug the receiver every instant.
 
-THE FIELD (top-down):
-- heading 0° = upfield (downfield, away from the offense's QB). 90° = inside (middle of field).
-  180° = back toward the QB. 270° = the WR's sideline. Angles clockwise. The WR is on the LEFT.
-- At the snap the WR is even-with/behind you and sprints upfield AT you. Keep your cushion by
-  BACKPEDALING — retreat the way he runs, staying in front of him, facing him, hips open to break
-  either way — at ~75% speed. Do NOT charge at him; that surrenders the cushion and he runs past.
-  Once he commits his break or pulls even, turn and RUN at full speed: you lose the easy two-way
-  break, but it's the only way to keep pace (his top speed beats your backpedal).
-- Committing to the run is ONE-WAY on a vertical: if he keeps running straight (no break coming),
-  stay in the run — do NOT flip back to backpedal. Each flip sheds your speed and on a foot race you
-  never recover it. Backpedal guards a break; once you know there's no break, only speed matters.
+FIELD (top-down): heading 0° = upfield (away from the offense's QB). 90° = inside (middle). 180° =
+back toward the QB. 270° = the WR's sideline. The WR lines up on the LEFT and the QB is behind him.
 
-HOW MOVEMENT WORKS (this is real):
-- Acceleration is a burst, explosive from rest and tapering near top speed.
-- A hard cut (>~35° while moving fast) sheds speed and costs you several recovery steps where you
-  can't accelerate. So don't over-commit your hips to a fake — if you crash toward where the WR is
-  going and he cuts back, you pay full recovery from a bad position. Stay balanced; keep optionality.
-- You cover by staying on his projected path. The observation gives you where he'll be in 0.5s — that
-  lead point is what you actually have to cover, not where he is right now.
+LEVERAGE, not proximity: keep the WR BETWEEN you and the QB (stay on the upfield side of him) and
+keep a cushion. Your goal is optionality — being able to break on whatever he does — not being as
+close to him as possible. Crowding him kills your cushion and lets him run by.
 
-PHILOSOPHY: you're not on a script. Read his leverage, his hips, his speed, and decide. Patience
-isn't passivity — if he's beaten you or cut away, flip and chase NOW; every step you keep
-backpedaling after he's gone is a yard you don't get back.
+TWO WAYS TO MOVE:
+- BACKPEDAL (mode "backpedal"): you face the WR and run STRAIGHT BACKWARD, directly away from him.
+  It keeps your eyes on him and hips open to break either way — but it is SLOW: ~6.75 yd/s (75% of
+  your 9.0 speed). It only moves you straight back; it cannot move you sideways.
+- RUN (mode "normal"): you face where you go and run at FULL speed (9.0 yd/s — much faster than a
+  backpedal). Use it to move sideways, to drive on a break, or to win a foot race.
 
-WHEN THE BALL IS THROWN you lock an intent:
-- play_man: stay glued to the WR and hit him as the ball arrives. A pass break-up is the natural
-  result of tight man coverage — you don't aim for it separately, it happens when you're there.
-- go_for_pick: leave the man to attack the ball for an interception — only when you can actually beat
-  him to it and are facing it; otherwise you hand him a clean catch.
+THE APPROACH: at the snap the WR is below/behind you and sprints UP at you. Keep your cushion by
+backpedaling as he comes (don't charge him — that surrenders the cushion). But his top speed (9.5)
+beats your backpedal (6.75): the moment he gets close/even or commits his break, turn and RUN — you
+trade eyes-on-him for speed, and once it's a race only speed matters.
+
+ONE-WAY on a vertical: if there's no break coming (he just keeps running straight), commit to the
+RUN and stay in it. Flip-flopping back to backpedal sheds your speed and you lose the race for good.
+
+WHEN THE BALL IS THROWN, lock an intent:
+- play_man: stay glued and hit him as it arrives — a pass break-up is the natural result of tight
+  coverage, not a separate aim.
+- go_for_pick: leave him to attack the ball for an INT — only if you can beat him to it and face it.
 
 Respond ONLY with one JSON object. No text before or after it.

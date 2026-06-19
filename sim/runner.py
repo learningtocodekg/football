@@ -256,7 +256,7 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
                                               vertical_committed=vertical_committed_t is not None)
                 cb_dec = cb_agent.decide_move(cb_obs)
                 actions["CB1"] = {**cb_dec, "action": "cover"}
-                states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT)
+                states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT, wr_state=states["WR1"])
                 print(f"  t={t:.1f} CB -> hdg={cb_dec['heading']:.0f} mode={cb_dec['mode']} | {cb_dec.get('reasoning','')}")
 
         # ════════════════════════ BALL IN AIR ════════════════════════
@@ -273,7 +273,7 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
                                               cb_intent=cb_intent, detected_cut_t=detected_cut_t)
                 cb_dec = cb_agent.decide_move(cb_obs)
                 actions["CB1"] = {**cb_dec, "action": "cover"}
-                states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT)
+                states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT, wr_state=states["WR1"])
 
             # WR alive — adjust to the ball, clamped against overshoot
             wr_obs = build_wr_air_observation(t, states["WR1"], attrs["WR1"], states.get("CB1"),
