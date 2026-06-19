@@ -9,14 +9,25 @@ Contract: `.claude/freedom_design.md`. Handoff: `.claude/left_off.md`.
   (`run`/`settle`); the engine drives him deterministically until the throw, then he comes alive in air.
 - **QB = bullet/lob + timing only** (call-gated, 0.2s delay). `engine/endroute.py:solve_lead` leads the WR
   exactly off his locked future path; engine places the ball. `lob` arc (=loft) added to `ball.py`.
-- **CB:** full autonomy; intent = `play_man`/`go_for_pick` (`swat` gone). Backpedal MECHANICALLY forced to a
-  straight retreat (face WR, move directly away). Structural "vertical-commit" signal injected to the obs to
-  stop deep-ball flip-flopping (prompt-only commitment failed). cb_system rewritten tight.
+- **CB (REBUILT 2026-06-19):** full autonomy; intent = `play_man`/`go_for_pick` (`swat` gone). **The
+  forced-backpedal mechanic was REMOVED** (the user rejected hard moves) — backpedal is just a mode
+  (engine caps speed 75%); the CB picks its own heading/facing. `cb_system`/`cb_move` rewritten the WR
+  way (info + context + 3 reasoning steps, no rails, lean). Two bug fixes: (1) **phantom-cut** — a
+  fake's snap-back toward upfield was counted as a cut-to-vertical (false `CUT CONFIRMED` + suppressed
+  the vertical foot-race signal); now a cut must deviate AWAY from the 0° stem. (2) **backpedal
+  direction** — the CB retreated at heading 180° (toward the QB), walking into its own cushion; prompt
+  context re-added (retreat = upfield ~0°, face back at him; 180° closes the cushion).
+- **WR:** `wr_free.txt` rebuilt around 3 reasoning steps; all 12 routes carry a vague `purpose` (key
+  renamed `description`→`purpose`). WR now holds the slant stem to ~5yd break depth.
+- **QB throw-character (built, PAUSED):** `solve_lead` returns apex `peak_z`; `ball.arc_clearance()` =
+  height over a defender; QB obs has hang/apex/clears-CB + low-now-vs-high-over-top framing. Backfired
+  (lobs short routes to "clear" a beaten CB); paused until the CB is solid.
 - **Catch:** 3-zone resolver kept; dead `swat` branch + unreachable `DROP` removed.
 - Split `observation.py` → per-agent modules; `runner.py`/`schema.py`/prompts rewritten fresh.
-- **Tested: slant + go only** (gpt-5-nano, seed 42). Slant good (sep ~2.3) when WR breaks at depth + QB
-  bullets; go: CB beaten ~8yd (was 24). Open: WR break-timing variance, QB lob-on-short-route, CB residual
-  flips, full suite + legacy tools untested. NEXT: QB short-route bullet bias + WR hold-stem-to-depth.
+- **Tested: slant + go only** (gpt-5-nano, seed 42; judge COVERAGE not catch). Slant CB contested
+  (sep@throw 1.59, was 8.48 w/ mechanic). Go CB now holds cushion, glued sep@throw 0.83 (was beaten
+  deep). Open: QB lob-on-short-route, CB residual one-step wobbles, full suite + legacy tools untested.
+  NEXT: run the CB across more routes (out/curl/in/post/corner) to test coverage generally.
 
 ## (main, soft-rail design below) — Session 4 verification etc.
 WR route execution was rebuilt as a SOFT RAIL (s3) — the long-standing "WR ignores route geometry" problem

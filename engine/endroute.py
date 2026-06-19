@@ -98,8 +98,8 @@ def solve_lead(
         d = math.hypot(future.x - qb_x, future.y - qb_y)
         sol = solve_arc(d, arc, target_z)
         if sol is None:
-            return None, future, d, None
-        return sol[0] - tau, future, d, sol[1]  # (flight - tau, future_state, dist, launch_speed)
+            return None, future, d, None, None
+        return sol[0] - tau, future, d, sol[1], sol[2]  # (flight-tau, future, dist, speed, peak_z)
 
     lo, hi = 0.05, 6.0
     flo = residual(lo)[0]
@@ -107,11 +107,12 @@ def solve_lead(
     if flo is None or fhi is None or (flo > 0) == (fhi > 0):
         # No clean crossing (arc can't reach his line in range). Best-effort: report position at a
         # nominal 1.0s lead and mark infeasible.
-        _, fut, d, spd = residual(1.0)
+        _, fut, d, spd, peak = residual(1.0)
         return {
             "target": [round(fut.x, 1), round(fut.y, 1)],
             "tau": 1.0, "arrival_t": round(t_now + 1.0, 2),
             "dist": round(d, 1), "feasible": False,
+            "peak_z": round(peak, 1) if peak is not None else None,
         }
     for _ in range(50):
         mid = 0.5 * (lo + hi)
@@ -124,7 +125,7 @@ def solve_lead(
         else:
             hi = mid
     tau = 0.5 * (lo + hi)
-    _, fut, d, spd = residual(tau)
+    _, fut, d, spd, peak = residual(tau)
     feasible = spd is not None and spd <= v_max
     return {
         "target": [round(fut.x, 1), round(fut.y, 1)],
@@ -132,4 +133,5 @@ def solve_lead(
         "arrival_t": round(t_now + tau, 2),
         "dist": round(d, 1),
         "feasible": feasible,
+        "peak_z": round(peak, 1) if peak is not None else None,
     }

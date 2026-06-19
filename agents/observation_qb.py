@@ -4,7 +4,8 @@ distance, and whether it's in arm range. No coordinates for the QB to place."""
 import math
 
 from engine.physics import PlayerState, PlayerAttrs
-from engine.ball import BallState, max_ball_speed, max_range
+from engine.ball import BallState, max_ball_speed, max_range, arc_clearance
+from engine.resolution import CB_VERTICAL_REACH
 from agents.observation_common import dist, heading_label, down_str
 
 
@@ -46,7 +47,7 @@ def build_qb_observation(
     lines += [
         "",
         "YOUR TWO THROWS (the engine leads the WR for you — you just pick one or hold):",
-        f"  {'arc':<8} {'meets WR at':<16} {'arrives in':<11} {'throw dist':<11} {'in range?':<9}",
+        f"  {'arc':<8} {'meets WR at':<14} {'hang':<7} {'dist':<7} {'apex z':<7} {'clears the CB at':<22} {'in range?'}",
     ]
     for arc in ("bullet", "lob"):
         o = lead_options.get(arc)
@@ -54,18 +55,33 @@ def build_qb_observation(
             continue
         tgt = f"({o['target'][0]:.1f},{o['target'][1]:.1f})"
         rng = "yes" if o["feasible"] else "NO (too far)"
-        lines.append(f"  {arc:<8} {tgt:<16} +{o['tau']:<9.1f}s {o['dist']:<10.1f}y {rng:<9}")
+        peak = o.get("peak_z")
+        apex = f"{peak:.1f}" if peak is not None else "--"
+        if cb is not None:
+            clr = arc_clearance(qb.x, qb.y, o["target"][0], o["target"][1], arc, cb.x, cb.y)
+            if clr is None:
+                over = "--"
+            else:
+                tag = "in his reach" if clr <= CB_VERTICAL_REACH else "OVER his head"
+                over = f"z={clr:.1f}yd ({tag})"
+        else:
+            over = "--"
+        lines.append(
+            f"  {arc:<8} {tgt:<14} +{o['tau']:<5.1f}s {o['dist']:<6.1f}y {apex:<7} {over:<22} {rng}"
+        )
     lines += [
         "",
-        "BULLET: flat and fast — least time for the CB to react, but limited range and a low, "
-        "drive-it-in trajectory. Best when the WR is open NOW and within range.",
-        "LOB: high and soft — reaches deep and drops over the top, but hangs long enough for the CB to "
-        "close. Best for a deep ball where the WR runs onto it.",
+        f"(The CB can touch a ball up to ~{CB_VERTICAL_REACH:.0f}yd high. 'clears the CB at' is how high "
+        "each throw passes over him on its way to the WR.)",
         "",
-        "Throw only if the WR is (or will be) open at the meeting point. If the matchup is tight, hold "
-        "and re-read — but the sack clock is running.",
+        "BULLET = low and fast: arrives soonest, least time for the CB to react — but it stays in his "
+        "vertical reach through the lane, so a defender in the way can break it up. Drive it in low when "
+        "the WR is open NOW.",
+        "LOB = high and soft: longer hang, drops over the top BEYOND the CB — but that hang lets him "
+        "close. For a deep ball the WR runs onto; don't loft a short throw.",
+        "Read the two against where the CB is: deliver it low-and-now, or high-over-the-top-and-later. "
+        '"Open" = separation at the MEETING POINT when the ball arrives, not just right now.',
         "",
-        'Output JSON: {"action":"throw","arc":"bullet"|"lob","reasoning":"..."}  or  '
-        '{"action":"hold","reasoning":"..."}',
+        "Hold if neither is clean and re-read — but the sack clock is running.",
     ]
     return "\n".join(lines)

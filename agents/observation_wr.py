@@ -50,15 +50,15 @@ def build_wr_free_observation(
     wr_start: tuple[float, float] | None = None,
 ) -> str:
     depth = (wr.y - wr_start[1]) if wr_start else wr.y
-    desc = ROUTE_DESCRIPTIONS.get(route, {}).get("description", "")
+    purpose = ROUTE_DESCRIPTIONS.get(route, {}).get("purpose", "")
 
     lines = [
         f"=== WR  t={t:.1f}s ===",
         "",
         f"ROUTE: {route.upper()} — {_route_shape(route)}",
     ]
-    if desc:
-        lines.append(f"  WHY: {desc}")
+    if purpose:
+        lines.append(f"  PURPOSE: {purpose}")
     if wr_start:
         lines.append(f"SNAP: ({wr_start[0]:.1f}, {wr_start[1]:.1f}) — you are {depth:.1f}yd downfield of it.")
     bd = _break_depth(route)

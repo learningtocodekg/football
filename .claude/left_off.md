@@ -1,51 +1,46 @@
-# Left Off — 2026-06-18
+# Left Off — 2026-06-19
 
-## Branch: `freedom` (NOT main). Started this session.
-Goal: cut the heavy scaffolding, give the LLMs real freedom — the agent becomes a **Madden-style
-input controller** on top of the kept physics/ball engine. Contract: `.claude/freedom_design.md`.
+## Branch: `freedom` (NOT main).
+Madden-style input controller on the kept physics/ball engine. Contract: `.claude/freedom_design.md`.
 
-## What we did
-- **New foundation (`81da43f`)** — rebuilt the agent/control layer:
-  - `engine/endroute.py`: deterministic WR `end_route` (`run` / `settle`) + `solve_lead` (the QB
-    lead solver — bisection meeting-point on the WR's locked future path).
-  - WR runs free, then `call_for_ball` locks an `end_route`; engine drives him deterministically
-    until the throw, then he comes alive in the air. **No rail** (route shape is prompt context).
-  - QB is call-gated (0.2s delay), only picks **bullet vs lob** + timing; engine places the ball.
-    Added `lob` arc (=loft 45°) to `engine/ball.py`.
-  - CB intent collapsed to `play_man` / `go_for_pick` (`swat` removed; PBU is an effect of man).
-  - Split `observation.py` → `observation_{wr,qb,cb}.py` + `observation_common.py`; rewrote
-    `runner.py`, `schema.py`, all prompts; deleted the rail, dead prompts, rail test.
-- **Catch (subagent):** kept the 3-zone resolver (sound), removed the dead `swat` branch +
-  unreachable `DROP`.
-- **WR (`9bb7e8f`):** break-depth anchor in obs + "one decisive break, call on the break" prompt.
-  Slant: 21yd throw → ~11yd, sep@catch 9.6 → 2.31.
-- **CB (`8e936b7`,`6e1e8df`,`6f9d402`):**
-  - Skip the CB on step 0 (give it 1 tick of WR movement before deciding — fixed snap-charge).
-  - Structural **vertical-commit signal**: runner stamps "straight+fast, no cut" and the obs injects
-    "no break left, foot race" (prompt-only commitment had failed — stateless re-litigation).
-  - **Straight-backpedal MECHANIC** (`apply_decision` takes `wr_state`): backpedal forces facing=WR,
-    heading=directly away from WR. No sideways/charging backpedal; to move at an angle the CB must run.
-  - Rewrote `cb_system` tight: leverage/optionality over proximity, concrete speed tradeoff
-    (backpedal 6.75 vs run 9.0 vs WR 9.5).
-- **Go WR-call cue:** obs tells the WR when it's even-with/past the CB → call. Go was *sacking*
-  (WR never called); now calls reliably.
+## What we did this session — CB rebuilt + WR/QB reasoning-steps
+- **WR (prompt-only, freedom):** rewrote `wr_free.txt` around 3 reasoning steps (what have I done? /
+  what does the route call for now? / have I earned the break?). Gave all 12 routes a vague,
+  intent-flavored `purpose` in `scripted.py` ROUTE_DESCRIPTIONS (renamed key `description`→`purpose`);
+  obs labels it `PURPOSE`. RESULT: WR holds the slant stem to ~5yd and breaks at depth (was t=0.4–0.7).
+- **QB throw-character (built, then PAUSED):** `solve_lead` now returns apex `peak_z`; new
+  `ball.arc_clearance()` = ball height as a throw passes over a defender (loops over CBs later). QB obs
+  gained hang/apex/clears-the-CB columns + a low-now-vs-high-over-the-top framing; `qb_system` trimmed
+  of the now-duplicated prose. **It BACKFIRED on the short slant (see open).** Paused per "fix CB first."
+- **CB REBUILT (the main work):**
+  - **Removed the forced-backpedal mechanic** — `cb_agent.apply_decision` no longer overrides heading;
+    backpedal is just a mode (engine still caps speed at 75%, `apply_action`). Removed the orphaned
+    `wr_state` plumbing (apply_decision sig + 2 runner call sites) and the now-dead `import math`.
+  - Rewrote `cb_system.txt` + `cb_move.txt` the WR way: info (obs already has WR/CB history) + context
+    (what it means to play CB, the goal, move-mode/physics tips) + 3 reasoning steps. No hard rules,
+    no rails, lean.
+  - **Fixed a phantom-cut bug** (`runner.py` cut detection): a fake's snap-back toward upfield was
+    counted as a NEW cut-to-vertical → false `CUT CONFIRMED` in the CB obs AND it suppressed the
+    `vertical_committed` foot-race signal. Now a cut must deviate AWAY from the 0° stem (dev increasing).
+  - **Fixed CB backpedal direction** (`cb_system.txt` context): the CB was backpedaling at heading 180°
+    (toward the QB) — walking INTO its own cushion on a go. Re-added main's geometry: retreat = move
+    upfield (~0°, the way the WR runs) while facing back at him; 180° closes the cushion.
 
-## Current behavior (gpt-5-nano, seed 42; slant + go only — NOT the full suite)
-- **Slant:** crisp route, CB backpedals straight then drives the break. Good when the WR breaks at
-  depth + QB bullets (sep ~2.3). Bad runs balloon (see open issues).
-- **Go:** WR calls; CB backpedals away (no charge), commits to the run on the vertical; beaten deep
-  by ~8yd (was 24yd). Realistic-ish, still a touch generous.
+## Current behavior (gpt-5-nano, seed 42; judge COVERAGE, not catch/PBU)
+- **Slant:** CB contested — `sep_at_throw` 1.59yd (was **8.48** with the mechanic), correct inside commit.
+- **Go (after both fixes):** CB holds its cushion, retreats upfield (hdg 0), forces the WR to stem to
+  t=2.2, **`sep_at_throw` 0.83yd (glued)**, reads `go_for_pick` correctly. Was: cushion collapsed,
+  beaten deep ~8yd. Verified via positions (CB y 55→60.6, cushion held +3.8 at t=0.6 vs 0.0 before).
 
 ## Broken / open
-- **WR slant break-timing variance:** breaks t=0.4–0.7 (sometimes ~2yd not the ~5yd anchor).
-- **QB picks `lob` on a short slant** sometimes (should bullet). With a `run` end_route the WR then
-  accelerates away under the long lob → sep balloons (still a CATCH, unrealistically open).
-- **CB residual flips** on the vertical (~20%, reduced not gone — stateless variance).
-- Only slant + go tested. QB not separately refined (works). Legacy tools (`run_all_routes.py`,
-  `gen_demo.py`, viewers) likely broken by the refactor — **untested**.
-- Subagent infra note: worktree isolation branches off the DEFAULT branch (main), not the current
-  branch — commit WIP before any worktree fan-out or subagents land on stale code.
+- **QB lobs short routes** (the new clearance feature). "clears the CB at z=X (in his reach)" makes the
+  QB lob a short slant to clear a *trailing/beaten* CB's head — but clearance only matters for an
+  UNDERNEATH (in-lane) defender; against a trailing man it's a foot race → bullet it. Fix: qualify the
+  clearance by underneath-vs-trailing. PAUSED until the CB is solid across more routes.
+- **CB residual one-step wobbles** (e.g. a brief hdg=270/brake biting an inside fake) — minor, self-corrects.
+- Only slant + go tested. Other 10 routes + legacy tools (run_all_routes, viewers) untested.
 
 ## NEXT STEP
-Nudge **QB to prefer `bullet` on short/quick routes** and **WR to hold the slant stem to its ~5yd
-break depth**, then re-run slant + go and confirm separation stays realistic (slant ~2–3yd, no balloon).
+Run the rebuilt CB across more routes (out, curl, in, post, corner) at seed 42 to see whether the
+reasoning-step prompt + the two fixes hold coverage generally; fix the next failure the LLM's own
+reasoning reveals — prompt/observation only, no rails.

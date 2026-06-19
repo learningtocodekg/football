@@ -56,80 +56,78 @@ ROUTES: dict[str, list[tuple[float, float]]] = {
 SETTLE_ROUTES: set[str] = {"comeback", "curl"}
 SETTLE_DISTANCE: float = 1.5  # yd the WR travels past the break before he plants
 
-# Plain-English route descriptions shown to the WR every step.
-# description: what the route looks like and the purpose of each phase.
-# phase_labels: short label for each phase (matches ROUTES phase order).
+# One-line PURPOSE per route, shown to the WR every step (vague intent + deception feel, not exact
+# angles — the WR figures out the execution). Only consumer: observation_wr.py.
 ROUTE_DESCRIPTIONS: dict[str, dict] = {
     "slant": {
-        "description": (
-            "The upfield stem pushes the CB into a backward lean. When you cut inside, "
-            "the CB must reverse his momentum — that reversal is your window. "
-            "Accelerate hard through the cut."
+        "purpose": (
+            "Sell that you're running vertical, then break inside underneath and accelerate away "
+            "before he can flip his hips to drive on it."
+        ),
+    },
+    "post": {
+        "purpose": (
+            "Push upfield like a go to put him on his heels, then once he's committed to the "
+            "vertical break inside toward the deep middle."
         ),
     },
     "comeback": {
-        "description": (
-            "This is a STOP route. Drive the CB deep into a backpedal, then plant and break "
-            "back toward your sideline - but only 1-2 yards, then STOP. Brake hard out of the "
-            "cut and settle in place, squaring up to face the QB; the ball comes back to YOU, "
-            "you do not keep running through the break. The CB's deep momentum can't reverse "
-            "in time - that gap is your window. Plant and call, then brake to settle (do not "
-            "keep sprinting back) so the QB can put a bullet on you where you stop."
+        "purpose": (
+            "Drive him deep into his backpedal, then plant and come back to the ball — his deep "
+            "momentum can't recover in time. Settle facing the QB; don't keep running."
+        ),
+    },
+    "out": {
+        "purpose": (
+            "Threaten him deep to get his weight sinking, then snap off flat toward the sideline "
+            "where his depth leaves him."
         ),
     },
     "go": {
-        "description": (
-            "The first ~10 yards are the stem; the break is just to keep running straight. Win with pure speed. "
-            "Once you are past 10 yards and feel your pace is about to break the cushion, call for the ball so the "
-            "throw leads you deep — don't call on the pre-snap cushion. A fake break during the stem (sell a cut, "
-            "then keep sprinting straight) turns the CB's hips and buys you the step."
+        "purpose": (
+            "Near the end of the stem convince the CB you are about to cut left or right; once he "
+            "commits, beat him straight up the field in a pure speed race."
         ),
     },
     "double_move": {
-        "description": (
-            "The inside fake (90°) must look real enough to move the CB's hips inside. "
-            "A weak drift won't commit him — sell it to ~90° and hold until his rec shows. "
-            "Then snap back upfield (0°) and go deep."
+        "purpose": (
+            "Sell a real inside cut to turn his hips and get him to bite, then once he does snap "
+            "back upfield and run past him."
         ),
     },
     "curl": {
-        "description": (
-            "The upfield push IS the deception — the CB backtracks and creates space underneath. "
-            "Do not add sideways fakes during the stem; they add recovery cost that kills your hook. "
-            "Hook back at 180° and call immediately."
+        "purpose": (
+            "Push hard upfield so he turns and runs with you, then hook back underneath into the "
+            "space he vacated. Settle facing the QB."
         ),
     },
     "zig": {
-        "description": (
-            "The inside jab (90°) must hold long enough to move the CB's hips inside. "
-            "A shallow drift does nothing. Hold the jab until CB rec appears, then snap out to the sideline (270°)."
+        "purpose": (
+            "Jab hard one way to lean his hips, then snap back the other way the moment he commits."
         ),
     },
     "drag": {
-        "description": (
-            "The brief upfield stem makes the CB think vertical and step back. "
-            "Your flat cross runs into the space he just vacated. Stay low and call when across."
+        "purpose": (
+            "Threaten vertical just long enough to freeze his feet, then cross flat underneath into "
+            "the space he gave up."
         ),
     },
     "corner": {
-        "description": (
-            "The long stem pushes the CB deep into a backpedal. "
-            "Your diagonal break to the corner forces him to change both direction and depth — "
-            "that transition is your window."
+        "purpose": (
+            "Stem deep to stack him on your hip, then break off toward the sideline corner where he "
+            "can't follow both your direction and your depth."
         ),
     },
     "post_corner": {
-        "description": (
-            "The inside fake at 45° must look real enough to move the CB inside. "
-            "Then flip outside to 315°. If the CB doesn't bite on the inside fake, "
-            "you won't have a window on the outside break."
+        "purpose": (
+            "Sell a post inside to pull him toward the middle, then once he leans inside flip back "
+            "outside to the corner."
         ),
     },
     "in": {
-        "description": (
-            "The upfield stem pulls the CB backward. When you cut across at 90°, "
-            "the CB must change from backpedaling to closing sideways — that transition is your window. "
-            "Don't flatten out early or the CB stays in position."
+        "purpose": (
+            "Press him vertical to keep him backpedaling, then cut hard across the middle while he's "
+            "still moving the wrong way."
         ),
     },
 }

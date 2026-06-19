@@ -1,0 +1,2323 @@
+{
+  "header": {
+    "seed": 42,
+    "scenario": "sim/scenarios/a4_wr_go.yaml",
+    "roster": "sim/rosters/default.yaml",
+    "down": 1,
+    "distance": 10
+  },
+  "steps": [
+    {
+      "t": 0.0,
+      "phase": "LIVE",
+      "sack_clock": 5.0,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.0,
+            50.14
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 1.4,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Burst to gain separation and read the CB's reaction; no final break yet on GO."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.5,
+            55.0
+          ],
+          "heading": 180.0,
+          "facing": 180.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "pre-snap"
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.1,
+      "phase": "LIVE",
+      "sack_clock": 4.9,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.0,
+            50.4
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 2.59,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Maintain go route; accelerate to close the cushion and threaten a pure speed race downfield."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.63,
+            55.0
+          ],
+          "heading": 90.0,
+          "facing": 180.0,
+          "speed": 1.3,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is stemming upfield from behind; stay in phase by backpedaling (upfield) while facing him to read his move and keep cushion without committing hips. Maintain burst for real breaks."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.2,
+      "phase": "LIVE",
+      "sack_clock": 4.8,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.0,
+            50.76
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 3.61,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Stay on the GO stem, drive deep and threaten a future break; CB is inside/upfield, I keep accelerating to force a commitment."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.86,
+            55.0
+          ],
+          "heading": 90.0,
+          "facing": 180.0,
+          "speed": 2.35,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR still stems and is behind toward QB; maintain cushion by backpedaling upfield with eyes on him, keeping hip-open and burst available for a real cut or break. Do not chase aggressively; stay in phase."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.3,
+      "phase": "LIVE",
+      "sack_clock": 4.7,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.0,
+            51.21
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 4.48,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Maintaining straight-speed race; no break yet, push deep and trust timing to beat him with pure speed."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.86,
+            55.22
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 2.25,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR still stems upfield and is behind you toward the QB. Maintain cushion by backpedaling upfield while facing him, preserving burst for a real break and staying in phase on his hip. No hip commitment yet; continue mirror/stem to keep leverage for contest."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.4,
+      "phase": "LIVE",
+      "sack_clock": 4.6,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.0,
+            51.73
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 5.22,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Keep accelerating straight upfield; CB hasn't committed yet, continue the pure speed race to separation."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.86,
+            55.54
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 3.12,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is still stemming upfield and behind me toward the QB. Maintain cushion by continuing backpedal in the WR's direction, eyes on him, staying in phase. No real break yet; keep burst available to react to a real cut or break."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.5,
+      "phase": "LIVE",
+      "sack_clock": 4.5,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            51.73
+          ],
+          "heading": 90.0,
+          "facing": 90.0,
+          "speed": 3.38,
+          "cut_recovery": 2,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Decisive inside fake to force CB to commit hips, opening vertical separation after the fake"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            55.54
+          ],
+          "heading": 90.0,
+          "facing": 90.0,
+          "speed": 2.43,
+          "cut_recovery": 1,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is hip-committed behind me toward the QB; to stay in phase and contest the throw, turn to run with him on the inside angle (heading 90\u00b0) while facing inside, preserving burst for a break and keeping cushion."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.6,
+      "phase": "LIVE",
+      "sack_clock": 4.4,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            52.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 2.71,
+          "cut_recovery": 1,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Stemming to threaten deep behind the CB; no break yet, continue acceleration to close the cushion."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            55.76
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 2.28,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is still constrained at ~behind me toward the QB and appears to be stemming with no real break yet. Maintain cushion by backpedaling upfield while keeping eyes on him; this preserves burst for a later break or contest and keeps me in phase rather than chasing a fake break."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.7,
+      "phase": "LIVE",
+      "sack_clock": 4.3,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            52.37
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 3.71,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Stay on GO, keep accelerating to close the cushion and threaten a deep break as the CB must respect the speed race."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            56.08
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 3.14,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is still stemming upfield but behind you toward the QB. Maintain cushion by backpedaling with eyes on him, staying in phase and ready to break on either direction. Do not chase with hips yet; keep leverage and burst for a possible real break."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.8,
+      "phase": "LIVE",
+      "sack_clock": 4.2,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            52.83
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 4.57,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": " continue straight go with full acceleration to threaten deep; no decisive break yet, CB still on inside shadow, need more separation before breaking out."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            56.46
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 3.84,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR still stemming upfield from below; maintain cushion by backpedaling (0\u00b0) while facing him (180\u00b0) to stay in phase and keep burst ready for a break. WR behind toward QB, not yet committing to a real cut."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 0.9,
+      "phase": "LIVE",
+      "sack_clock": 4.1,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            53.36
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 5.29,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Stemming into a pure speed race; keep accelerating to close the gap and exceed him deep."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            56.9
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 4.4,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is still stemming and moving upfield; cushion is being maintained and no decisive break yet. Stay in phase by backpedaling, keeping eyes on him and ready to break on a real cut or catch."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.0,
+      "phase": "LIVE",
+      "sack_clock": 4.0,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            53.95
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 5.91,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Maintain full burst to close the cushion and force a late commitment from the CB before the final break"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            57.39
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 4.85,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR still stems upfield with no decisive cut taken; keep cushion by backpedaling as he remains behind you and can break either way. Maintain phase and burst readiness for a potential real cut."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.1,
+      "phase": "LIVE",
+      "sack_clock": 3.9,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            54.59
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 6.44,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Continue the straight-upfield go to force a pure speed race; CB still inside and behind, need full burst to break away."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            57.91
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 5.22,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is behind and moving upfield; maintain cushion with backpedal, eyes on him to stay in phase and contest the throw. We\u2019re faster in backpedal than he is gaining, so keep him in front of us and ready to break."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.2,
+      "phase": "LIVE",
+      "sack_clock": 3.8,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            55.28
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 6.89,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": " continue straight go; maximize speed to stretch CB and create open window for contest throw"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            58.46
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 5.51,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is stemmed and still gaining vertical separation; keep cushion by backpedaling upfield while facing the WR to preserve phase and burst for a contested throw. No real break yet, so avoid hip commitment and stay ready to break either way."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.3,
+      "phase": "LIVE",
+      "sack_clock": 3.7,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            56.01
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 7.28,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Continue straight-up stem, threaten a decisive break if CB commits; stay accelerating to win a pure speed race."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            59.06
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 6.02,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is behind and closing; backpedal can't keep up. switch to running with him to regain phase and contest the throw."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.4,
+      "phase": "LIVE",
+      "sack_clock": 3.6,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            56.77
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 7.6,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "CB not committed yet; stay accelerate in go route to gain deep separation and time the final break."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.11,
+            59.68
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 6.16,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR behind and stemming upfield; maintain cushion by backpedaling to stay in phase, eyes locked on WR, ready to break on any real cut or throw."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.5,
+      "phase": "LIVE",
+      "sack_clock": 3.5,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            57.56
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 7.88,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "maintain stem and threaten deep, ready to commit to a final break next step"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.76,
+            59.68
+          ],
+          "heading": 270.0,
+          "facing": 270.0,
+          "speed": 3.45,
+          "cut_recovery": 3,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is still stemming with no real break; cushion is shrinking as he sits behind toward QB and speed advantage favors him. To stay in phase and contest the throw, turn to run with him along his outside (toward his sideline at 270\u00b0) so we can maintain on-hip leverage and respond to any cut or break without losing access to the ball."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.6,
+      "phase": "LIVE",
+      "sack_clock": 3.4,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            58.37
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 8.12,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Maintain straight-line speed to outrun the hip-committed CB and beat him deep; no break yet, stay on GO route."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.76,
+            59.91
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 2.33,
+          "cut_recovery": 2,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is stemmed and still upfield; keep cushion by backpedaling as he moves, stay eyes-on, and remain in phase without committing hips (don\u2019t chase a fake)."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.7,
+      "phase": "LIVE",
+      "sack_clock": 3.3,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            59.21
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 8.33,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Continue upfield to beat the cushion; no decisive break yet, keep accelerating toward top speed."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.76,
+            60.21
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 3.02,
+          "cut_recovery": 1,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is still stemming upfield; cushion is tight (0.8 yd) but behind you and moving faster. Maintain backpedal to mirror his stem, keep eyes on him, and preserve burst for a later break without committing hips. Contain and wait for a real cut or throw. "
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.8,
+      "phase": "LIVE",
+      "sack_clock": 3.2,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            60.06
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 8.5,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Threatening deeper stem; no decisive break yet, keep accelerating to set up a future fake or breakout"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.76,
+            60.59
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 3.74,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR still stemming with full burst upfield; he\u2019s even with me and faster. Stay in backpedal to maintain cushion and keep him on my hip as I track his path, rather than chasing with hips turned. This preserves burst and lets me contest if he commits or the ball is thrown."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 1.9,
+      "phase": "LIVE",
+      "sack_clock": 3.1,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            60.92
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 8.65,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "CB inside and a half-yard ahead; continue straight-speed boost to pull even and then call when even later step"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.76,
+            61.02
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 4.32,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is still stemming upfield, staying in phase by backpedaling with him; keep cushion and burst ready, don't commit hips yet as he hasn\u2019t broken decisively."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 2.0,
+      "phase": "LIVE",
+      "sack_clock": 3.0,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.34,
+            61.8
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 8.77,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Continue straight upfield, press the compressor to create separation as the CB is in a backpedal and inside; no break needed for GO, anticipate separation deep."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.76,
+            61.5
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 4.79,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR remains stemmed and pulling away; backpedal to maintain cushion while facing him so you can react to any real break without committing hips. Stay in phase and contest the catch if he lets it go."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 2.1,
+      "phase": "LIVE",
+      "sack_clock": 2.9,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            61.8
+          ],
+          "heading": 90.0,
+          "facing": 90.0,
+          "speed": 4.96,
+          "cut_recovery": 3,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "One decisive inside fake to commit the CB's hips, then sprint straight upfield for separation."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.76,
+            62.01
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 5.17,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is still stemming with a tight cushion; he just got hip-committed but is now re-stabilizing. Keep backpedaling to maintain cushion, eyes on the WR to break on any real cut, avoid committing hips early, and stay in phase to contest the throw."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 2.2,
+      "phase": "LIVE",
+      "sack_clock": 2.8,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            62.12
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 3.26,
+          "cut_recovery": 2,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "I\u2019ve stemmed to draw the CB to commit, I\u2019m even/past him, and I\u2019m deep\u2014call now to lead the throw directly downfield."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            62.01
+          ],
+          "heading": 90.0,
+          "facing": 0.0,
+          "speed": 0.63,
+          "cut_recovery": 0,
+          "mode": "brake",
+          "action": "cover",
+          "reasoning": "WR is committing to an inside break (90\u00b0) and is gaining depth. I should brake to plant and reorient to run with him on the inside angle, staying in phase to contest the throw rather than chase with a pure backpedal."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": [
+        {
+          "type": "WR_CALL",
+          "t": 2.2,
+          "end_route": {
+            "heading": 0.0,
+            "mode": "run",
+            "settle_ticks": 0
+          }
+        }
+      ]
+    },
+    {
+      "t": 2.3,
+      "phase": "LIVE",
+      "sack_clock": 2.7,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "waiting for WR to commit"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            62.52
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 4.01,
+          "cut_recovery": 1,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "end-route run hdg 0 (locked)"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            62.17
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 1.57,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR continues to stem upfield (0\u00b0) with 0.5 yd separation and no real break yet. Stay in phase by running with him on the same 0\u00b0 path to maintain cushion and keep him on your hip for a potential contest. Avoid hip turns; mirror his path and keep burst ready for a responder."
+        }
+      ],
+      "ball": {
+        "state": "held",
+        "pos": [
+          26.65,
+          48.0,
+          0.0
+        ],
+        "holder": "QB"
+      },
+      "events": []
+    },
+    {
+      "t": 2.4,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.6,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            63.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 4.81,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "end-route run hdg 0 (locked)"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            62.44
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 2.64,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is still stemming upfield at ~0\u00b0; 0.8 yd upfield of you, you must open/run to stay in phase instead of backpedaling. Maintain cushion with burst available, keep on his hip as the ball arrives and contest at catch."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          26.65,
+          48.0,
+          2.2
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 1.194,
+        "arc": "bullet"
+      },
+      "events": [
+        {
+          "type": "THROW",
+          "target": [
+            16.8,
+            71.9
+          ],
+          "arc": "bullet",
+          "eta": 1.19,
+          "dist": 25.9,
+          "mph": 45.8
+        }
+      ]
+    },
+    {
+      "t": 2.5,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.5,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            63.56
+          ],
+          "heading": 0.0,
+          "facing": 147.0,
+          "speed": 5.51,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move straight up to landing spot and climb to high-point the ball, leveraging the short window."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            62.79
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 3.56,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is 0.6 yd upfield and still stemming upfield at 0\u00b0. Maintain cushion by opening and running with him upfield (not backpedaling). Mirror his path to stay in phase and ready to contest the throw; ball in air soon."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          25.83,
+          50.0,
+          2.73
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 1.094,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 2.6,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.4,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            64.16
+          ],
+          "heading": 0.0,
+          "facing": 148.0,
+          "speed": 6.09,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move upfield to the landing spot and high-point the ball over the CB."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            63.23
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 4.35,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is 0.8 yd upfield and still stemming with no real break yet; you must stay on his hip and open to respond to his cut. Since you\u2019re in pursuit toward the ball (go_for_pick) you should stay in phase, keep your cushion, and run upfield with him to a spot where you can contest the throw. Facing/heading 0\u00b0 keeps you on his hip while allowing a quick break toward the ball if he commits."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          25.0,
+          52.0,
+          3.15
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.994,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 2.7,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.3,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            64.82
+          ],
+          "heading": 0.0,
+          "facing": 149.0,
+          "speed": 6.6,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Moving straight upfield to the landing spot to high-point the ball over the nearby CB."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            63.73
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 5.02,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is 0.9 yd upfield and still moving upfield; open and run to keep him on your hip and preserve cushion. Maintain phase and be ready to break on the throw as the ball nears."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          24.18,
+          54.01,
+          3.46
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.894,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 2.8,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.2,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            65.53
+          ],
+          "heading": 0.0,
+          "facing": 150.0,
+          "speed": 7.02,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move straight upfield to reach the 7.1 yd landing spot and high-point the ball; accelerate to close the distance."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            64.29
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 5.59,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is 1.1 yd upfield and still moving upfield at 6.6 yd/s; you must stay in phase by opening and running with him upfield (not backpedaling) to maintain cushion and keep the ball in reach for a contested throw."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          23.35,
+          56.01,
+          3.66
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.794,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 2.9,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.1,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            66.27
+          ],
+          "heading": 0.0,
+          "facing": 151.0,
+          "speed": 7.39,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Heading upfield toward landing spot; accelerate to close distance before ball arrives and high-point it."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            64.9
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 6.09,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is stemming upfield and ball is projected upfield; to contest throw we attack the ball on the same vertical path, staying in phase by accelerating upfield toward the catch spot."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          22.53,
+          58.01,
+          3.76
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.694,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 3.0,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 2.0,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            67.04
+          ],
+          "heading": 0.0,
+          "facing": 152.0,
+          "speed": 7.7,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move to landing spot and rise to high-point the ball over the CB"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            65.52
+          ],
+          "heading": 0.0,
+          "facing": 180.0,
+          "speed": 6.21,
+          "cut_recovery": 0,
+          "mode": "backpedal",
+          "action": "cover",
+          "reasoning": "WR is still stemming with a feint; keep cushion and burst ready by backpedaling upfield while facing him to read the break and stay in phase for the throw."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          21.7,
+          60.01,
+          3.75
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.594,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 3.1,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 1.9,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            67.83
+          ],
+          "heading": 0.0,
+          "facing": 153.0,
+          "speed": 7.97,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move straight to the landing spot to high-point the ball over the nearby CB."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            66.18
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 6.62,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "BALL IN AIR: commit to go-for-pick to the spot (16.8,71.9). You\u2019re 6.4 yd from the landing; accelerate upfield to contest at the catch, maintaining line toward the ball and face the target."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          20.88,
+          62.01,
+          3.64
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.494,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 3.2,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 1.8,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            68.65
+          ],
+          "heading": 0.0,
+          "facing": 154.0,
+          "speed": 8.19,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move straight up to the landing spot while aligning to QB; accelerate to reach 4.1 yd in ~0.49s and high-point over CB."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            16.83,
+            66.88
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 6.96,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is upfield and stems; you must open and run to stay on his hip and maintain cushion with burst ready. A backpedal would close the cushion; staying in parallel allows you to contest the throw when the ball comes."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          20.05,
+          64.01,
+          3.42
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.394,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 3.3,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 1.7,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            69.49
+          ],
+          "heading": 0.0,
+          "facing": 155.0,
+          "speed": 8.38,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move to 16.8,71.9 to high-point the ball; align to the QB bearing."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.21,
+            66.88
+          ],
+          "heading": 90.0,
+          "facing": 90.0,
+          "speed": 3.83,
+          "cut_recovery": 3,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is 1.8 yd upfield and climbing; he's still stemming upfield. Open inside and run with him to stay on his hip, keeping cushion while maintaining burst for the ball. Avoid backpedaling toward the QB; stay in phase to contest the throw."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          19.23,
+          66.02,
+          3.09
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.294,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 3.4,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 1.6,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            70.34
+          ],
+          "heading": 0.0,
+          "facing": 155.0,
+          "speed": 8.55,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move to the landing spot and get under the ball for a high-point catch."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.21,
+            67.13
+          ],
+          "heading": 0.0,
+          "facing": 355.0,
+          "speed": 2.55,
+          "cut_recovery": 2,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "WR is still driving upfield and you\u2019re about to release to ball; go attack the ball on the 355\u00b0 path to contest the catch and stay in phase with the WR's hip. This positions you to break on the ball rather than chasing with backpedal; the goal is to arrive at the ball\u2019s spot and contest at catch."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          18.4,
+          68.02,
+          2.65
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.194,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 3.5,
+      "phase": "BALL_IN_AIR",
+      "sack_clock": 1.5,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            71.21
+          ],
+          "heading": 0.0,
+          "facing": 156.0,
+          "speed": 8.69,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Proceed straight to landing spot to high-point ball with current speed."
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.18,
+            67.45
+          ],
+          "heading": 355.0,
+          "facing": 355.0,
+          "speed": 3.25,
+          "cut_recovery": 1,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "Ball is arriving quickly at WR\u2019s catch spot (16.8,71.9). He\u2019s committed to the route upfield; to contest the throw I must break toward the ball\u2019s spot and drive to disrupt at the catch. Run toward 355\u00b0 to the landing point, maintaining proximity to stay in phase and contest the throw."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          17.58,
+          70.02,
+          2.11
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.094,
+        "arc": "bullet"
+      },
+      "events": []
+    },
+    {
+      "t": 3.6,
+      "phase": "END",
+      "sack_clock": 1.4,
+      "players": [
+        {
+          "id": "QB",
+          "pos": [
+            26.65,
+            48.0
+          ],
+          "heading": 0.0,
+          "facing": 0.0,
+          "speed": 0.0,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "hold",
+          "reasoning": "ball in air"
+        },
+        {
+          "id": "WR1",
+          "pos": [
+            16.83,
+            72.09
+          ],
+          "heading": 0.0,
+          "facing": 157.0,
+          "speed": 8.81,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "run_route",
+          "reasoning": "Move up to the ball landing spot and prepare to high-point over the CB"
+        },
+        {
+          "id": "CB1",
+          "pos": [
+            17.15,
+            67.86
+          ],
+          "heading": 355.0,
+          "facing": 355.0,
+          "speed": 4.08,
+          "cut_recovery": 0,
+          "mode": "normal",
+          "action": "cover",
+          "reasoning": "Ball arrives in 0.09s; go for the snap to contest. Move toward the ball along the 355\u00b0 path to reach the spot and maintain angle to break on the catch."
+        }
+      ],
+      "ball": {
+        "state": "in_air",
+        "pos": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "landing": [
+          16.8,
+          71.9,
+          1.5
+        ],
+        "eta": 0.0,
+        "arc": "bullet"
+      },
+      "events": [
+        {
+          "type": "RESOLUTION",
+          "outcome": "CATCH",
+          "separation": 4.24,
+          "landing_z": 1.5
+        }
+      ]
+    }
+  ],
+  "footer": {
+    "outcome": "CATCH",
+    "telemetry": {
+      "max_separation": 5.02,
+      "sep_at_throw": 0.83,
+      "sep_at_catch": 4.24,
+      "throw_t": 2.4,
+      "throw_distance": 25.9,
+      "throw_arc": "bullet",
+      "target_z": 1.5,
+      "sack": false,
+      "qb_calls": 1,
+      "qb_parse_errors": 0,
+      "wr_calls": 35,
+      "wr_parse_errors": 0,
+      "cb_calls": 38,
+      "cb_parse_errors": 0,
+      "cb_intent": "go_for_pick",
+      "wr_call_t": 2.2,
+      "detected_cut_t": null
+    }
+  }
+}

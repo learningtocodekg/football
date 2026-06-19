@@ -57,6 +57,36 @@ def solve_arc(
     return t_flight, speed, peak_z
 
 
+def arc_clearance(
+    qb_x: float, qb_y: float,
+    target_x: float, target_y: float,
+    arc: str,
+    px: float, py: float,
+    target_z: float = DEFAULT_TARGET_Z,
+    release_z: float = RELEASE_Z,
+) -> float | None:
+    """Ball height (yd) as a throw from (qb) to (target) on `arc` passes over ground point (px, py).
+
+    Projects (px, py) onto the QB->target lane and evaluates the parabola there — i.e. how high the
+    ball clears a defender standing at (px, py). None if the arc geometry is impossible. Loops over
+    multiple defenders cleanly when there is more than one CB.
+    """
+    dx, dy = target_x - qb_x, target_y - qb_y
+    dist_xy = math.hypot(dx, dy)
+    sol = solve_arc(dist_xy, arc, target_z, release_z)
+    if sol is None:
+        return None
+    t_flight = sol[0]
+    theta = math.radians(ARC_ANGLES[arc])
+    v_h = dist_xy / t_flight
+    length_sq = dx * dx + dy * dy
+    if length_sq < 1e-9:
+        return release_z
+    frac = max(0.0, min(1.0, ((px - qb_x) * dx + (py - qb_y) * dy) / length_sq))
+    t = frac * t_flight
+    return max(0.0, release_z + v_h * math.tan(theta) * t - 0.5 * G * t * t)
+
+
 def max_range(arc: str, launch_speed: float, target_z: float = DEFAULT_TARGET_Z) -> float:
     """Max horizontal distance reachable on this arc at the given launch speed."""
     angle = ARC_ANGLES.get(arc)

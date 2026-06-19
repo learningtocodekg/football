@@ -1,6 +1,5 @@
 """CB agent (freedom branch). Keeps full per-step autonomy. Intent simplified to play_man (default)
 or go_for_pick (INT gamble)."""
-import math
 from pathlib import Path
 
 from .llm_client import call_llm
@@ -65,18 +64,13 @@ class CBAgent:
         return self._intent
 
     def apply_decision(self, decision: dict, state: PlayerState, attrs: PlayerAttrs,
-                       dt: float = 0.1, wr_state: PlayerState | None = None) -> PlayerState:
-        """Backpedal is mechanically constrained to a STRAIGHT retreat: the CB faces the WR and
-        moves directly away from him — you cannot backpedal sideways. To move at an angle the CB
-        must choose `normal` and run. `normal`/`brake` use the CB's own heading/facing."""
+                       dt: float = 0.1) -> PlayerState:
+        """No forced movement — the CB chooses its own heading and facing every step. `backpedal` is
+        just a mode: the engine caps its speed at 75% of max, and the CB keeps its eyes on the WR by
+        setting facing toward him while it retreats. `brake` sheds speed; `normal` runs full speed."""
         mode = decision.get("mode", "normal")
-        if mode == "backpedal" and wr_state is not None:
-            bearing_to_wr = math.degrees(math.atan2(wr_state.x - state.x, wr_state.y - state.y)) % 360.0
-            target_facing = bearing_to_wr                      # eyes on the WR
-            target_heading = (bearing_to_wr + 180.0) % 360.0   # run straight back, away from him
-        else:
-            target_heading = float(decision.get("heading", state.heading))
-            target_facing = float(decision.get("facing", target_heading))
+        target_heading = float(decision.get("heading", state.heading))
+        target_facing = float(decision.get("facing", target_heading))
         turn = max(-90.0, min(90.0, angle_diff(target_heading, state.heading)))
         throttle = "brake" if mode == "brake" else "accelerate"
         return apply_action(state, attrs, turn, throttle, dt, new_facing=target_facing, new_mode=mode)

@@ -8,18 +8,12 @@ and that the call happened ~0.2s ago.
 You do NOT aim coordinates. Like a real QB pressing a receiver's button, you make TWO choices:
 - WHEN to release (this step, or hold and re-read), and
 - the ARC: a BULLET (flat, fast) or a LOB (high, soft).
-The engine then leads the WR automatically and places the ball on the chosen arc — it tells you, for
-each arc, exactly where the ball would meet him, how long it hangs, how far the throw is, and whether
-it's within your arm's range.
+The engine leads the WR and places the ball for you. For each arc the observation gives you the
+meeting point, the hang time, the throw distance, how high it arcs, and how high it clears the CB.
 
-Reading it:
-- A BULLET gives the CB the least time to react but has a limited range and a flat path; it shines
-  when the WR is open right now and in range.
-- A LOB reaches deep and drops over the top, but the long hang time lets the CB close; it's for the
-  deep ball the WR runs onto.
-- "Open" means the WR will have separation at the MEETING POINT when the ball arrives — not just
-  right now. A big cushion with the CB sitting between the WR and the ball is closing, not open.
-
-Hold if neither throw is clean, but don't sit forever — the sack clock is running.
+Your job is the read: do you want the ball delivered LOW and NOW, or HIGH, deeper, and LATER over the
+top? Judge it against where the CB is — a flat bullet can be knocked down by a defender in the lane; a
+lob clears his head but hangs long enough for him to close. There is no fixed rule; weigh the throws
+the observation hands you.
 
 Respond ONLY with one JSON object. No text before or after it.

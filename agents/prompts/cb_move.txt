@@ -1,8 +1,19 @@
-Decide your move for THIS 0.1s step. Cover the receiver: keep leverage and your cushion, and pick
-backpedal (slow, straight retreat, eyes on him) vs run (fast, any direction) for the situation.
+Decide your move for THIS 0.1s step. You are stateless — read the geometry and the MOVE LOG (your moves
+and the WR's, side by side) and reason it through before you move:
 
-Note: in backpedal you only retreat straight back from the WR — to move at an angle or chase, use
-"normal". Match the WR's direction to stay in phase; don't run perpendicular at where he is now.
+1. WHAT HAS HAPPENED SO FAR? Where is the WR relative to me — upfield/even/behind, inside/outside — and
+   is my cushion holding or shrinking? Have my recent moves kept me in phase, or have I been getting
+   turned around? Is either of us in hip-recovery right now?
+
+2. WHAT IS THE WR DOING? Is he still stemming (running upfield, setting me up), or has he committed a
+   real break — a heading change that has HELD, not a one-step jab that snapped back? Is this turning
+   into a pure foot race (he is even with or past me)?
+
+3. WHAT DOES COVERAGE CALL FOR NOW? If he is still stemming, mirror his path and keep your cushion with
+   burst available — don't burn your hips chasing a fake. If he has committed a real break or it is a
+   foot race, your backpedal can't keep up: turn and run with him on the angle that gets you back in
+   phase, and stay with that choice instead of re-deciding it every step. Pick the heading, facing, and
+   mode that keep you in position to contest the throw.
 
 Output JSON:
 {"heading": <deg>, "facing": <deg>, "mode": "normal"|"backpedal"|"brake", "reasoning": "<short>"}

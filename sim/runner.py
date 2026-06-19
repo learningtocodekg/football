@@ -256,7 +256,7 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
                                               vertical_committed=vertical_committed_t is not None)
                 cb_dec = cb_agent.decide_move(cb_obs)
                 actions["CB1"] = {**cb_dec, "action": "cover"}
-                states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT, wr_state=states["WR1"])
+                states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT)
                 print(f"  t={t:.1f} CB -> hdg={cb_dec['heading']:.0f} mode={cb_dec['mode']} | {cb_dec.get('reasoning','')}")
 
         # ════════════════════════ BALL IN AIR ════════════════════════
@@ -273,7 +273,7 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
                                               cb_intent=cb_intent, detected_cut_t=detected_cut_t)
                 cb_dec = cb_agent.decide_move(cb_obs)
                 actions["CB1"] = {**cb_dec, "action": "cover"}
-                states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT, wr_state=states["WR1"])
+                states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT)
 
             # WR alive — adjust to the ball, clamped against overshoot
             wr_obs = build_wr_air_observation(t, states["WR1"], attrs["WR1"], states.get("CB1"),
@@ -312,7 +312,13 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
                     telemetry["detected_cut_t"] = cut_candidate_t
                 cut_candidate_t = cut_candidate_from = None
             if detected_cut_t is None and prev_wr_hdg is not None:
-                if abs((new_hdg - prev_wr_hdg + 180) % 360 - 180) >= CUT_DETECT_THRESHOLD:
+                turned = abs((new_hdg - prev_wr_hdg + 180) % 360 - 180) >= CUT_DETECT_THRESHOLD
+                # A cut is a deviation AWAY from the upfield stem (0°). Returning toward upfield —
+                # e.g. snapping back from an inside fake — is not a cut; flagging it makes the fake's
+                # own return register as a phantom "cut to vertical" and lies to the CB.
+                dev_new = abs((new_hdg + 180) % 360 - 180)
+                dev_prev = abs((prev_wr_hdg + 180) % 360 - 180)
+                if turned and dev_new > dev_prev:
                     cut_candidate_t = t
                     cut_candidate_from = prev_wr_hdg
         prev_wr_hdg = new_hdg
