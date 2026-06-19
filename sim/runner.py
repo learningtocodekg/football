@@ -154,6 +154,8 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
     detected_cut_t: float | None = None
     cut_candidate_t: float | None = None
     cut_candidate_from: float | None = None
+    vertical_straight_steps = 0          # consecutive steps the WR has run straight + fast
+    vertical_committed_t: float | None = None  # stamped once it reads as a pure vertical (no break)
 
     for step in range(MAX_STEPS):
         t = round(step * DT, 3)
@@ -250,7 +252,8 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
             if cb_agent is not None and step >= 1:
                 cb_obs = build_cb_observation(t, states["CB1"], attrs["CB1"], states["WR1"], ball,
                                               wr_history=move_history, ball_total_eta=ball_total_eta,
-                                              detected_cut_t=detected_cut_t)
+                                              detected_cut_t=detected_cut_t,
+                                              vertical_committed=vertical_committed_t is not None)
                 cb_dec = cb_agent.decide_move(cb_obs)
                 actions["CB1"] = {**cb_dec, "action": "cover"}
                 states["CB1"] = cb_agent.apply_decision(actions["CB1"], states["CB1"], attrs["CB1"], DT)
@@ -313,6 +316,16 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
                     cut_candidate_t = t
                     cut_candidate_from = prev_wr_hdg
         prev_wr_hdg = new_hdg
+
+        # Vertical-commit detection: a long straight + fast run with no cut = a foot race with no
+        # break to guard. Stamped once and injected into the CB obs so the (stateless) CB stops
+        # re-deriving "maybe he'll break" every tick and commits to the run.
+        if abs((new_hdg + 180) % 360 - 180) <= 20 and states["WR1"].speed >= 0.7 * attrs["WR1"].max_speed:
+            vertical_straight_steps += 1
+        else:
+            vertical_straight_steps = 0
+        if vertical_committed_t is None and detected_cut_t is None and vertical_straight_steps >= 10:
+            vertical_committed_t = t
 
         move_history.append({
             "t": t,

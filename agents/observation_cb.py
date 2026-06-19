@@ -39,6 +39,7 @@ def build_cb_observation(
     ball_total_eta: float | None = None,
     cb_intent: str = "play_man",
     detected_cut_t: float | None = None,
+    vertical_committed: bool = False,
 ) -> str:
     sep = dist(cb, wr)
     bearing_to_wr = math.degrees(math.atan2(wr.x - cb.x, wr.y - cb.y)) % 360.0
@@ -73,6 +74,9 @@ def build_cb_observation(
                      f"staying in backpedal here, he pulls away.")
     if wr.cut_recovery >= 2:
         lines.append(f"  !! WR is hip-committed for {wr.cut_recovery} steps — close hard now.")
+    if vertical_committed and ball.state != "in_air":
+        lines.append("  READ: he has run a straight vertical at speed with no break — there is no break "
+                     "left to guard. This is a pure foot race; backpedaling only loses ground.")
 
     if ball.state == "in_air":
         if ball_total_eta and ball_total_eta > 0:
