@@ -1,9 +1,28 @@
 # Build State
-Current phase: A4 — 3D. **Project considered essentially DONE (2026-06-14 s4).** WR route execution was
-rebuilt as a SOFT RAIL (s3) — the long-standing "WR ignores route geometry" problem is RESOLVED. All 10
-routes run with CORRECT SHAPES, not lucky catches. Judge plays by route/accuracy/coverage/air-play, NOT the
-catch/PBU label (memory feedback-outcome-vs-quality). The two non-catches (curl PBU, post_corner INCOMPLETE)
-are open-WR losses to CB/WR LLM nondeterminism, accepted as such.
+Current phase: A4 — 3D, plus a **`freedom` branch (started 2026-06-18)** that rebuilds the agent/control
+layer (see next section). `main` is the soft-rail design described below.
+
+## `freedom` branch — Madden-style input controller (2026-06-18) — CURRENT WORK
+Goal: cut the heavy scaffolding, give the LLMs real freedom on top of the kept physics/ball engine.
+Contract: `.claude/freedom_design.md`. Handoff: `.claude/left_off.md`.
+- **Rail DELETED.** WR runs free per-step (heading/throttle), then `call_for_ball` locks an `end_route`
+  (`run`/`settle`); the engine drives him deterministically until the throw, then he comes alive in air.
+- **QB = bullet/lob + timing only** (call-gated, 0.2s delay). `engine/endroute.py:solve_lead` leads the WR
+  exactly off his locked future path; engine places the ball. `lob` arc (=loft) added to `ball.py`.
+- **CB:** full autonomy; intent = `play_man`/`go_for_pick` (`swat` gone). Backpedal MECHANICALLY forced to a
+  straight retreat (face WR, move directly away). Structural "vertical-commit" signal injected to the obs to
+  stop deep-ball flip-flopping (prompt-only commitment failed). cb_system rewritten tight.
+- **Catch:** 3-zone resolver kept; dead `swat` branch + unreachable `DROP` removed.
+- Split `observation.py` → per-agent modules; `runner.py`/`schema.py`/prompts rewritten fresh.
+- **Tested: slant + go only** (gpt-5-nano, seed 42). Slant good (sep ~2.3) when WR breaks at depth + QB
+  bullets; go: CB beaten ~8yd (was 24). Open: WR break-timing variance, QB lob-on-short-route, CB residual
+  flips, full suite + legacy tools untested. NEXT: QB short-route bullet bias + WR hold-stem-to-depth.
+
+## (main, soft-rail design below) — Session 4 verification etc.
+WR route execution was rebuilt as a SOFT RAIL (s3) — the long-standing "WR ignores route geometry" problem
+is RESOLVED. All 10 routes run with CORRECT SHAPES, not lucky catches. Judge plays by
+route/accuracy/coverage/air-play, NOT the catch/PBU label (memory feedback-outcome-vs-quality). The two
+non-catches (curl PBU, post_corner INCOMPLETE) are open-WR losses to CB/WR LLM nondeterminism.
 
 ## Session 4 (2026-06-14) — verification + backpedal UI indicator
 - **venv is `.venv`** (not `venv`): `./.venv/Scripts/python.exe`.

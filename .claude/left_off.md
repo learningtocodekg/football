@@ -1,50 +1,51 @@
-# Left Off
-Date: 2026-06-14 (session 4)
+# Left Off — 2026-06-18
 
-Short session. Mostly verification + a UI ask. The user now considers the project **essentially done**
-(Phase A4: all 10 routes run with CORRECT SHAPES; the two non-catches are open-WR losses to LLM
-nondeterminism, which the user accepts as "regular LLM hallucination").
+## Branch: `freedom` (NOT main). Started this session.
+Goal: cut the heavy scaffolding, give the LLMs real freedom — the agent becomes a **Madden-style
+input controller** on top of the kept physics/ball engine. Contract: `.claude/freedom_design.md`.
 
-## What got done
-- **Setup:** the venv is `.venv` (NOT `venv`) — `./.venv/Scripts/python.exe`. (Saved to memory.)
-- **curl earlier-throw hint VERIFIED.** Re-ran curl: throw now fires at **throw_t=2.0 "as he hooks"**
-  (was 2.2) — the qb_pass2 hint took effect. Outcome this run was **PBU** (CB in play_man closed the
-  settle window to sep 0.5 at catch) vs last session's CATCH 1.79 — same route, different CB roll, pure
-  nondeterminism. ⚠️ **This re-run OVERWROTE `replays/curl_42.json`** — the repo copy is now the PBU, not
-  the CATCH. Re-run curl if you want a catch replay to view.
-- **post_corner cause CORRECTED — the old handoff note was WRONG.** left_off (s3) blamed "the solver
-  can't foresee the second cut." The replay disproves it: the WR's 2nd cut to the corner happened at
-  t=2.0, the throw was at t=2.5 with the WR's heading **already locked on the final 315° leg** — so the
-  solver's projection *direction* was correct. The real loss: at **t=3.3 mid-flight the WR's air-phase LLM
-  turned to heading 225° (back toward the QB) and braked to 0** while a catchable deep ball was still
-  3.5yd ahead; the runner's overshoot-freeze clamp then locked him there. He re-accelerated too late and
-  finished **2.55yd from the ball → INCOMPLETE**, despite being open (sep 3.28 at throw). Secondary: the
-  solver projected ~9.2yd of air travel, leaving no reach margin to absorb the stall. User: leave it,
-  it's regular LLM hallucination.
-- **Answered "why does the WR look so much faster than the CB?"** Two reasons: (1) attributes are NOT
-  equal — WR 9.5/14/85 (speed/accel/agility) vs CB 9.0/13/80; (2) the dominant effect is the **backpedal
-  speed cap** `BACKPEDAL_SPEED_FRACTION=0.75` — a backpedaling CB tops out at 9.0×0.75 ≈ **6.75 yd/s**
-  while the WR sprints at 9.5. Confirmed in the go replay (WR ramps to 8.5, CB flatlines ~6.0). Not a bug
-  — coverage physics working as designed.
-- **NEW: backpedal indicator in all three viewers.**
-  - 3D `render/renderer_ursina.py` (the "game" the user watches): body **tints cyan** while
-    `mode=="backpedal"` + a floating **"BP"** billboard tag; reverts to team color when he turns to run.
-  - 2D `render/renderer_pygame.py` + `viewer/debug_viewer.py`: cyan **ring + "BP" label** (+ legend line
-    in the pygame sidebar).
-  - First attempt only touched the 2D viewers → user saw nothing because they watch the 3D ursina one;
-    added it there too. All three compile.
+## What we did
+- **New foundation (`81da43f`)** — rebuilt the agent/control layer:
+  - `engine/endroute.py`: deterministic WR `end_route` (`run` / `settle`) + `solve_lead` (the QB
+    lead solver — bisection meeting-point on the WR's locked future path).
+  - WR runs free, then `call_for_ball` locks an `end_route`; engine drives him deterministically
+    until the throw, then he comes alive in the air. **No rail** (route shape is prompt context).
+  - QB is call-gated (0.2s delay), only picks **bullet vs lob** + timing; engine places the ball.
+    Added `lob` arc (=loft 45°) to `engine/ball.py`.
+  - CB intent collapsed to `play_man` / `go_for_pick` (`swat` removed; PBU is an effect of man).
+  - Split `observation.py` → `observation_{wr,qb,cb}.py` + `observation_common.py`; rewrote
+    `runner.py`, `schema.py`, all prompts; deleted the rail, dead prompts, rail test.
+- **Catch (subagent):** kept the 3-zone resolver (sound), removed the dead `swat` branch +
+  unreachable `DROP`.
+- **WR (`9bb7e8f`):** break-depth anchor in obs + "one decisive break, call on the break" prompt.
+  Slant: 21yd throw → ~11yd, sep@catch 9.6 → 2.31.
+- **CB (`8e936b7`,`6e1e8df`,`6f9d402`):**
+  - Skip the CB on step 0 (give it 1 tick of WR movement before deciding — fixed snap-charge).
+  - Structural **vertical-commit signal**: runner stamps "straight+fast, no cut" and the obs injects
+    "no break left, foot race" (prompt-only commitment had failed — stateless re-litigation).
+  - **Straight-backpedal MECHANIC** (`apply_decision` takes `wr_state`): backpedal forces facing=WR,
+    heading=directly away from WR. No sideways/charging backpedal; to move at an angle the CB must run.
+  - Rewrote `cb_system` tight: leverage/optionality over proximity, concrete speed tradeoff
+    (backpedal 6.75 vs run 9.0 vs WR 9.5).
+- **Go WR-call cue:** obs tells the WR when it's even-with/past the CB → call. Go was *sacking*
+  (WR never called); now calls reliably.
 
-## Broken / Open
-- **3D backpedal indicator NOT YET VISUALLY CONFIRMED.** User was going to run
-  `./.venv/Scripts/python.exe -m render.renderer_ursina replays/go_42.json` and report. If it shows up,
-  this session is fully closed. (User also offered the option of a ground ring instead of the body tint.)
-- `replays/curl_42.json` is now a PBU (overwrote the CATCH). Cosmetic — route shape is still correct.
-- post_corner INCOMPLETE stands, accepted as nondeterministic LLM hallucination (route correct, WR open).
+## Current behavior (gpt-5-nano, seed 42; slant + go only — NOT the full suite)
+- **Slant:** crisp route, CB backpedals straight then drives the break. Good when the WR breaks at
+  depth + QB bullets (sep ~2.3). Bad runs balloon (see open issues).
+- **Go:** WR calls; CB backpedals away (no charge), commits to the run on the vertical; beaten deep
+  by ~8yd (was 24yd). Realistic-ish, still a touch generous.
 
-## Suite status (seed 42, by SHAPE not label)
-8 CATCH (slant, drag, go, in, zig, comeback, corner, double_move) + curl PBU + post_corner INCOMPLETE —
-all 10 routes run correct shapes; both non-catches are open-WR losses to CB/WR LLM nondeterminism.
+## Broken / open
+- **WR slant break-timing variance:** breaks t=0.4–0.7 (sometimes ~2yd not the ~5yd anchor).
+- **QB picks `lob` on a short slant** sometimes (should bullet). With a `run` end_route the WR then
+  accelerates away under the long lob → sep balloons (still a CATCH, unrealistically open).
+- **CB residual flips** on the vertical (~20%, reduced not gone — stateless variance).
+- Only slant + go tested. QB not separately refined (works). Legacy tools (`run_all_routes.py`,
+  `gen_demo.py`, viewers) likely broken by the refactor — **untested**.
+- Subagent infra note: worktree isolation branches off the DEFAULT branch (main), not the current
+  branch — commit WIP before any worktree fan-out or subagents land on stale code.
 
 ## NEXT STEP
-**Confirm the 3D backpedal cyan-tint/BP-tag renders correctly** (user to run the ursina viewer). If good,
-the project is at its done state. Nothing else is queued — the user believes we're done.
+Nudge **QB to prefer `bullet` on short/quick routes** and **WR to hold the slant stem to its ~5yd
+break depth**, then re-run slant + go and confirm separation stays realistic (slant ~2–3yd, no balloon).
