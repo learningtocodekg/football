@@ -21,7 +21,9 @@ ROSTER = "sim/rosters/default.yaml"
 # All routes with their scenario files
 ROUTE_SCENARIOS = {
     "slant":       "sim/scenarios/a4_wr_slant.yaml",
+    "post":        "sim/scenarios/a4_wr_post.yaml",
     "comeback":    "sim/scenarios/a4_wr_comeback.yaml",
+    "out":         "sim/scenarios/a4_wr_out.yaml",
     "go":          "sim/scenarios/a4_wr_go.yaml",
     "double_move": "sim/scenarios/a4_wr_double_move.yaml",
     "curl":        "sim/scenarios/a4_wr_curl.yaml",

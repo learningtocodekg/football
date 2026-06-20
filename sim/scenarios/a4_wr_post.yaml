@@ -1,0 +1,24 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, post route"
+phase: A4
+description: >
+  1st and 10. All three agents live. WR runs a post: push vertical, then
+  break inside toward the deep middle. Key questions: does the WR put the
+  CB on his heels before breaking? Does the QB lead it correctly downfield?
+
+down: 1
+distance: 10
+wr_route: post
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"

@@ -1,46 +1,41 @@
-# Left Off — 2026-06-19
+# Left Off — 2026-06-19 (later session)
 
 ## Branch: `freedom` (NOT main).
 Madden-style input controller on the kept physics/ball engine. Contract: `.claude/freedom_design.md`.
 
-## What we did this session — CB rebuilt + WR/QB reasoning-steps
-- **WR (prompt-only, freedom):** rewrote `wr_free.txt` around 3 reasoning steps (what have I done? /
-  what does the route call for now? / have I earned the break?). Gave all 12 routes a vague,
-  intent-flavored `purpose` in `scripted.py` ROUTE_DESCRIPTIONS (renamed key `description`→`purpose`);
-  obs labels it `PURPOSE`. RESULT: WR holds the slant stem to ~5yd and breaks at depth (was t=0.4–0.7).
-- **QB throw-character (built, then PAUSED):** `solve_lead` now returns apex `peak_z`; new
-  `ball.arc_clearance()` = ball height as a throw passes over a defender (loops over CBs later). QB obs
-  gained hang/apex/clears-the-CB columns + a low-now-vs-high-over-the-top framing; `qb_system` trimmed
-  of the now-duplicated prose. **It BACKFIRED on the short slant (see open).** Paused per "fix CB first."
-- **CB REBUILT (the main work):**
-  - **Removed the forced-backpedal mechanic** — `cb_agent.apply_decision` no longer overrides heading;
-    backpedal is just a mode (engine still caps speed at 75%, `apply_action`). Removed the orphaned
-    `wr_state` plumbing (apply_decision sig + 2 runner call sites) and the now-dead `import math`.
-  - Rewrote `cb_system.txt` + `cb_move.txt` the WR way: info (obs already has WR/CB history) + context
-    (what it means to play CB, the goal, move-mode/physics tips) + 3 reasoning steps. No hard rules,
-    no rails, lean.
-  - **Fixed a phantom-cut bug** (`runner.py` cut detection): a fake's snap-back toward upfield was
-    counted as a NEW cut-to-vertical → false `CUT CONFIRMED` in the CB obs AND it suppressed the
-    `vertical_committed` foot-race signal. Now a cut must deviate AWAY from the 0° stem (dev increasing).
-  - **Fixed CB backpedal direction** (`cb_system.txt` context): the CB was backpedaling at heading 180°
-    (toward the QB) — walking INTO its own cushion on a go. Re-added main's geometry: retreat = move
-    upfield (~0°, the way the WR runs) while facing back at him; 180° closes the cushion.
-
-## Current behavior (gpt-5-nano, seed 42; judge COVERAGE, not catch/PBU)
-- **Slant:** CB contested — `sep_at_throw` 1.59yd (was **8.48** with the mechanic), correct inside commit.
-- **Go (after both fixes):** CB holds its cushion, retreats upfield (hdg 0), forces the WR to stem to
-  t=2.2, **`sep_at_throw` 0.83yd (glued)**, reads `go_for_pick` correctly. Was: cushion collapsed,
-  beaten deep ~8yd. Verified via positions (CB y 55→60.6, cushion held +3.8 at t=0.6 vs 0.0 before).
+## What we did this session
+- **Ran the FULL route suite** (all 12 routes, seed 42, gpt-5-nano) into fresh individual replays in
+  `replays/`. Added two missing scenarios (`a4_wr_post.yaml`, `a4_wr_out.yaml`) + wired `post`/`out`
+  into `run_all_routes.py` so the runnable set is now the full 12 (was 10).
+- **Diagnosed the run with the user. Verdict: both WR and CB are broken across the board.**
+  - WR doesn't run its route (stops short, cuts before the stem, or never runs the shape); over-deceives
+    (a new fake almost every 0.1s); doesn't read the CB (stateless juke-spam).
+  - CB is incoherent on every route: flip-flops heading/mode each tick, bites one-step jabs, backpedals
+    way off, fails to turn-and-run on a real break.
+- **REFRAMED the project as a research question** (user-driven): can a STATELESS LLM do real geo-spatial
+  reasoning with NO rails and NO forcing mechanics? Ruled out: rails (that's `main`, known to work, not
+  the goal) and prompt-stuffing (documented dead end). The lever is the **TYPE of control the LLM has**
+  (action space / representation / cadence), not the prompt.
+- **Co-designed the WR approach and stored it as a spec:** `.claude/wr_agent_design.md`. Core idea: the
+  WR authors its own CONDITIONAL decision tree pre-play ("writes the prompt for its future self"); the
+  plan IS its externalized state. Executed on a WALL-CLOCK spine (deliberate — time keeps it from
+  ditching the route; nodes after a branch are timed relative to the decision). Conditions use
+  LLM-invented vocab, LLM-evaluated at branches for now (future: make mechanical), pruned to the current
+  node each step. NOT YET BUILT.
+- **Compacted memory** to CB focus (added `project_freedom_thesis`, `project_cb_design_next`; removed 7
+  stale WR/QB tactical memories — their history lives here + in state.md). Logged interesting lessons in
+  `article.md` ("Full-route audit + research reframe" section).
 
 ## Broken / open
-- **QB lobs short routes** (the new clearance feature). "clears the CB at z=X (in his reach)" makes the
-  QB lob a short slant to clear a *trailing/beaten* CB's head — but clearance only matters for an
-  UNDERNEATH (in-lane) defender; against a trailing man it's a foot race → bullet it. Fix: qualify the
-  clearance by underneath-vs-trailing. PAUSED until the CB is solid across more routes.
-- **CB residual one-step wobbles** (e.g. a brief hdg=270/brake biting an inside fake) — minor, self-corrects.
-- Only slant + go tested. Other 10 routes + legacy tools (run_all_routes, viewers) untested.
+- **WR: not built yet** — the decision-tree design is a spec only. Current freedom WR still juke-spams.
+- **CB: the next problem.** It's purely REACTIVE (can't pre-plan like the WR), so it needs its OWN
+  stateless-coherence technique — the WR's design does not transfer. See `project_cb_design_next`.
+- **QB: PAUSED** (known lob-on-short-route issue from the clearance feature).
+- Coupling caveat: a chaotic WR makes the CB look broken (every tick reads as a fresh cut). The two are
+  entangled; good WR testing needs a competent CB and vice versa.
 
 ## NEXT STEP
-Run the rebuilt CB across more routes (out, curl, in, post, corner) at seed 42 to see whether the
-reasoning-step prompt + the two fixes hold coverage generally; fix the next failure the LLM's own
-reasoning reveals — prompt/observation only, no rails.
+Design the CB agent's own stateless-coherence approach (it can't author a forward plan — it's reactive
+to the WR). Think: durative committed reactions + event-driven re-query, and/or a self-updated belief
+about what the WR is doing. Then build the WR decision-tree (`.claude/wr_agent_design.md`) so the two can
+be tested together. No rails, no prompt-stuffing — change the control interface.

@@ -24,10 +24,20 @@ Contract: `.claude/freedom_design.md`. Handoff: `.claude/left_off.md`.
   (lobs short routes to "clear" a beaten CB); paused until the CB is solid.
 - **Catch:** 3-zone resolver kept; dead `swat` branch + unreachable `DROP` removed.
 - Split `observation.py` → per-agent modules; `runner.py`/`schema.py`/prompts rewritten fresh.
-- **Tested: slant + go only** (gpt-5-nano, seed 42; judge COVERAGE not catch). Slant CB contested
-  (sep@throw 1.59, was 8.48 w/ mechanic). Go CB now holds cushion, glued sep@throw 0.83 (was beaten
-  deep). Open: QB lob-on-short-route, CB residual one-step wobbles, full suite + legacy tools untested.
-  NEXT: run the CB across more routes (out/curl/in/post/corner) to test coverage generally.
+- **FULL SUITE RUN (2026-06-19, later): all 12 routes, seed 42, gpt-5-nano → both WR and CB broken
+  across the board.** The CB rebuild that looked good on slant+go failed on every other route
+  (flip-flops heading/mode each tick, bites one-step jabs, backpedals way off, no turn-and-run on real
+  breaks). WR doesn't run its route + juke-spams (new fake almost every 0.1s). Added `a4_wr_post.yaml`
+  + `a4_wr_out.yaml` and wired `post`/`out` into `run_all_routes.py` (runnable set now full 12).
+- **PROJECT REFRAMED as a research question:** can a STATELESS LLM do geo-spatial reasoning with NO
+  rails and NO prompt-stuffing? The lever is the TYPE of control the LLM has (action space /
+  representation / cadence), not the prompt. Rails (=main) and prompt-stuffing are both ruled out.
+- **WR design (NOT BUILT) stored at `.claude/wr_agent_design.md`:** the WR authors its own CONDITIONAL
+  decision tree pre-play (the plan IS its externalized state), executed on a WALL-CLOCK spine with
+  LLM-invented, LLM-evaluated conditions, pruned to the current node. CB CANNOT reuse this (it's
+  purely reactive — no initiative to plan ahead); its stateless-coherence approach is still open.
+- QB stays PAUSED. NEXT: design the CB's own reactive stateless-coherence technique, then build the WR
+  decision tree and test them together.
 
 ## (main, soft-rail design below) — Session 4 verification etc.
 WR route execution was rebuilt as a SOFT RAIL (s3) — the long-standing "WR ignores route geometry" problem

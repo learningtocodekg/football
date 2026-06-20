@@ -1,0 +1,24 @@
+name: "A4 — LLM WR + LLM QB + LLM CB, out route"
+phase: A4
+description: >
+  1st and 10. All three agents live. WR runs an out: stem deep, then
+  snap flat to the sideline. Key questions: does the WR sell the vertical
+  before breaking? Does the CB respect the depth? Is the throw on time?
+
+down: 1
+distance: 10
+wr_route: out
+
+a4_mode: true
+
+wr_model: "gpt-5-nano"
+wr_reasoning_effort: "low"
+wr_provider: "openai"
+
+qb_model: "gpt-5-nano"
+qb_reasoning_effort: "low"
+qb_provider: "openai"
+
+cb_model: "gpt-5-nano"
+cb_reasoning_effort: "low"
+cb_provider: "openai"
