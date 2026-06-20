@@ -115,24 +115,20 @@ def parse_qb(raw: str) -> dict | None:
 
 
 def parse_cb_move(raw: str) -> dict | None:
-    """CB movement: heading, facing, mode."""
+    """CB movement: a pursuit INTENT — mode (shadow/drive/bail) + a bounded tilt (deg). The engine
+    renders this into heading/facing/movement-mode from live geometry (engine/coverage.py)."""
     obj = _extract_json(raw)
     if obj is None:
         return None
+    mode = str(obj.get("mode", "shadow")).strip().lower()
+    if mode not in ("shadow", "drive", "bail"):
+        mode = "shadow"
     try:
-        heading = float(obj["heading"]) % 360.0
-    except (KeyError, TypeError, ValueError):
-        return None
-    facing = obj.get("facing", heading)
-    try:
-        facing = float(facing) % 360.0
+        tilt = float(obj.get("tilt", 0.0))
     except (TypeError, ValueError):
-        facing = heading
-    mode = str(obj.get("mode", "normal")).strip().lower()
-    if mode not in ("normal", "backpedal", "brake"):
-        mode = "normal"
-    return {"heading": heading, "facing": facing, "mode": mode,
-            "reasoning": str(obj.get("reasoning", ""))}
+        tilt = 0.0
+    tilt = max(-25.0, min(25.0, tilt))
+    return {"mode": mode, "tilt": tilt, "reasoning": str(obj.get("reasoning", ""))}
 
 
 def parse_cb_intent(raw: str) -> dict | None:

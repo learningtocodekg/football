@@ -1,19 +1,18 @@
-Decide your move for THIS 0.1s step. You are stateless — read the geometry and the MOVE LOG (your moves
-and the WR's, side by side) and reason it through before you move:
+Decide your pursuit intent for THIS 0.1s step. Read the GEOMETRY, the LEVERAGE facts, and the MOVE LOG
+(your moves and the WR's, side by side), then reason it through before you commit:
 
-1. WHAT HAS HAPPENED SO FAR? Where is the WR relative to me — upfield/even/behind, inside/outside — and
-   is my cushion holding or shrinking? Have my recent moves kept me in phase, or have I been getting
-   turned around? Is either of us in hip-recovery right now?
+1. WHAT IS HE DOING? Is he still stemming (running upfield, setting you up), or has he committed a REAL
+   break — a heading change that HELD, not a one-step jab that snapped back? Is this a foot race (he is
+   even with / past you)? The "CUT CONFIRMED" line, if present, means a real cut is already established —
+   don't re-litigate it.
 
-2. WHAT IS THE WR DOING? Is he still stemming (running upfield, setting me up), or has he committed a
-   real break — a heading change that has HELD, not a one-step jab that snapped back? Is this turning
-   into a pure foot race (he is even with or past me)?
+2. CAN I STILL HOLD THE CUSHION? Read the LEVERAGE facts: does your backpedal still match his speed, and
+   is your shade balanced? If `shadow` still holds him, stay in it with your hips open. If the facts say
+   he's faster than your backpedal, `shadow` is already losing.
 
-3. WHAT DOES COVERAGE CALL FOR NOW? If he is still stemming, mirror his path and keep your cushion with
-   burst available — don't burn your hips chasing a fake. If he has committed a real break or it is a
-   foot race, your backpedal can't keep up: turn and run with him on the angle that gets you back in
-   phase, and stay with that choice instead of re-deciding it every step. Pick the heading, facing, and
-   mode that keep you in position to contest the throw.
+3. COMMIT OR SHADE? Flipping to `drive`/`bail` is a hip commitment with a real recovery cost (shown) —
+   spend it only on a real break or a foot race you're about to lose, then STAY with it. To merely adjust
+   leverage, use a small `tilt` instead — that's free. Don't churn modes on a fake.
 
 Output JSON:
-{"heading": <deg>, "facing": <deg>, "mode": "normal"|"backpedal"|"brake", "reasoning": "<short>"}
+{"mode": "shadow"|"drive"|"bail", "tilt": <deg, -25..25, - = outside / + = inside>, "reasoning": "<short>"}

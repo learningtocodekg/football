@@ -36,8 +36,18 @@ Contract: `.claude/freedom_design.md`. Handoff: `.claude/left_off.md`.
   decision tree pre-play (the plan IS its externalized state), executed on a WALL-CLOCK spine with
   LLM-invented, LLM-evaluated conditions, pruned to the current node. CB CANNOT reuse this (it's
   purely reactive — no initiative to plan ahead); its stateless-coherence approach is still open.
-- QB stays PAUSED. NEXT: design the CB's own reactive stateless-coherence technique, then build the WR
-  decision tree and test them together.
+- QB stays PAUSED.
+- **CB REDESIGNED + TESTED (2026-06-19, later):** the CB is now per-step pursuit-control, not raw
+  heading. Output = `{mode, tilt}` (`shadow`/`drive`/`bail` + ±25° tilt under the cut-recovery
+  threshold). New `engine/coverage.py:resolve_coverage` renders the intent → heading/facing/mode from
+  live geometry (engine owns the trig). `observation_cb.py` gained a LEVERAGE FACTS block (cushion
+  adequacy / inside-outside hedge / commit cost). `cb_system`/`cb_move` reframed as context.
+  `cb_agent.apply_decision` now takes the WR state + optional `drive_target`; runner updated (2 sites).
+  New `run_cb_test.py` = CB-only harness (deterministic scripted-WR-with-jukes + hardcoded
+  meeting-point throw; CB is the only live LLM; standard viewer-compatible replays). Results (seed 42,
+  judge coverage): flip-flop ELIMINATED (2–10 mode switches/play vs per-tick churn); slant ELITE
+  (PBU/INT/PBU sub-1.3yd), comeback mostly good (one 6.15 miss), go beaten deep (WR 9.5>CB 9.0 + late
+  bail). NEXT: build the WR decision-tree agent (`.claude/wr_agent_design.md`), then test WR+CB together.
 
 ## (main, soft-rail design below) — Session 4 verification etc.
 WR route execution was rebuilt as a SOFT RAIL (s3) — the long-standing "WR ignores route geometry" problem

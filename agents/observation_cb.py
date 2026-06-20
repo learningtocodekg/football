@@ -2,7 +2,7 @@
 pre-selected answers. Intent is just play_man (default) or go_for_pick (gamble for the INT)."""
 import math
 
-from engine.physics import PlayerState, PlayerAttrs, BACKPEDAL_SPEED_FRACTION
+from engine.physics import PlayerState, PlayerAttrs, BACKPEDAL_SPEED_FRACTION, cut_recovery_steps
 from engine.ball import BallState
 from engine.resolution import CB_VERTICAL_REACH, HIGH_BALL_Z
 from agents.observation_common import (
@@ -69,6 +69,31 @@ def build_cb_observation(
         f"  your speeds: forward {cb_attrs.max_speed:.1f}, backpedal {bp_speed:.1f} yd/s",
         f"  WR is {abs(dy):.1f}yd {wr_rel} and moving {wr.speed:.1f}yd/s.",
     ]
+
+    # ── LEVERAGE FACTS: the geometry you can't do in your head; keep these balanced to stay flexible ──
+    cushion = cb.y - wr.y                       # +ve = you are upfield of him (good); -ve = he's past you
+    dx = cb.x - wr.x                            # +ve = you are shaded INSIDE (toward the middle)
+    if wr.speed <= bp_speed:
+        cushion_note = (f"your backpedal ({bp_speed:.1f}yd/s) still matches his {wr.speed:.1f} — "
+                        f"SHADOW can hold the cushion.")
+    else:
+        cushion_note = (f"he is FASTER ({wr.speed:.1f}) than your backpedal ({bp_speed:.1f}) — SHADOW "
+                        f"loses ground every step; DRIVE or BAIL to run with him.")
+    if dx > 0.3:
+        shade_note = f"shaded INSIDE by {dx:.1f}yd — strong vs an inside break, exposed to an outside one."
+    elif dx < -0.3:
+        shade_note = f"shaded OUTSIDE by {-dx:.1f}yd — strong vs an outside break, exposed to an inside one."
+    else:
+        shade_note = "HEAD-UP — both breaks equally covered (max flexibility / options open)."
+    commit_cost = cut_recovery_steps(90.0, cb.speed, cb_attrs)
+    lines += [
+        "LEVERAGE (keep balanced = options open):",
+        f"  cushion (downfield gap): {cushion:+.1f}yd — {cushion_note}",
+        f"  shade: you are {shade_note}",
+        f"  commit cost: a hard turn (flipping to DRIVE/BAIL) at your speed {cb.speed:.1f} costs "
+        f"~{commit_cost} recovery steps — don't spend it on a one-step fake.",
+    ]
+
     if cb.mode == "backpedal" and wr.speed > bp_speed + 0.3:
         lines.append(f"  Your backpedal tops out at {bp_speed:.1f}yd/s — below his {wr.speed:.1f}; "
                      f"staying in backpedal here, he pulls away.")

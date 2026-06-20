@@ -5,6 +5,7 @@ from pathlib import Path
 from .llm_client import call_llm
 from .schema import parse_cb_pre_snap, parse_cb_move, parse_cb_intent
 from engine.physics import PlayerState, PlayerAttrs, apply_action, angle_diff
+from engine.coverage import resolve_coverage
 
 _SYSTEM = (Path(__file__).parent / "prompts" / "cb_system.txt").read_text()
 _PRE_SNAP = (Path(__file__).parent / "prompts" / "cb_pre_snap.txt").read_text()
@@ -19,7 +20,7 @@ class CBAgent:
         self.provider = provider
         self.call_count = 0
         self.parse_errors = 0
-        self.last_action = {"heading": 0.0, "facing": 0.0, "mode": "normal", "reasoning": "init"}
+        self.last_action = {"mode": "shadow", "tilt": 0.0, "reasoning": "init"}
         self._intent = "play_man"
         self._intent_locked = False
 
@@ -64,13 +65,12 @@ class CBAgent:
         return self._intent
 
     def apply_decision(self, decision: dict, state: PlayerState, attrs: PlayerAttrs,
-                       dt: float = 0.1) -> PlayerState:
-        """No forced movement — the CB chooses its own heading and facing every step. `backpedal` is
-        just a mode: the engine caps its speed at 75% of max, and the CB keeps its eyes on the WR by
-        setting facing toward him while it retreats. `brake` sheds speed; `normal` runs full speed."""
-        mode = decision.get("mode", "normal")
-        target_heading = float(decision.get("heading", state.heading))
-        target_facing = float(decision.get("facing", target_heading))
-        turn = max(-90.0, min(90.0, angle_diff(target_heading, state.heading)))
-        throttle = "brake" if mode == "brake" else "accelerate"
-        return apply_action(state, attrs, turn, throttle, dt, new_facing=target_facing, new_mode=mode)
+                       wr: PlayerState, dt: float = 0.1,
+                       drive_target: tuple[float, float] | None = None) -> PlayerState:
+        """The CB picks a pursuit INTENT (mode + bounded tilt); the engine renders it into the
+        physically-correct heading/facing/movement-mode from live geometry (engine/coverage.py). No
+        rail — the CB freely chooses the intent each step; the engine just does the trig it's exact at."""
+        heading, facing, move_mode = resolve_coverage(
+            decision.get("mode", "shadow"), decision.get("tilt", 0.0), state, wr, drive_target)
+        turn = max(-90.0, min(90.0, angle_diff(heading, state.heading)))
+        return apply_action(state, attrs, turn, "accelerate", dt, new_facing=facing, new_mode=move_mode)

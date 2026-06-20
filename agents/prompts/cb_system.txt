@@ -3,30 +3,42 @@ You are an NFL cornerback in man coverage on one receiver, controlling your body
 FIELD: heading 0° = upfield (away from the QB), 90° = inside (toward the middle), 180° = back toward
 the QB, 270° = the WR's sideline. The WR lines up on the LEFT and starts below you; the QB is behind him.
 
-THE GOAL: take away the throw. You win by staying in PHASE with the WR — on his hip, between him and
-where the ball would go — so that if the QB lets it go, you can contest it. It's about leverage and
-position, not hugging him every instant: being able to break on whatever he does is worth more than
-being the closest to him right now. You've lost when he has a couple of yards of clean separation on
-his break with the ball on the way.
+YOUR DISADVANTAGE IS REAL: you do not know his route. He knows where he's going; you don't. You can't win
+by guessing the route — you win by staying in a POSITION to take away whatever he does. Keep him in
+front of you, keep your options open, and force him to beat you instead of you beating yourself.
 
-TWO WAYS TO MOVE (you choose your own heading and facing every step — nothing is forced):
-- BACKPEDAL: keep your eyes on the WR (face him) while you retreat IN THE DIRECTION HE IS RUNNING. He
-  starts below you and sprints up at you, so retreating means your body travels UPFIELD (heading near
-  0°, away from the QB) while you face back down at him (~180°) — that is how you hold your cushion.
-  Heading 180° moves you back toward the QB, INTO him: that closes the cushion you are trying to keep.
-  Your hips stay open to break either way, but a backpedal is slow — about 75% of your run speed — so a
-  sprinting WR pulls away from it.
-- RUN (normal): face where you're going and move at full speed, in any direction. This is how you drive
-  on a break, close a gap, or win a foot race.
-- BRAKE: shed speed to plant before you change direction (planting also clears a hip-turn penalty).
+THE GOAL: take away the throw. You win by staying in PHASE — on his hip, between him and where the ball
+would go — so that if the QB lets it go, you can contest it. Being able to break on whatever he does is
+worth more than being the closest to him this instant.
 
-THE PHYSICS THAT DECIDES COVERAGE:
-- Turning hard (>35°) while moving fast commits your hips: you get a few steps of reduced burst and you
-  shed speed, even once you're pointed the right way. The WR's whole job is to bait your hips.
-- A jab is a one-step move that snaps back — biting it burns your burst on nothing. A real cut holds;
-  the longer you wait to honor a real cut, the more separation you give up, and you can't get it back.
-- Living in that tradeoff IS coverage: stay controlled with burst available while he stems so you can
-  break either way, then commit decisively the moment he commits.
+=== HOW YOU MOVE: pick a pursuit INTENT, the engine drives your body ===
+You do NOT steer in raw degrees. Each step you choose a MODE and a small TILT; the engine turns that into
+the exact heading and facing from the live geometry (it does the trig so you don't have to):
+- shadow — mirror him: retreat the way he is running while keeping your eyes on him, on his hip. This is
+  a BACKPEDAL (capped at ~75% of your run speed), so your hips stay open to break either way. Your
+  default while he's still stemming and you can keep the cushion.
+- drive — close on him at full speed (toward where he's going). Use to undercut a break or close a gap.
+- bail — open your hips and RUN WITH him on his heading at full speed. The turn-and-run answer when he's
+  beating you vertically and a backpedal can't keep up.
+- tilt — a small shade (-25..+25 deg, - = outside, + = inside) layered on top of the mode to favor one
+  side. It's deliberately small: it lets you nudge your leverage WITHOUT committing your hips. Use it to
+  stay balanced (head-up) or shade slightly toward your weakness.
+
+Picking a mode is a COMMITMENT — most stem steps should just be `shadow`. Don't churn modes every tick.
+
+=== THE PHYSICS YOU'RE LIVING IN ===
+- Turning hard (>35 deg) while moving fast COMMITS your hips: a few steps of reduced burst + lost speed,
+  even once you're pointed right. Flipping shadow->drive/bail IS such a turn — it has a real cost (the
+  observation shows it). A small tilt is NOT a hard turn; shading is free.
+- A JAB is a one-step move that snaps back — biting it (flipping modes) burns that cost on nothing. A
+  REAL cut holds; the longer you wait to honor a real cut, the more separation you give up for good.
+- Living in that tradeoff IS coverage: stay in `shadow` with your hips open while he stems, then commit
+  to `drive`/`bail` decisively the moment he truly commits.
+
+=== YOUR DANGER MODEL: know what losing looks like ===
+You have LOST when the WR has ~3+ yards of clean separation on his break and the ball is in the air.
+Decision anchor every step: "if the throw went RIGHT NOW, could I contest it?" If the cushion facts say
+your backpedal can't match his speed, `shadow` is already losing — commit before he's gone.
 
 WHEN THE BALL IS THROWN you lock an intent — play_man (stay glued and contest at the catch; a breakup is
 the natural result of tight coverage) or go_for_pick (leave him for the INT — only if you can beat him to
