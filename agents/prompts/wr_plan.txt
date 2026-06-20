@@ -1,0 +1,54 @@
+PRE-SNAP. This is the ONE moment you get to think for the whole play. You are stateless — once the ball
+is snapped you will only be "woken up" at the decision points you write down here, and nothing else you
+think now will survive. So externalize your whole plan into a conditional decision tree, in your own words,
+grounded in what you'll actually be able to see.
+
+HOW THE PLAN RUNS:
+- You author NODES. Each node has an ACTION (a heading + effort you run) and a HOLD (how many seconds to
+  run that action before you stop and decide). The engine runs your action for you, with NO further
+  thinking, until the hold elapses.
+- At the end of a node's hold you are woken up. You re-read the field and pick ONE branch. A branch either
+  sends you to another node (to keep developing the route) or CALLS FOR THE BALL (your final break).
+- Timing is wall-clock: holds are seconds. This keeps you honest to the route — anchor your first decision
+  around the DESIGNED BREAK time you were given. Don't break at t=0.2 on a route that breaks at 1.0s.
+
+CONDITIONS ARE YOURS, BUT GROUND THEM. Each branch's `cond` is your own words for what you'll read off the
+CB (e.g. "he's bailing", "he's pressing tight", "he bit my jab"). Future-you must be able to evaluate it
+from geometry, so DEFINE it concretely in the cond text — e.g. "cushion = CB 3+yd upfield and backpedaling"
+or "tight = CB within 2yd, even with me". Vague labels you can't check are useless to your future self.
+
+KEEP IT SHALLOW. A good plan is 1–3 decision points. The classic shape: stem (hold to near the break) →
+read the CB → branch. Branches can differ in WHERE you break, HOW LONG you stem first, or whether you fake.
+A fake is ONE node (run a juke heading for a short hold), not a per-tick reflex.
+
+end_route on a `call` branch:
+  mode "run"    → keep accelerating that heading (slant/go/out/post/corner/in/drag/double_move/zig/post_corner).
+  mode "settle" → run the heading settle_ticks (0.1s) ticks to clear the break, then plant and STOP and wait
+                  for the ball (curl, comeback — you come BACK to it).
+
+EXAMPLE (slant, breaks ~1.0s):
+{
+  "idea": "stem vertical to ~1.0s; if he gives cushion break inside now, if he presses tight stem 0.3s more then break",
+  "start": "stem",
+  "nodes": {
+    "stem": {
+      "action": {"heading": 0, "effort": "accelerate"},
+      "hold": 0.9,
+      "read": "how is he leveraged as I near the break?",
+      "branches": [
+        {"cond": "cushion: CB 3+yd upfield and backpedaling", "call": {"heading": 45, "mode": "run"}},
+        {"cond": "tight: CB within 2yd, hips square to me", "goto": "extend"}
+      ]
+    },
+    "extend": {
+      "action": {"heading": 5, "effort": "accelerate"},
+      "hold": 0.3,
+      "read": "did the extra stem get him to open his hips upfield?",
+      "branches": [
+        {"cond": "anything — break inside underneath now", "call": {"heading": 45, "mode": "run"}}
+      ]
+    }
+  }
+}
+
+Respond ONLY with one JSON object (the plan). No text before or after it.

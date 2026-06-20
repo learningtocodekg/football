@@ -19,7 +19,9 @@ from replay.recorder import Recorder
 from agents.qb_agent import QBAgent
 from agents.cb_agent import CBAgent
 from agents.wr_agent import WRAgent
-from agents.observation_wr import build_wr_free_observation, build_wr_air_observation
+from agents.observation_wr import (
+    build_wr_pre_snap_observation, build_wr_node_observation, build_wr_air_observation,
+)
 from agents.observation_qb import build_qb_observation
 from agents.observation_cb import (
     build_cb_pre_snap_observation, build_cb_observation, build_cb_intent_observation,
@@ -127,6 +129,14 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
 
     wr_start = (states["WR1"].x, states["WR1"].y)
 
+    # ── WR authors its conditional plan once, pre-snap (the play's one full-reasoning call) ──
+    plan = wr_agent.author_plan(build_wr_pre_snap_observation(
+        states["WR1"], attrs["WR1"], states.get("CB1"), route_name, wr_start=wr_start))
+    print(f"  WR plan: {plan.get('idea','')}  | start='{plan['start']}' nodes={list(plan['nodes'])}")
+    wr_node_id = plan["start"]
+    wr_node = plan["nodes"][wr_node_id]
+    wr_node_entered_t = 0.0
+
     recorder = Recorder(header={"seed": seed, "scenario": scenario_path, "roster": roster_path,
                                 "down": down, "distance": distance})
     phase = PlayPhase.LIVE
@@ -146,6 +156,7 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
         actions["CB1"] = {"action": "cover", "reasoning": "pre-snap"}
 
     commit_step: int | None = None     # step the WR called for the ball
+    frozen_sack_clock: float | None = None  # sack clock stops once the ball is thrown
     cb_intent = "play_man"
     intent_decided = False
     ball_total_eta: float | None = None
@@ -160,7 +171,8 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
     for step in range(MAX_STEPS):
         t = round(step * DT, 3)
         events: list[dict] = []
-        sack_clock = round(max(0.0, SACK_CLOCK - t), 3)
+        sack_clock = frozen_sack_clock if frozen_sack_clock is not None \
+            else round(max(0.0, SACK_CLOCK - t), 3)
 
         if has_cb:
             sep = math.hypot(states["WR1"].x - states["CB1"].x, states["WR1"].y - states["CB1"].y)
@@ -178,22 +190,48 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
 
             committed = wr_agent.called_for_ball
 
-            # ── WR ──
+            # ── WR (plan-driven: run the current node's action; wake only at decision points) ──
             if not committed:
-                wr_obs = build_wr_free_observation(
-                    t, states["WR1"], attrs["WR1"], states.get("CB1"), states["QB"],
-                    route_name, history=move_history, wr_start=wr_start)
-                wr_dec = wr_agent.decide_free(wr_obs, t=t)
-                actions["WR1"] = {**wr_dec, "action": "run_route"}
-                call_str = " [CALL FOR BALL]" if wr_dec.get("call_for_ball") else ""
-                print(f"  t={t:.1f} WR -> hdg={wr_dec['heading']:.0f} thr={wr_dec['throttle']}{call_str} | {wr_dec.get('reasoning','')}")
-                if wr_dec.get("call_for_ball") and commit_step is None:
-                    commit_step = step
-                    telemetry["wr_call_t"] = t
-                    er = wr_agent.end_route
-                    events.append({"type": "WR_CALL", "t": t, "end_route": er})
-                    print(f"  t={t:.1f} WR called! end_route={er}")
-                states["WR1"] = wr_agent.apply_decision(actions["WR1"], states["WR1"], attrs["WR1"], DT)
+                decide_t = wr_node_entered_t + wr_node["hold"]
+                if t < decide_t - 1e-9:
+                    # Between decision nodes: execute the node's durative action, NO LLM call.
+                    act = wr_node["action"]
+                    actions["WR1"] = {"heading": act["heading"], "facing": act["heading"],
+                                      "throttle": act["effort"], "action": "run_route",
+                                      "reasoning": f"[plan {wr_node_id}] {act['effort']} hdg {act['heading']:.0f}"}
+                    states["WR1"] = wr_agent.apply_decision(actions["WR1"], states["WR1"], attrs["WR1"], DT)
+                else:
+                    # Decision node: the WR is alive — evaluate its own read, pick a branch.
+                    node_obs = build_wr_node_observation(
+                        t, states["WR1"], attrs["WR1"], states.get("CB1"), states["QB"],
+                        route_name, wr_node, wr_node_id, history=move_history, wr_start=wr_start)
+                    sel = wr_agent.decide_node(node_obs, wr_node)
+                    branch = wr_node["branches"][sel["choice"]]
+                    print(f"  t={t:.1f} WR @{wr_node_id} -> [{sel['choice']}] '{branch['cond']}' | {sel.get('reasoning','')}")
+                    if "call" in branch:
+                        er = branch["call"]
+                        wr_agent.called_for_ball = True
+                        wr_agent.call_t = t
+                        wr_agent.end_route = er
+                        wr_agent.call_heading = er["heading"]
+                        commit_step = step
+                        telemetry["wr_call_t"] = t
+                        events.append({"type": "WR_CALL", "t": t, "end_route": er})
+                        print(f"  t={t:.1f} WR called! end_route={er}")
+                        actions["WR1"] = {"heading": er["heading"], "facing": er["heading"],
+                                          "throttle": "accelerate", "action": "run_route",
+                                          "reasoning": f"[plan call] {branch['cond']}"}
+                        states["WR1"] = wr_agent.apply_decision(actions["WR1"], states["WR1"], attrs["WR1"], DT)
+                    else:
+                        goto = branch.get("goto")
+                        if goto in plan["nodes"]:
+                            wr_node_id, wr_node = goto, plan["nodes"][goto]
+                        wr_node_entered_t = t
+                        act = wr_node["action"]
+                        actions["WR1"] = {"heading": act["heading"], "facing": act["heading"],
+                                          "throttle": act["effort"], "action": "run_route",
+                                          "reasoning": f"[plan {wr_node_id}] {act['effort']} hdg {act['heading']:.0f}"}
+                        states["WR1"] = wr_agent.apply_decision(actions["WR1"], states["WR1"], attrs["WR1"], DT)
             else:
                 progress = step - commit_step
                 er = wr_agent.end_route
@@ -245,6 +283,7 @@ def run_play(scenario_path, roster_path, seed, output_path, scenario_overrides=N
                             telemetry["sep_at_throw"] = round(math.hypot(
                                 states["WR1"].x - states["CB1"].x, states["WR1"].y - states["CB1"].y), 2)
                         phase = PlayPhase.BALL_IN_AIR
+                        frozen_sack_clock = sack_clock
                         actions["QB"] = {"action": "hold", "reasoning": "ball in air"}
 
             # ── CB ── (skip step 0: give the CB one tick of WR movement to read first,

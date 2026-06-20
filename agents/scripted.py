@@ -86,7 +86,8 @@ ROUTE_DESCRIPTIONS: dict[str, dict] = {
     "go": {
         "purpose": (
             "Near the end of the stem convince the CB you are about to cut left or right; once he "
-            "commits, beat him straight up the field in a pure speed race."
+            "commits, full speed ahead in a pure foot race — call for the ball only once you are "
+            "level with or past him, and take it over his head."
         ),
     },
     "double_move": {

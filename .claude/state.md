@@ -48,6 +48,23 @@ Contract: `.claude/freedom_design.md`. Handoff: `.claude/left_off.md`.
   judge coverage): flip-flop ELIMINATED (2–10 mode switches/play vs per-tick churn); slant ELITE
   (PBU/INT/PBU sub-1.3yd), comeback mostly good (one 6.15 miss), go beaten deep (WR 9.5>CB 9.0 + late
   bail). NEXT: build the WR decision-tree agent (`.claude/wr_agent_design.md`), then test WR+CB together.
+- **WR REBUILT as a self-authored conditional decision tree (2026-06-20):** implements
+  `.claude/wr_agent_design.md`. The WR authors its whole plan ONCE pre-snap (full reasoning) and the engine
+  executes the nodes; the LLM is "alive" only at the decision nodes it wrote — the plan IS its externalized
+  state. plan=`{idea,start,nodes}`; node=`{action:{heading,effort}, hold, read, branches}`;
+  branch=`{cond,goto}` or `{cond,call:<end_route>}`. New: `schema.parse_wr_plan`/`parse_wr_node_choice`,
+  `wr_agent.author_plan`/`decide_node`/`_fallback_plan`, `observation_wr.build_wr_pre_snap_observation`/
+  `build_wr_node_observation`, prompts `wr_plan.txt`+`wr_node.txt` (+ reframed `wr_system.txt`), and a
+  node-walk in `runner.py` (durative action between nodes = NO LLM; wake at each node's `hold`; a `call`
+  branch locks the end_route via the unchanged commit path). **Juke-spam + oscillation ELIMINATED** (both
+  were per-tick re-decide artifacts); 0 parse errors. Results (seed 42, judge coverage): slant PASS (2/2
+  clean, open), comeback PASS (2/2 CATCH, sep 4.4->6.1 / 1.4->4.6); **go calls too early** — the wall-clock
+  spine front-loads the lone decision node ~1.0s and the WR commits before overtaking the CB's cushion
+  (calls at 0.4–1.1yd; a go is open only once the CB is EVEN/BEHIND, ~2.0–2.5s). Editing the go PURPOSE
+  removed an earlier self-sabotaging hard-fake mode but didn't move the call timing. DECISION: the early
+  call is the QB's problem (QB is call-gated and can HOLD) — NOT patched on the WR (would be a rail).
+  `decide_free`/`parse_wr_free`/`wr_free.txt` now dead (left in place). NEXT: QB throw-timing (un-pause QB;
+  hold until the WR is actually open, esp. the go even-with/past-CB window).
 
 ## (main, soft-rail design below) — Session 4 verification etc.
 WR route execution was rebuilt as a SOFT RAIL (s3) — the long-standing "WR ignores route geometry" problem
